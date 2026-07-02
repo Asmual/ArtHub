@@ -101,7 +101,7 @@ export default function ArtistDashboard() {
           </div>
          
           <Link
-            href="/dashboard/artist/add-artwork"
+            href="/dashboard/artist/add-art"
             className="flex items-center gap-2 bg-[#df6742] hover:bg-[#c55332] text-white text-xs font-bold px-4 py-3 rounded-xl transition-all shadow-md active:scale-[0.98] shrink-0 h-fit w-fit"
           >
             <PlusCircle size={16} /> Upload Masterpiece

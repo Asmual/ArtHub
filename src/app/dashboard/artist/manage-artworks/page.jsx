@@ -28,8 +28,8 @@ export default function ManageArtworksPage() {
       try {
         setLoading(true);
 
-        // Fetch catalog endpoint with large limit to safely process client filter
-        const res = await fetch(`${base}/api/artworks?limit=100`, {
+        // Query catalog filtering directly by the authenticated user's email parameter
+        const res = await fetch(`${base}/api/artworks?email=${encodeURIComponent(user.email)}`, {
           method: "GET",
           headers: {
             "Accept": "application/json",
@@ -46,19 +46,12 @@ export default function ManageArtworksPage() {
         const data = await res.json();
 
         if (isMounted) {
-          // Extract the array from wrapper object property 'artworks'
           const artworkList = data && Array.isArray(data.artworks) ? data.artworks : [];
-          
-          // Filter matching records matching the authorized artist metrics
-          const myArt = artworkList.filter(
-            (item) => item.artistEmail === user.email || item.artistName === user.name
-          );
-          
-          setArtworks(myArt);
+          setArtworks(artworkList);
         }
       } catch (err) {
         console.error("Fetch inventory error:", err);
-        toast.error(err.message || "Failed to retrieve artwork records.");
+        toast.error(err instanceof Error ? err.message : "Failed to retrieve artwork records.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -80,12 +73,12 @@ export default function ManageArtworksPage() {
       });
 
       if (!res.ok) throw new Error("Failed to delete the selected artwork.");
-      
+     
       toast.success("Masterpiece removed from gallery.");
       setArtworks((prev) => prev.filter((item) => item._id !== id));
     } catch (err) {
       console.error("Delete artwork error:", err);
-      toast.error(err.message || "Could not execute deletion request.");
+      toast.error(err instanceof Error ? err.message : "Could not execute deletion request.");
     }
   };
 

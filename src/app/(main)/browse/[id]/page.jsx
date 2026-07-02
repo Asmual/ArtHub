@@ -5,7 +5,6 @@ import ArtworkDetailsClient from "@/components/artwork/ArtworkDetailsClient";
 export default async function ArtworkDetailsPage({ params }) {
   const { id } = await params;
  
-  // Validate if the ID exists and fits MongoDB's standard 12-byte binary or 24-character hex format
   if (!id || !ObjectId.isValid(id)) {
     return (
       <div className="min-h-screen bg-[#2f3f48] flex items-center justify-center text-white">
@@ -19,25 +18,41 @@ export default async function ArtworkDetailsPage({ params }) {
   try {
     const db = await getDB();
    
-    // Query target artwork data by casting identifier string to raw ObjectId
-    const data = await db.collection("artworks").findOne({ _id: new ObjectId(id) });
+    const data = await db.collection("artworks").findOne(
+      { _id: new ObjectId(id) },
+      {
+        projection: {
+          title: 1,
+          description: 1,
+          image: 1,
+          price: 1,
+          category: 1,
+          isSold: 1,
+          buyerId: 1,
+          userId: 1,
+          artistId: 1,
+          artist: 1,
+          artistName: 1,
+          specialty: 1,
+          createdAt: 1,
+        }
+      }
+    );
 
     if (data) {
       const rawArtistId = data.userId || data.artistId || data.artist;
       let artistData = null;
 
-      // Extract and fetch linked relational artist account information
       if (rawArtistId) {
         try {
-          let artistObjId;
-          if (typeof rawArtistId === "string") {
-            artistObjId = ObjectId.isValid(rawArtistId) ? new ObjectId(rawArtistId) : rawArtistId;
-          } else {
-            artistObjId = rawArtistId;
-          }
+          const artistObjId = typeof rawArtistId === "string" && ObjectId.isValid(rawArtistId)
+            ? new ObjectId(rawArtistId)
+            : rawArtistId;
          
-          // Fetch corresponding verified account details from user collection
-          const userDoc = await db.collection("user").findOne({ _id: artistObjId });
+          const userDoc = await db.collection("user").findOne(
+            { _id: artistObjId },
+            { projection: { name: 1, email: 1, role: 1, specialty: 1 } }
+          );
          
           if (userDoc) {
             artistData = {
@@ -45,12 +60,11 @@ export default async function ArtworkDetailsPage({ params }) {
               _id: userDoc._id.toString()
             };
           }
-        } catch (err) {
-          console.error("Error fetching associated artist profile from user collection:", err);
+        } catch (artistFetchError) {
+          console.error(`[DATABASE] Relational integrity failure matching artist blueprint context: ${artistFetchError.message}`);
         }
       }
 
-      // Structure sanitized serialized object to safely pipe down into Client Component
       artwork = {
         ...data,
         _id: data._id.toString(),
@@ -60,8 +74,8 @@ export default async function ArtworkDetailsPage({ params }) {
         resolvedArtistId: artistData?._id || (typeof rawArtistId === "string" ? rawArtistId : rawArtistId?.toString()) || null
       };
     }
-  } catch (error) {
-    console.error("Error fetching artwork details from MongoDB:", error);
+  } catch (primaryFetchError) {
+    console.error(`[DATABASE] Core runtime operational failure executing findOne on artwork schema collection: ${primaryFetchError.message}`);
   }
 
   if (!artwork) {

@@ -1,22 +1,92 @@
- 
 "use client";
 
-import React from "react";
-import { FaDollarSign, FaShoppingBag, FaChartLine, FaRegClock } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaDollarSign, FaShoppingBag, FaChartLine, FaRegClock, FaSpinner } from "react-icons/fa";
+import { authClient } from "@/lib/auth-client";
+import { backendFetch } from "@/lib/api-client";
+import toast from "react-hot-toast";
 
 export default function SalesPage() {
-  // Placeholder analytics metrics tracking operational metrics data
-  const salesHistory = [
-    { _id: "S101", title: "Liberation Force", buyer: "alice.johnson@example.com", amount: 1200, date: "June 20, 2026" },
-    { _id: "S102", title: "Crimson Skyline", buyer: "robert.art@example.com", amount: 850, date: "June 14, 2026" },
-  ];
+  const { data: session, isPending: authLoading } = authClient.useSession();
+  const user = session?.user;
 
-  const totalEarnings = salesHistory.reduce((acc, curr) => acc + curr.amount, 0);
+  const [salesHistory, setSalesHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user?.email) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchSalesData = async () => {
+      try {
+        setLoading(true);
+
+        // Dynamic API router mapping directed towards payment endpoints allocation architecture
+        const response = await backendFetch("/api/payment/my-sales", { method: "GET" }, user.email);
+
+        if (!response || !response.ok) {
+          throw new Error("Failed to sync structural dashboard data from database.");
+        }
+
+        const result = await response.json();
+
+        if (isMounted) {
+          if (result && result.success && Array.isArray(result.data)) {
+            setSalesHistory(result.data);
+          } else if (Array.isArray(result)) {
+            setSalesHistory(result);
+          } else {
+            setSalesHistory([]);
+          }
+        }
+      } catch (err) {
+        console.error("Dashboard calculation error:", err);
+        if (isMounted) {
+          // Toast emission rule directly utilized without interrupting page UI display maps
+          toast.error(err instanceof Error ? err.message : "Failed to load operational sales metrics.");
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchSalesData();
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoading, user]);
+
+  const totalEarnings = salesHistory.reduce((acc, curr) => acc + Number(curr.amount || curr.price || 0), 0);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const parsedDate = new Date(dateString);
+    return isNaN(parsedDate.getTime()) ? dateString : parsedDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="min-h-screen bg-[#2f3f48] flex flex-col items-center justify-center text-white gap-3">
+        <FaSpinner className="animate-spin text-2xl text-[#df6742]" />
+        <p className="text-xs text-white/40 tracking-wider">Compiling analytical ledger statistics...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#2f3f48] p-6 sm:p-10 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-5xl mx-auto space-y-8">
-        
+       
         {/* Top Operational Metrics Hub */}
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -58,29 +128,35 @@ export default function SalesPage() {
 
           <div className="space-y-3">
             {salesHistory.map((invoice) => (
-              <div 
-                key={invoice._id} 
+              <div
+                key={invoice._id}
                 className="bg-[#2f3f48] border border-white/4 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#df6742]/30 transition-all duration-200"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-xs text-white/40 font-semibold uppercase tracking-wide">
-                    <span>ID: {invoice._id}</span>
+                    <span className="font-mono">ID: {invoice._id}</span>
                     <span className="w-1 h-1 rounded-full bg-white/20" />
-                    <span>{invoice.date}</span>
+                    <span>{formatDate(invoice.createdAt || invoice.date)}</span>
                   </div>
-                  <h4 className="text-base font-bold text-neutral-100">{invoice.title}</h4>
-                  <p className="text-xs text-white/50 font-medium">Buyer: <span className="text-white/70 font-mono">{invoice.buyer}</span></p>
+                  <h4 className="text-base font-bold text-neutral-100">
+                    {invoice.artworkTitle || invoice.title || "Untitled Masterwork"}
+                  </h4>
+                  <p className="text-xs text-white/50 font-medium">
+                    Buyer: <span className="text-white/70 font-mono">{invoice.buyerEmail || invoice.buyer}</span>
+                  </p>
                 </div>
-                
+               
                 <div className="sm:text-right bg-black/10 border border-white/5 px-4 py-2 rounded-xl">
                   <span className="text-xs text-white/30 uppercase font-bold block tracking-wider">Payout</span>
-                  <span className="text-lg font-black text-emerald-400">${invoice.amount.toFixed(2)}</span>
+                  <span className="text-lg font-black text-emerald-400">
+                    ${Number(invoice.amount || invoice.price || 0).toFixed(2)}
+                  </span>
                 </div>
               </div>
             ))}
 
             {salesHistory.length === 0 && (
-              <p className="text-center text-xs text-white/30 py-8">No successful checkout receipts logged inside your account ledger.</p>
+              <p className="text-center text-xs text-white/30 py-12">No successful checkout receipts logged inside your account ledger.</p>
             )}
           </div>
         </div>

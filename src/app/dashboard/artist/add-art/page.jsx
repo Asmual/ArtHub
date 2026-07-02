@@ -25,10 +25,24 @@ export default function AddArtPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Verifies if a structured string maps to an immutable CDN location matching direct image criteria
+   */
+  const isValidDirectImageUrl = (url) => {
+    if (!url || typeof url !== "string") return false;
+    const URL_REGEX = /^https:\/\/[a-zA-Z0-9-_.]+\.[a-zA-Z]{2,}\/.*\.(jpg|jpeg|png|webp|gif|svg)(\?.*)?$/i;
+    return URL_REGEX.test(url);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
       toast.error("You must be logged in to upload artwork.");
+      return;
+    }
+
+    if (!isValidDirectImageUrl(formData.image)) {
+      toast.error("Please supply a valid, secure direct image URL link (e.g., https://i.ibb.co/...). Check your image source formatting.");
       return;
     }
 
@@ -57,6 +71,7 @@ export default function AddArtPage() {
           "Accept": "application/json",
           "Authorization": `Bearer ${sessionToken}`
         },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 

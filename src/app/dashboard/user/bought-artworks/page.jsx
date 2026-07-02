@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { Loader2, Palette, ExternalLink, ArrowLeft, ImageOff } from "lucide-react";
+import { Palette, ExternalLink, ArrowLeft, ImageOff } from "lucide-react";
 import Link from "next/link";
+import Loading from "@/app/loading";
 
 const getAuthToken = async (base, email) => {
   const res = await fetch(`${base}/api/users/generate-token`, {
@@ -64,7 +65,7 @@ export default function BoughtArtworksPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-2 text-white">
-        <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
+        <Loading/>
         <p className="text-xs text-white/40">Loading your art collection...</p>
       </div>
     );

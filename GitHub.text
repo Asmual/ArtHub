@@ -8,5 +8,5 @@ git push -u origin main
 
 
 git add .
-git commit -m "Update README.md describing the project"
+git commit -m "fix: sanitize artwork search regex input and resolve API routing mismatch"
 git push

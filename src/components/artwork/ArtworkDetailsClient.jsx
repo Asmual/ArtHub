@@ -71,8 +71,19 @@ export default function ArtworkDetailsClient({ artwork }) {
         "https://arthub-server-z4w8.onrender.com"
       ).replace(/\/$/, "");
 
-      // Fetch fresh backend validated JWT token to completely avoid 403 Forbidden issues
       const targetToken = await getAuthToken(base, user.email);
+
+      // ফ্রন্টএন্ড ট্র্যাকিং লগ মেটাডেটা ভেরিফিকেশন
+      const payload = {
+        artworkId: artwork?._id,
+        price: Number(artwork.price),
+        artworkName: artwork.title,
+        userEmail: user.email,
+        buyerEmail: user.email,
+        userId: user.id,
+      };
+      
+      console.log("[FRONTEND LOG] Dispatched payload payload maps to checkout stream: ", payload);
 
       const response = await fetch(
         `${base}/api/payment/create-checkout-session`,
@@ -82,14 +93,7 @@ export default function ArtworkDetailsClient({ artwork }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${targetToken}`,
           },
-          body: JSON.stringify({
-            artworkId: artwork._id || artworkId,
-            price: Number(artwork.price),
-            artworkName: artwork.title,
-            userEmail: user.email,
-            buyerEmail: user.email,
-            userId: user.id,
-          }),
+          body: JSON.stringify(payload),
         },
       );
 
@@ -104,6 +108,7 @@ export default function ArtworkDetailsClient({ artwork }) {
       }
 
       if (data.url) {
+        console.log(`[FRONTEND SUCCESS] Secure Gateway Route Target URL intercepted: ${data.url}`);
         window.location.href = data.url;
       } else {
         throw new Error("Stripe secure gateway url missing from response.");
