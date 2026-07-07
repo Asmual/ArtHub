@@ -8,5 +8,5 @@ git push -u origin main
 
 
 git add .
-git commit -m "fix: sanitize artwork search regex input and resolve API routing mismatch"
+git commit -m "feat: add dynamic light and dark theme mode switching feature"
 git push

@@ -42,7 +42,7 @@ export default function ProfilePage() {
     formData.append("image", file);
 
     try {
-      // .env.local ফাইল থেকে ডাইনামিকালি URL এবং API Key রিড করা হচ্ছে
+   
       const apiUrl = process.env.NEXT_PUBLIC_IMGBB_API_URL || "https://api.imgbb.com/1/upload";
       const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
@@ -110,10 +110,10 @@ export default function ProfilePage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header Section */}
-      <div className="bg-[#243239] p-6 rounded-2xl border border-white/5 flex items-center justify-between">
+      <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)] flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Profile Management</h1>
-          <p className="text-white/40 text-sm mt-1">Update your personal information and profile picture.</p>
+          <h1 className="text-2xl font-bold text-[var(--text-main)]">Profile Management</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Update your personal information and profile picture.</p>
         </div>
         <div className="hidden sm:block">
           <div className="px-3 py-1 bg-[#df6742]/10 border border-[#df6742]/20 rounded-full">
@@ -124,9 +124,9 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Avatar Upload Section */}
-        <div className="lg:col-span-1 bg-[#243239] p-8 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center">
+        <div className="lg:col-span-1 bg-[var(--surface)] p-8 rounded-2xl border border-[var(--border-line)] flex flex-col items-center justify-center text-center">
           <div className="relative group">
-            <div className="w-32 h-32 rounded-full border-4 border-[#df6742] overflow-hidden bg-black/20 relative">
+            <div className="w-32 h-32 rounded-full border-4 border-[#df6742] overflow-hidden bg-[var(--hover-bg)] relative">
               {isUploading ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
                   <RefreshCcw className="text-white animate-spin w-6 h-6" />
@@ -140,14 +140,14 @@ export default function ProfilePage() {
                   className="w-full h-full object-cover" 
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-white/20">
+                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-[var(--text-subtle)]">
                   {user?.name?.charAt(0)}
                 </div>
               )}
             </div>
             
             {/* Upload Trigger */}
-            <label className="absolute bottom-1 right-1 bg-[#df6742] p-2 rounded-full cursor-pointer hover:bg-[#c55332] transition-colors shadow-lg border-2 border-[#243239]">
+            <label className="absolute bottom-1 right-1 bg-[#df6742] p-2 rounded-full cursor-pointer hover:bg-[#c55332] transition-colors shadow-lg border-2 border-[var(--surface)]">
               <Camera size={18} className="text-white" />
               <input 
                 type="file" 
@@ -159,38 +159,38 @@ export default function ProfilePage() {
             </label>
           </div>
           
-          <h2 className="mt-4 text-lg font-bold text-white truncate max-w-full">{user?.name}</h2>
-          <p className="text-white/40 text-xs truncate max-w-full">{user?.email}</p>
+          <h2 className="mt-4 text-lg font-bold text-[var(--text-main)] truncate max-w-full">{user?.name}</h2>
+          <p className="text-[var(--text-muted)] text-xs truncate max-w-full">{user?.email}</p>
         </div>
 
         {/* Right: Info Form Section */}
-        <div className="lg:col-span-2 bg-[#243239] p-6 rounded-2xl border border-white/5">
+        <div className="lg:col-span-2 bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)]">
           <form onSubmit={handleUpdateProfile} className="space-y-5">
             {/* Name Field */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-white/40 uppercase tracking-wider ml-1">Full Name</label>
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Full Name</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
                 <input 
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white focus:border-[#df6742]/50 focus:outline-none transition-all"
+                  className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-main)] focus:border-[#df6742]/50 focus:outline-none transition-all"
                 />
               </div>
             </div>
 
             {/* Email Field (Disabled) */}
             <div className="space-y-2 opacity-60">
-              <label className="text-xs font-bold text-white/40 uppercase tracking-wider ml-1">Email Address (Primary)</label>
+              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Email Address (Primary)</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
                 <input 
                   type="email" 
                   value={user?.email || ""} 
                   disabled
-                  className="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-11 pr-4 text-white/50 cursor-not-allowed"
+                  className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-muted)] cursor-not-allowed"
                 />
               </div>
             </div>

@@ -7,8 +7,8 @@ import { FaStar, FaSearch, FaSlidersH } from 'react-icons/fa';
 
 const RANK_BADGE = {
   0: "bg-[#df6742] text-white",
-  1: "bg-white/[0.13] text-white/75",
-  2: "bg-white/[0.07] text-white/45",
+  1: "bg-slate-200 dark:bg-white/[0.13] text-slate-600 dark:text-white/75",
+  2: "bg-slate-100 dark:bg-white/[0.07] text-slate-500 dark:text-white/45",
 };
 
 const AVATAR_GRADIENTS = [
@@ -30,16 +30,16 @@ const getInitials = (name = "") => {
 
 // সিঙ্কড স্কেলেটন লোডার কার্ড
 const SkeletonCard = () => (
-  <div className="bg-[#243239] border border-white/8 rounded-2xl p-6 flex flex-col items-center animate-pulse">
-    <div className="w-17 h-17 rounded-full bg-white/10 border-2 border-[#2f3f48] mb-4 mt-2" />
-    <div className="h-4 w-32 bg-white/10 rounded mb-2" />
-    <div className="h-3 w-20 bg-white/7 rounded mb-6" />
+  <div className="bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-2xl p-6 flex flex-col items-center animate-pulse">
+    <div className="w-17 h-17 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-slate-100 dark:border-[#2f3f48] mb-4 mt-2" />
+    <div className="h-4 w-32 bg-slate-200 dark:bg-white/10 rounded mb-2" />
+    <div className="h-3 w-20 bg-slate-100 dark:bg-white/7 rounded mb-6" />
     <div className="flex gap-3 mb-6 w-full">
       {[0, 1].map((i) => (
-        <div key={i} className="flex-1 bg-white/5 rounded-xl h-14" />
+        <div key={i} className="flex-1 bg-slate-100 dark:bg-white/5 rounded-xl h-14" />
       ))}
     </div>
-    <div className="h-10 w-full bg-white/5 rounded-xl" />
+    <div className="h-10 w-full bg-slate-100 dark:bg-white/5 rounded-xl" />
   </div>
 );
 
@@ -53,7 +53,7 @@ export default function AllArtists({ artists = [], loading = false }) {
     return ['All', ...Array.from(list)];
   }, [artists]);
 
-  // ইনফিনিট লুপ ছাড়া সেফ ফিল্টারিং (useMemo ব্যবহার করা হয়েছে পারফরম্যান্সের জন্য)
+  // ইনফিনিট লুপ ছাড়া সেফ ফিল্টারিং (useMemo ব্যবহার করা হয়েছে পারফরম্যান্সের জন্য)
   const filteredArtists = useMemo(() => {
     return artists.filter((artist) => {
       if (!artist) return false;
@@ -72,16 +72,16 @@ export default function AllArtists({ artists = [], loading = false }) {
   return (
     <div className="space-y-8">
       {/* ফিল্টার এবং সার্চ বার কন্ট্রোল */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#243239] p-4 rounded-2xl border border-white/5 shadow-lg">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-[#243239] p-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-lg">
         {/* সার্চ ইনপুট */}
         <div className="relative w-full md:max-w-md">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm" />
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30 text-sm" />
           <input
             type="text"
             placeholder="Search master artists by name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#1e262b] border border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#df6742]/50 transition-colors"
+            className="w-full bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-[#df6742]/50 transition-colors"
           />
         </div>
 
@@ -91,10 +91,10 @@ export default function AllArtists({ artists = [], loading = false }) {
           <select
             value={specialtyFilter}
             onChange={(e) => setSpecialtyFilter(e.target.value)}
-            className="w-full md:w-48 bg-[#1e262b] border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#df6742]/50 transition-colors cursor-pointer"
+            className="w-full md:w-48 bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-[#df6742]/50 transition-colors cursor-pointer"
           >
             {specialties.map((spec) => (
-              <option key={spec} value={spec} className="bg-[#243239]">
+              <option key={spec} value={spec} className="bg-white dark:bg-[#243239] text-slate-800 dark:text-white">
                 {spec}
               </option>
             ))}
@@ -108,8 +108,8 @@ export default function AllArtists({ artists = [], loading = false }) {
           {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : filteredArtists.length === 0 ? (
-        <div className="text-center py-16 bg-[#243239] rounded-2xl border border-white/5">
-          <p className="text-white/40 text-sm">No artists found matching your criteria.</p>
+        <div className="text-center py-16 bg-white dark:bg-[#243239] rounded-2xl border border-slate-200 dark:border-white/5">
+          <p className="text-slate-500 dark:text-white/40 text-sm">No artists found matching your criteria.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -122,7 +122,7 @@ export default function AllArtists({ artists = [], loading = false }) {
             return (
               <div
                 key={artistId}
-                className="group bg-[#243239] border border-white/8 rounded-2xl p-6 transition-all duration-300 hover:border-[#df6742]/40 hover:-translate-y-1 flex flex-col items-center text-center relative"
+                className="group bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-2xl p-6 shadow-sm dark:shadow-none transition-all duration-300 hover:border-[#df6742]/40 hover:-translate-y-1 flex flex-col items-center text-center relative"
               >
                 {/* র্যাঙ্ক ব্যাজ */}
                 {i < 3 && (
@@ -132,32 +132,32 @@ export default function AllArtists({ artists = [], loading = false }) {
                 )}
 
                 {/* রেটিং ব্যাজ */}
-                <div className="absolute top-4 right-4 bg-[#2f3f48]/90 backdrop-blur-md border border-white/5 px-2 py-0.5 rounded-lg flex items-center gap-1 z-10">
+                <div className="absolute top-4 right-4 bg-white/90 dark:bg-[#2f3f48]/90 backdrop-blur-md border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-lg flex items-center gap-1 z-10">
                   <FaStar className="text-amber-400 text-xs" />
-                  <span className="text-white text-[11px] font-bold">{artistRating}</span>
+                  <span className="text-slate-800 dark:text-white text-[11px] font-bold">{artistRating}</span>
                 </div>
 
-                {/* প্রোফাইল ইমেজ বা ইনিশিয়াল */}
+                {/* প্রোফাইল ইমেজ বা ইনিশিয়াল */}
                 <div className="relative mb-4 mt-2">
                   {dynamicImage ? (
                     <img
                       src={dynamicImage}
                       alt={artist.name || "Artist Profile"}
-                      className="w-17 h-17 rounded-full object-cover border-[3px] border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 transition-all duration-300"
+                      className="w-17 h-17 rounded-full object-cover border-[3px] border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 transition-all duration-300"
                     />
                   ) : (
-                    <div className={`w-17 h-17 rounded-full bg-linear-to-br border-[3px] border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 flex items-center justify-center text-white text-xl font-bold transition-all duration-300 ${gradient}`}>
+                    <div className={`w-17 h-17 rounded-full bg-linear-to-br border-[3px] border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 flex items-center justify-center text-white text-xl font-bold transition-all duration-300 ${gradient}`}>
                       {getInitials(artist.name)}
                     </div>
                   )}
-                  <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#243239]" />
+                  <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-[#243239]" />
                 </div>
 
         
-                <p className="text-[16px] font-bold text-white leading-tight mb-1 group-hover:text-[#df6742] transition-colors duration-200 w-full truncate px-1">
+                <p className="text-[16px] font-bold text-slate-800 dark:text-white leading-tight mb-1 group-hover:text-[#df6742] transition-colors duration-200 w-full truncate px-1">
                   {artist.name || "Unknown Artist"}
                 </p>
-                <p className="text-[11px] text-white/40 uppercase tracking-[1px] font-medium mb-5 w-full truncate px-1">
+                <p className="text-[11px] text-slate-500 dark:text-white/40 uppercase tracking-[1px] font-medium mb-5 w-full truncate px-1">
                   {artist.specialty || "Visual Artist"}
                 </p>
 
@@ -167,9 +167,9 @@ export default function AllArtists({ artists = [], loading = false }) {
                     { label: "Artworks", value: formatCount(artist.totalArtworks ?? artist.totalArts) },
                     { label: "Sales", value: formatCount(artist.totalSold ?? artist.totalSales) },
                   ].map(({ label, value }) => (
-                    <div key={label} className="bg-white/4 border border-white/5 rounded-xl py-2.5 flex flex-col items-center gap-0.5">
+                    <div key={label} className="bg-slate-50 dark:bg-white/4 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 flex flex-col items-center gap-0.5">
                       <span className="text-[15px] font-bold text-[#df6742]">{value}</span>
-                      <span className="text-[9px] text-white/30 uppercase tracking-[0.7px] font-semibold">{label}</span>
+                      <span className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-[0.7px] font-semibold">{label}</span>
                     </div>
                   ))}
                 </div>

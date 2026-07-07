@@ -152,14 +152,14 @@ export default function AdminDashboardOverview({ session: initialSession }) {
        value: dashboardData.verifiedArtworks.toLocaleString(),
        icon: Palette,
        change: "Live gallery listings",
-       color: "text-blue-400",
+       color: "text-blue-500 dark:text-blue-400",
      },
      {
        label: "Transactions",
        value: dashboardData.transactionsCount.toLocaleString(),
        icon: CreditCard,
        change: "Successful purchases",
-       color: "text-amber-400",
+       color: "text-amber-500 dark:text-amber-400",
      },
      {
        label: "Platform Revenue",
@@ -169,7 +169,7 @@ export default function AdminDashboardOverview({ session: initialSession }) {
        })}`,
        icon: DollarSign,
        change: "Gross volume processed",
-       color: "text-emerald-400",
+       color: "text-emerald-500 dark:text-emerald-400",
      },
    ],
    [dashboardData]
@@ -177,9 +177,9 @@ export default function AdminDashboardOverview({ session: initialSession }) {
 
  if (authLoading || loading) {
    return (
-     <div className="flex items-center justify-center min-h-[60vh] flex-col gap-3 text-gray-400">
+     <div className="flex items-center justify-center min-h-[60vh] flex-col gap-3 text-[var(--text-muted)]">
        <Loader2 className="w-8 h-8 animate-spin text-[#df6742]" />
-       <p className="text-xs text-white/40">Loading dashboard intelligence metrics...</p>
+       <p className="text-xs text-[var(--text-muted)]">Loading dashboard intelligence metrics...</p>
      </div>
    );
  }
@@ -192,24 +192,24 @@ export default function AdminDashboardOverview({ session: initialSession }) {
    <div className="space-y-8 p-4 md:p-6">
      <div className="flex flex-wrap items-start justify-between gap-4">
        <div>
-         <h1 className="text-2xl font-bold text-white">
+         <h1 className="text-2xl font-bold text-[var(--text-main)]">
            System Administration Overview
          </h1>
-         <p className="text-sm text-white/40 mt-1">
+         <p className="text-sm text-[var(--text-muted)] mt-1">
            Full platform oversight: manage users, verify listings, and monitor growth.
          </p>
        </div>
-       <div className="flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/5 px-3 py-1.5 border border-emerald-500/10 rounded-xl">
+       <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/5 px-3 py-1.5 border border-emerald-200 dark:border-emerald-500/10 rounded-xl">
          <Activity className="w-4 h-4 animate-pulse" />
          Live Status Active
        </div>
      </div>
      {errorMessage && (
-       <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-red-200 flex items-start gap-3">
+       <div className="rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 p-4 text-red-700 dark:text-red-200 flex items-start gap-3">
          <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
          <div>
            <p className="font-medium">Dashboard data load failed</p>
-           <p className="text-sm text-red-200/80 mt-1">{errorMessage}</p>
+           <p className="text-sm text-red-600 dark:text-red-200/80 mt-1">{errorMessage}</p>
          </div>
        </div>
      )}
@@ -219,24 +219,24 @@ export default function AdminDashboardOverview({ session: initialSession }) {
          return (
            <div
              key={stat.label}
-             className="bg-[#1e2a30] border border-white/5 rounded-xl p-5 shadow-lg"
+             className="bg-[var(--surface)] border border-[var(--border-line)] rounded-xl p-5 shadow-sm"
            >
              <div className="flex items-center justify-between">
-               <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">{stat.label}</span>
+               <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</span>
                <Icon className={`w-5 h-5 ${stat.color}`} />
              </div>
              <div className="mt-3">
-               <p className="text-2xl font-black text-white">{stat.value}</p>
-               <p className="text-xs text-white/30 mt-1">{stat.change}</p>
+               <p className="text-2xl font-black text-[var(--text-main)]">{stat.value}</p>
+               <p className="text-xs text-[var(--text-subtle)] mt-1">{stat.change}</p>
              </div>
            </div>
          );
        })}
      </div>
      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-       <div className="bg-[#1e2a30] border border-white/5 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+       <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-xl p-5 shadow-sm flex flex-col justify-between">
          <div className="flex items-center justify-between mb-4">
-           <h2 className="text-base font-bold text-white">Recent Sales</h2>
+           <h2 className="text-base font-bold text-[var(--text-main)]">Recent Sales</h2>
            <Link
              href="/admin/sales"
              className="text-xs font-bold text-[#df6742] bg-[#df6742]/5 hover:bg-[#df6742]/10 border border-[#df6742]/10 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all"
@@ -247,7 +247,7 @@ export default function AdminDashboardOverview({ session: initialSession }) {
          <div className="space-y-3 flex-1 overflow-y-auto max-h-70 pr-1">
            {dashboardData.recentSales.length === 0 ? (
              <div className="text-center py-12">
-               <p className="text-white/30 text-xs italic">No recent sales records found.</p>
+               <p className="text-[var(--text-subtle)] text-xs italic">No recent sales records found.</p>
              </div>
            ) : (
              dashboardData.recentSales.map((sale, idx) => {
@@ -255,24 +255,24 @@ export default function AdminDashboardOverview({ session: initialSession }) {
                return (
                  <div
                    key={saleId}
-                   className="flex items-center justify-between gap-4 border-b border-white/5 pb-3 last:border-0 last:pb-0"
+                   className="flex items-center justify-between gap-4 border-b border-[var(--border-line)] pb-3 last:border-0 last:pb-0"
                  >
                    <div className="min-w-0">
-                     <p className="text-[10px] font-mono text-white/30 truncate">
+                     <p className="text-[10px] font-mono text-[var(--text-subtle)] truncate">
                        ID: {sale?.transactionId || sale?._id || "N/A"}
                      </p>
-                     <p className="text-sm font-bold text-white truncate">
+                     <p className="text-sm font-bold text-[var(--text-main)] truncate">
                        {sale?.artworkTitle || sale?.artworkName || "Artwork Purchase"}
                      </p>
-                     <p className="text-xs text-white/40 truncate">
+                     <p className="text-xs text-[var(--text-muted)] truncate">
                        {sale?.buyerEmail || sale?.email || "N/A"}
                      </p>
                    </div>
                    <div className="text-right shrink-0">
-                     <p className="text-sm font-black text-emerald-400">
+                     <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
                        ${Number(sale?.price || sale?.amount || 0).toFixed(2)}
                      </p>
-                     <p className="text-[10px] uppercase font-bold text-white/30 tracking-wider">
+                     <p className="text-[10px] uppercase font-bold text-[var(--text-subtle)] tracking-wider">
                        {sale?.status || "Success"}
                      </p>
                    </div>
@@ -282,17 +282,17 @@ export default function AdminDashboardOverview({ session: initialSession }) {
            )}
          </div>
        </div>
-       <div className="bg-[#1e2a30] border border-white/5 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+       <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-xl p-5 shadow-sm flex flex-col justify-between">
          <div className="flex items-center justify-between">
            <div>
-             <h2 className="text-base font-bold text-white">Analytics & Charts</h2>
-             <p className="text-xs text-white/40 mt-1">
+             <h2 className="text-base font-bold text-[var(--text-main)]">Analytics & Charts</h2>
+             <p className="text-xs text-[var(--text-muted)] mt-1">
                Sales trends, category breakdown, and revenue distribution charts.
              </p>
            </div>
          </div>
          <div className="mt-6">
-           <p className="text-xs text-white/30 mb-4 bg-black/10 p-3 rounded-lg border border-white/5">
+           <p className="text-xs text-[var(--text-muted)] mb-4 bg-[var(--hover-bg)] p-3 rounded-lg border border-[var(--border-line)]">
              View Stripe-linked financial charts and artwork category analytics in the core system module.
            </p>
            <Link

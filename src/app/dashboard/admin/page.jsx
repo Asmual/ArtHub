@@ -30,7 +30,7 @@ export default function AdminDashboardPage() {
  }
 
  return (
-   <div className="min-h-screen bg-[#243239] text-white p-4 md:p-6">
+   <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] p-4 md:p-6">
      <AdminDashboardOverview session={session} />
    </div>
  );

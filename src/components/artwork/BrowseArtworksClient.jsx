@@ -124,20 +124,20 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-white dark:bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Top Header Toolbar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-neutral-500/40 pb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-neutral-500/40 pb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
               <span className="text-[#df6742]">Explore</span> Artworks
             </h1>
           </div>
 
           <NextLink
             href="/"
-            className="inline-flex items-center gap-2 bg-[#1e262b] hover:bg-black/20 text-white/90 hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl border border-white/5 transition-all duration-200 shadow-sm"
+            className="inline-flex items-center gap-2 bg-slate-100 dark:bg-[#1e262b] hover:bg-slate-200 dark:hover:bg-black/20 text-slate-700 dark:text-white/90 hover:text-slate-900 dark:hover:text-white text-xs font-bold px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/5 transition-all duration-200 shadow-sm"
           >
             <svg
               width="16"
@@ -159,14 +159,14 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           {/* Left Panel: Filters Sidebar */}
-          <div className="bg-[#2f3f48] border border-neutral-500/40 rounded-2xl p-6 h-fit space-y-6">
-            <div className="flex items-center justify-between border-b border-neutral-500/40 pb-3">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          <div className="bg-slate-50 dark:bg-[#2f3f48] border border-slate-200 dark:border-neutral-500/40 rounded-2xl p-6 h-fit space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-neutral-500/40 pb-3">
+              <h2 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">
                 Filters
               </h2>
               <button
                 onClick={handleReset}
-                className="text-xs font-semibold text-red-400 hover:text-red-500 transition-all"
+                className="text-xs font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-500 transition-all"
               >
                 Reset
               </button>
@@ -174,7 +174,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
             {/* Search Filter */}
             <div>
-              <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wide mb-2">
+              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
                 Search Title / Artist
               </label>
               <div className="relative">
@@ -186,11 +186,11 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full text-sm text-white placeholder-neutral-400 bg-transparent border border-neutral-500/40 rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#df6742]"
+                  className="w-full text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#df6742]"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <svg
-                    className="h-4 w-4 text-neutral-400"
+                    className="h-4 w-4 text-slate-400 dark:text-neutral-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -208,7 +208,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
             {/* Category Select Filter */}
             <div>
-              <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wide mb-2">
+              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
                 Category
               </label>
               <select
@@ -217,7 +217,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                   setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full text-sm text-white bg-[#2f3f48] border border-neutral-500/40 rounded-lg px-3 py-2 focus:outline-none focus:border-[#df6742] cursor-pointer"
+                className="w-full text-sm text-slate-800 dark:text-white bg-white dark:bg-[#2f3f48] border border-slate-300 dark:border-neutral-500/40 rounded-lg px-3 py-2 focus:outline-none focus:border-[#df6742] cursor-pointer"
               >
                 <option value="All">All Categories</option>
                 <option value="Painting">Painting</option>
@@ -229,14 +229,14 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
             {/* Availability Radio Filter */}
             <div>
-              <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wide mb-2">
+              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
                 Availability
               </label>
               <div className="flex flex-col gap-2.5">
                 {["All Items", "Available", "Sold Out"].map((status) => (
                   <label
                     key={status}
-                    className="flex items-center gap-2.5 text-sm text-white/90 cursor-pointer font-medium"
+                    className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-white/90 cursor-pointer font-medium"
                   >
                     <input
                       type="radio"
@@ -261,7 +261,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
             {/* Price Filter Form */}
             <div>
-              <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wide mb-2">
+              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
                 Price Range
               </label>
               <form onSubmit={handleApplyPrice} className="space-y-2">
@@ -271,14 +271,14 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                     placeholder="Min"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-1/2 text-sm text-white placeholder-neutral-400 bg-transparent border border-neutral-500/40 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#df6742]"
+                    className="w-1/2 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#df6742]"
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-1/2 text-sm text-white placeholder-neutral-400 bg-transparent border border-neutral-500/40 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#df6742]"
+                    className="w-1/2 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#df6742]"
                   />
                 </div>
                 <button
@@ -293,15 +293,15 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
           {/* Right Panel: Content Results */}
           <div className="col-span-1 lg:col-span-3 space-y-6">
-            <div className="bg-transparent border border-neutral-500/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <span className="text-sm font-medium text-white/90">
+            <div className="bg-transparent border border-slate-200 dark:border-neutral-500/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <span className="text-sm font-medium text-slate-700 dark:text-white/90">
                 Showing {filteredArtworks.length} of {initialArtworks.length}{" "}
                 Artworks
               </span>
 
               {/* Sorting Filter */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
                   Sort By:
                 </span>
                 <select
@@ -310,7 +310,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                     setSortBy(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="text-xs font-semibold text-white bg-[#2f3f48] border border-neutral-500/40 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#df6742] cursor-pointer"
+                  className="text-xs font-semibold text-slate-800 dark:text-white bg-white dark:bg-[#2f3f48] border border-slate-300 dark:border-neutral-500/40 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#df6742] cursor-pointer"
                 >
                   <option value="newest">Newest Listed</option>
                   <option value="oldest">Oldest Listed</option>
@@ -326,8 +326,8 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center border border-dashed border-neutral-500/30 rounded-2xl p-12 text-center bg-black/5">
-                <p className="text-base text-neutral-300 font-medium">
+              <div className="flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-neutral-500/30 rounded-2xl p-12 text-center bg-slate-50 dark:bg-black/5">
+                <p className="text-base text-slate-500 dark:text-neutral-300 font-medium">
                   No artworks match your criteria.
                 </p>
                 <button
@@ -341,11 +341,11 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 pt-8 border-t border-neutral-500/20">
+              <div className="flex justify-center items-center gap-2 pt-8 border-t border-slate-200 dark:border-neutral-500/20">
                 <button
                   disabled={currentPage === 1}
                   onClick={() => handlePageChange(currentPage - 1)}
-                  className="p-2 rounded-xl bg-[#1e262b] border border-white/5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black/20 text-white transition-colors"
+                  className="p-2 rounded-xl bg-slate-100 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-black/20 text-slate-700 dark:text-white transition-colors"
                 >
                   <svg
                     width="16"
@@ -370,7 +370,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                       className={`w-9 h-9 rounded-xl text-xs font-bold transition-all ${
                         currentPage === pageNumber
                           ? "bg-[#df6742] text-white"
-                          : "bg-[#1e262b] text-white/70 hover:text-white border border-white/5 hover:bg-black/20"
+                          : "bg-slate-100 dark:bg-[#1e262b] text-slate-600 dark:text-white/70 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-black/20"
                       }`}
                     >
                       {pageNumber}
@@ -381,7 +381,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => handlePageChange(currentPage + 1)}
-                  className="p-2 rounded-xl bg-[#1e262b] border border-white/5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-black/20 text-white transition-colors"
+                  className="p-2 rounded-xl bg-slate-100 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-black/20 text-slate-700 dark:text-white transition-colors"
                 >
                   <svg
                     width="16"

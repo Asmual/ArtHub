@@ -7,7 +7,7 @@ export default async function ArtworkDetailsPage({ params }) {
  
   if (!id || !ObjectId.isValid(id)) {
     return (
-      <div className="min-h-screen bg-[#2f3f48] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] flex items-center justify-center text-slate-700 dark:text-white">
         <p className="text-lg font-semibold">Invalid Artwork Identifier!</p>
       </div>
     );
@@ -65,9 +65,12 @@ export default async function ArtworkDetailsPage({ params }) {
         }
       }
 
+      // ক্লায়েন্টে ডেটা পাঠানোর আগে নিশ্চিত করা হচ্ছে যেন কোনো ObjectId অবজেক্ট অবশিষ্ট না থাকে
       artwork = {
         ...data,
         _id: data._id.toString(),
+        userId: data.userId ? data.userId.toString() : null,
+        artistId: data.artistId ? data.artistId.toString() : null,
         buyerId: data.buyerId ? data.buyerId.toString() : null,
         createdAt: data.createdAt ? new Date(data.createdAt).toISOString() : new Date().toISOString(),
         artist: artistData,
@@ -80,7 +83,7 @@ export default async function ArtworkDetailsPage({ params }) {
 
   if (!artwork) {
     return (
-      <div className="min-h-screen bg-[#2f3f48] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] flex items-center justify-center text-slate-700 dark:text-white">
         <p className="text-lg font-semibold">Artwork Not Found!</p>
       </div>
     );

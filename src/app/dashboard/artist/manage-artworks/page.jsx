@@ -6,6 +6,18 @@ import { FaTrashAlt, FaEdit, FaThLarge, FaCheckCircle, FaTimesCircle, FaSpinner 
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 
+// Mint a backend-signed JWT (matches verifyToken middleware expectations)
+const getAuthToken = async (base, email) => {
+  const res = await fetch(`${base}/api/users/generate-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error("Token generation failed.");
+  const { token } = await res.json();
+  return token;
+};
+
 export default function ManageArtworksPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();
   const user = session?.user;
@@ -28,12 +40,15 @@ export default function ManageArtworksPage() {
       try {
         setLoading(true);
 
+        const token = await getAuthToken(base, user.email);
+
         // Query catalog filtering directly by the authenticated user's email parameter
         const res = await fetch(`${base}/api/artworks?email=${encodeURIComponent(user.email)}`, {
           method: "GET",
           headers: {
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
         });
 
@@ -46,7 +61,7 @@ export default function ManageArtworksPage() {
         const data = await res.json();
 
         if (isMounted) {
-          const artworkList = data && Array.isArray(data.artworks) ? data.artworks : [];
+          const artworkList = data && Array.isArray(data.artworks) ? data.artworks : (Array.isArray(data) ? data : []);
           setArtworks(artworkList);
         }
       } catch (err) {
@@ -63,12 +78,16 @@ export default function ManageArtworksPage() {
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to remove this exclusive masterpiece?")) return;
+    if (!user?.email) return;
 
     try {
+      const token = await getAuthToken(base, user.email);
+
       const res = await fetch(`${base}/api/artworks/${id}`, {
         method: "DELETE",
         headers: {
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
         },
       });
 
@@ -84,15 +103,15 @@ export default function ManageArtworksPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-[#2f3f48] flex flex-col items-center justify-center text-white gap-3">
+      <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center text-[var(--text-main)] gap-3">
         <FaSpinner className="animate-spin text-2xl text-[#df6742]" />
-        <p className="text-xs text-white/40">Synchronizing creative vault inventory...</p>
+        <p className="text-xs text-[var(--text-muted)]">Synchronizing creative vault inventory...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#2f3f48] p-6 sm:p-10 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-5xl mx-auto">
        
         {/* Header Section */}
@@ -101,19 +120,19 @@ export default function ManageArtworksPage() {
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <FaThLarge className="text-[#df6742] text-xl" /> Manage Artworks
             </h1>
-            <p className="text-xs text-white/40 mt-1">Track and manage your dynamically registered museum inventory records.</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">Track and manage your dynamically registered museum inventory records.</p>
           </div>
-          <div className="bg-[#243239] border border-white/5 px-4 py-2.5 rounded-xl text-xs font-semibold text-white/70">
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] px-4 py-2.5 rounded-xl text-xs font-semibold text-[var(--text-muted)]">
             Total Inventory: <span className="text-[#df6742] font-bold">{artworks.length} Items</span>
           </div>
         </div>
 
         {/* Data Grid Table */}
-        <div className="bg-[#243239] border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-white/4 border-b border-white/5 text-[11px] font-bold uppercase tracking-wider text-white/50">
+                <tr className="bg-[var(--hover-bg)] border-b border-[var(--border-line)] text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                   <th className="p-4 pl-6">Artwork</th>
                   <th className="p-4">Category</th>
                   <th className="p-4">Price</th>
@@ -121,16 +140,16 @@ export default function ManageArtworksPage() {
                   <th className="p-4 text-center pr-6">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody className="divide-y divide-[var(--border-line)] text-sm">
                 {artworks.map((art) => (
-                  <tr key={art._id} className="hover:bg-white/2 transition-colors duration-150">
+                  <tr key={art._id} className="hover:bg-[var(--hover-bg)] transition-colors duration-150">
                    
                     <td className="p-4 pl-6 flex items-center gap-3">
-                      <img src={art.image} alt={art.title} className="w-12 h-12 rounded-lg object-cover bg-neutral-800 border border-white/5" />
-                      <span className="font-bold text-white truncate max-w-45">{art.title}</span>
+                      <img src={art.image} alt={art.title} className="w-12 h-12 rounded-lg object-cover bg-[var(--hover-bg)] border border-[var(--border-line)]" />
+                      <span className="font-bold text-[var(--text-main)] truncate max-w-45">{art.title}</span>
                     </td>
                    
-                    <td className="p-4 text-white/60 font-medium">{art.category}</td>
+                    <td className="p-4 text-[var(--text-muted)] font-medium">{art.category}</td>
                    
                     <td className="p-4 font-bold text-[#df6742]">${Number(art.price || 0).toFixed(2)}</td>
                    
@@ -148,10 +167,10 @@ export default function ManageArtworksPage() {
 
                     <td className="p-4 text-center pr-6">
                       <div className="flex items-center justify-center gap-2">
-                        <button className="p-2 bg-[#2f3f48] hover:bg-white/10 text-white/70 hover:text-white rounded-lg transition-colors border border-white/5" title="Edit Metadata">
+                        <button className="p-2 bg-[var(--background)] hover:bg-[var(--hover-bg)] text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-lg transition-colors border border-[var(--border-line)]" title="Edit Metadata">
                           <FaEdit className="text-xs" />
                         </button>
-                        <button onClick={() => handleDelete(art._id)} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-rose-400 rounded-lg transition-colors border border-white/5" title="Delete Artwork">
+                        <button onClick={() => handleDelete(art._id)} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-rose-400 rounded-lg transition-colors border border-[var(--border-line)]" title="Delete Artwork">
                           <FaTrashAlt className="text-xs" />
                         </button>
                       </div>
@@ -164,7 +183,7 @@ export default function ManageArtworksPage() {
           </div>
          
           {artworks.length === 0 && (
-            <p className="text-center text-xs text-white/30 py-12">No artworks discovered inside your creative dashboard studio.</p>
+            <p className="text-center text-xs text-[var(--text-subtle)] py-12">No artworks discovered inside your creative dashboard studio.</p>
           )}
         </div>
 

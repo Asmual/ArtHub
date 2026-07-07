@@ -7,8 +7,8 @@ import { FaStar } from "react-icons/fa";
 
 const RANK_BADGE = {
   0: "bg-[#df6742] text-white",
-  1: "bg-white/[0.13] text-white/75",
-  2: "bg-white/[0.07] text-white/45",
+  1: "bg-slate-200 dark:bg-white/[0.13] text-slate-600 dark:text-white/75",
+  2: "bg-slate-100 dark:bg-white/[0.07] text-slate-500 dark:text-white/45",
 };
 
 const AVATAR_GRADIENTS = [
@@ -29,16 +29,16 @@ const getInitials = (name = "") => {
 };
 
 const SkeletonCard = () => (
-  <div className="bg-[#243239] border border-white/8 rounded-2xl p-6 flex flex-col items-center animate-pulse">
-    <div className="w-17 h-17 rounded-full bg-white/10 border-2 border-[#2f3f48] mb-4 mt-2" />
-    <div className="h-4 w-32 bg-white/10 rounded mb-2" />
-    <div className="h-3 w-20 bg-white/7 rounded mb-6" />
+  <div className="bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-2xl p-6 flex flex-col items-center animate-pulse">
+    <div className="w-17 h-17 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-slate-100 dark:border-[#2f3f48] mb-4 mt-2" />
+    <div className="h-4 w-32 bg-slate-200 dark:bg-white/10 rounded mb-2" />
+    <div className="h-3 w-20 bg-slate-100 dark:bg-white/7 rounded mb-6" />
     <div className="flex gap-3 mb-6 w-full">
       {[0, 1].map((i) => (
-        <div key={i} className="flex-1 bg-white/5 rounded-xl h-14" />
+        <div key={i} className="flex-1 bg-slate-100 dark:bg-white/5 rounded-xl h-14" />
       ))}
     </div>
-    <div className="h-10 w-full bg-white/5 rounded-xl" />
+    <div className="h-10 w-full bg-slate-100 dark:bg-white/5 rounded-xl" />
   </div>
 );
 
@@ -93,22 +93,22 @@ const TopArtists = () => {
   }, []);
 
   return (
-    <section className="bg-[#2f3f48] py-16 px-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <section className="bg-white dark:bg-[#2f3f48] py-16 px-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-[#df6742]/12 border border-[#df6742]/28 text-[#df6742] px-4 py-1.5 rounded-full text-[11px] font-bold tracking-[1.2px] mb-4">
+          <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-[#df6742]/12 border border-[#df6742]/28 text-[#df6742] px-4 py-1.5 rounded-full text-[11px] font-bold tracking-[1.2px] mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[#df6742]" />
             FEATURED CREATORS
           </div>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-2 leading-tight">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-white mb-2 leading-tight">
             Top <span className="text-[#df6742]">Artists</span>
           </h2>
-          <p className="text-[13px] text-white/40 max-w-sm mx-auto leading-relaxed">
+          <p className="text-[13px] text-slate-500 dark:text-white/40 max-w-sm mx-auto leading-relaxed">
             Most celebrated creators ranked by their verified masterworks &amp; total sales report
           </p>
         </div>
 
-        {error && <p className="text-center text-white/35 text-sm py-10">{error}</p>}
+        {error && <p className="text-center text-slate-500 dark:text-white/35 text-sm py-10">{error}</p>}
 
         {!error && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -128,15 +128,15 @@ const TopArtists = () => {
                   return (
                     <div
                       key={artistId}
-                      className="group bg-[#243239] border border-white/8 rounded-2xl p-6 transition-all duration-300 hover:border-[#df6742]/40 hover:-translate-y-1 flex flex-col items-center text-center relative"
+                      className="group bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-2xl p-6 shadow-sm dark:shadow-none transition-all duration-300 hover:border-[#df6742]/40 hover:-translate-y-1 flex flex-col items-center text-center relative"
                     >
-                      <div className={`absolute top-4 left-4 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold z-10 ${RANK_BADGE[i] || "bg-white/10"}`}>
+                      <div className={`absolute top-4 left-4 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold z-10 ${RANK_BADGE[i] || "bg-slate-200 dark:bg-white/10"}`}>
                         {i + 1}
                       </div>
 
-                      <div className="absolute top-4 right-4 bg-[#2f3f48]/90 backdrop-blur-md border border-white/5 px-2 py-0.5 rounded-lg flex items-center gap-1 z-10">
+                      <div className="absolute top-4 right-4 bg-white/90 dark:bg-[#2f3f48]/90 backdrop-blur-md border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-lg flex items-center gap-1 z-10">
                         <FaStar className="text-amber-400 text-xs" />
-                        <span className="text-white text-[11px] font-bold">{Number(artistRating).toFixed(1)}</span>
+                        <span className="text-slate-800 dark:text-white text-[11px] font-bold">{Number(artistRating).toFixed(1)}</span>
                       </div>
 
                       <div className="relative mb-4 mt-2">
@@ -144,20 +144,20 @@ const TopArtists = () => {
                           <img
                             src={dynamicImage}
                             alt={artist.name || "Artist Profile"}
-                            className="w-17 h-17 rounded-full object-cover border-[3px] border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 transition-all duration-300"
+                            className="w-17 h-17 rounded-full object-cover border-[3px] border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 transition-all duration-300"
                           />
                         ) : (
-                          <div className={`w-17 h-17 rounded-full bg-linear-to-br border-[3px] border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 flex items-center justify-center text-white text-xl font-bold transition-all duration-300 ${gradient}`}>
+                          <div className={`w-17 h-17 rounded-full bg-linear-to-br border-[3px] border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 flex items-center justify-center text-white text-xl font-bold transition-all duration-300 ${gradient}`}>
                             {getInitials(artist.name)}
                           </div>
                         )}
-                        <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#243239]" />
+                        <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-[#243239]" />
                       </div>
 
-                      <p className="text-[16px] font-bold text-white leading-tight mb-1 group-hover:text-[#df6742] transition-colors duration-200 w-full truncate px-1">
+                      <p className="text-[16px] font-bold text-slate-800 dark:text-white leading-tight mb-1 group-hover:text-[#df6742] transition-colors duration-200 w-full truncate px-1">
                         {artist.name || "Unknown Artist"}
                       </p>
-                      <p className="text-[11px] text-white/40 uppercase tracking-[1px] font-medium mb-5 w-full truncate px-1">
+                      <p className="text-[11px] text-slate-500 dark:text-white/40 uppercase tracking-[1px] font-medium mb-5 w-full truncate px-1">
                         {artist.specialty || "Visual Artist"}
                       </p>
 
@@ -166,9 +166,9 @@ const TopArtists = () => {
                           { label: "Artworks", value: formatCount(totalArtworksCount) },
                           { label: "Sales", value: formatCount(totalSoldLines) },
                         ].map(({ label, value }) => (
-                          <div key={label} className="bg-white/5 border border-white/5 rounded-xl py-2.5 flex flex-col items-center gap-0.5">
+                          <div key={label} className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 flex flex-col items-center gap-0.5">
                             <span className="text-[15px] font-bold text-[#df6742]">{value}</span>
-                            <span className="text-[9px] text-white/30 uppercase tracking-[0.7px] font-semibold">{label}</span>
+                            <span className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-[0.7px] font-semibold">{label}</span>
                           </div>
                         ))}
                       </div>

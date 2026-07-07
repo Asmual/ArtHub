@@ -1,35 +1,96 @@
 @plugin "daisyui";
-@import "@heroui/styles"; 
+@import "@heroui/styles";
+
+/* ============================================
+   FIX: Bind Tailwind's `dark:` variant strictly to
+   the app's manual theme toggle (.dark class or
+   [data-theme="dark"]), NOT to the OS/browser
+   `prefers-color-scheme`. Without this, `dark:`
+   utilities were falling back to system preference,
+   which is why the Filters panel background and
+   input text stayed dark even when the app was
+   switched to Light mode.
+============================================ */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+/* ============================================
+   THEME TOKENS
+   Default = Dark Mode
+   Light Mode = Soft Gray (not pure white)
+============================================ */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark theme (default) */
+  --background: #2f3f48;
+  --surface: #243239;
+  --surface-elevated: #2b3a42;
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.55);
+  --text-subtle: rgba(255, 255, 255, 0.35);
+  --border-line: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --hover-bg: rgba(255, 255, 255, 0.06);
+  --brand: #df6742;
+  --brand-hover: #c55332;
+}
+
+.light,
+[data-theme="light"] {
+  /* Light theme (soft gray, easy on eyes) */
+  --background: #f3f4f6;
+  --surface: #ffffff;
+  --surface-elevated: #fafafa;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #64748b;
+  --border-line: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --hover-bg: rgba(15, 23, 42, 0.05);
+  --brand: #df6742;
+  --brand-hover: #c55332;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-foreground: var(--text-main);
+  --color-surface: var(--surface);
+  --color-border-line: var(--border-line);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background-color: var(--background);
+}
+
+/* FIX: color-scheme must follow the active theme, not be
+   hardcoded to "dark" for every page. A forced
+   `color-scheme: dark` makes the browser render native
+   form controls (input text, placeholders, autofill,
+   scrollbars) with dark-mode defaults even while the app
+   is visually in Light mode — this was the direct cause
+   of invisible white input text in Light mode. */
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+.light,
+[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--background);
+  color: var(--text-main);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
-/* Swiper Custom Pagination Styles */
+
+/* Swiper pagination */
 .custom-swiper-container .swiper-pagination {
   bottom: 2rem !important;
 }
-
 .custom-swiper-container .swiper-pagination-bullet {
   width: 0.5rem !important;
   height: 0.5rem !important;
@@ -39,9 +100,8 @@ body {
   opacity: 1 !important;
   transition: all 350ms !important;
 }
-
 .custom-swiper-container .swiper-pagination-bullet-active {
   width: 2rem !important;
-  background-color: #df6742 !important;
+  background-color: var(--brand) !important;
   border-radius: 9999px !important;
 }

@@ -5,14 +5,14 @@ import React, { useEffect, useState } from "react";
 import NextLink from "next/link";
 
 const ArtworkSkeleton = () => (
-  <div className="bg-[#1e262b] rounded-2xl overflow-hidden border border-white/5 animate-pulse">
-    <div className="aspect-4/3 bg-white/5 w-full" />
+  <div className="bg-white dark:bg-[#1e262b] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/5 animate-pulse">
+    <div className="aspect-4/3 bg-slate-100 dark:bg-white/5 w-full" />
     <div className="p-6 flex flex-col gap-4">
-      <div className="h-6 w-3/4 bg-white/10 rounded" />
-      <div className="h-4 w-1/2 bg-white/5 rounded" />
+      <div className="h-6 w-3/4 bg-slate-200 dark:bg-white/10 rounded" />
+      <div className="h-4 w-1/2 bg-slate-100 dark:bg-white/5 rounded" />
       <div className="flex justify-between items-center mt-2">
-        <div className="h-6 w-20 bg-white/10 rounded" />
-        <div className="h-9 w-24 bg-white/10 rounded-xl" />
+        <div className="h-6 w-20 bg-slate-200 dark:bg-white/10 rounded" />
+        <div className="h-9 w-24 bg-slate-200 dark:bg-white/10 rounded-xl" />
       </div>
     </div>
   </div>
@@ -73,27 +73,27 @@ const FeaturedArtworks = () => {
   }, []);
 
   return (
-    <section className="bg-[#2a3942] py-20 px-6 border-t border-white/5">
+    <section className="bg-slate-50 dark:bg-[#2a3942] py-20 px-6 border-t border-slate-200 dark:border-white/5">
       <div className="max-w-6xl mx-auto">
        
         <div className="flex flex-col items-center text-center mb-16 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-[#243239]/10 border border-[#df6742]/30 text-[#df6742] px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider mb-4">
+          <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-[#243239]/10 border border-[#df6742]/30 text-[#df6742] px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[#df6742]" />
             CURATED EXHIBITION
           </div>
          
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 dark:text-white leading-tight tracking-tight">
             Featured <span className="text-[#df6742]">Artworks</span>
           </h2>
          
-          <p className="text-sm md:text-base text-white/50 mt-4 leading-relaxed">
+          <p className="text-sm md:text-base text-slate-500 dark:text-white/50 mt-4 leading-relaxed">
             Explore the most exclusive and recently updated masterpieces chosen by our curators.
           </p>
 
           {!loading && !error && artworks.length > 0 && (
             <NextLink
               href="/browse"
-              className="mt-6 text-[#df6742] hover:text-white text-sm font-bold transition-colors duration-200 flex items-center gap-1.5 group border-b border-[#df6742]/0 hover:border-white/10 pb-0.5"
+              className="mt-6 text-[#df6742] hover:text-slate-800 dark:hover:text-white text-sm font-bold transition-colors duration-200 flex items-center gap-1.5 group border-b border-[#df6742]/0 hover:border-slate-300 dark:hover:border-white/10 pb-0.5"
             >
               Explore Full Gallery
               <svg width="16" height="16" viewBox="0 0 14 14" fill="none" className="transition-transform group-hover:translate-x-1">
@@ -105,12 +105,12 @@ const FeaturedArtworks = () => {
 
         {error && (
           <div className="text-center py-16 max-w-md mx-auto">
-            <p className="text-white/40 text-sm leading-relaxed">{error}</p>
+            <p className="text-slate-500 dark:text-white/40 text-sm leading-relaxed">{error}</p>
           </div>
         )}
 
         {!loading && !error && artworks.length === 0 && (
-          <p className="text-center text-white/40 text-sm py-16">No recent artworks found.</p>
+          <p className="text-center text-slate-500 dark:text-white/40 text-sm py-16">No recent artworks found.</p>
         )}
 
         {!error && (loading || artworks.length > 0) && (
@@ -125,9 +125,9 @@ const FeaturedArtworks = () => {
                   return (
                     <div
                       key={artId}
-                      className="bg-[#1e262b] rounded-2xl overflow-hidden border border-white/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between"
+                      className="bg-white dark:bg-[#1e262b] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between"
                     >
-                      <div className="relative aspect-4/3 w-full overflow-hidden bg-black/10">
+                      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-black/10">
                         {itemImage && (
                           <img
                             src={itemImage}
@@ -151,10 +151,10 @@ const FeaturedArtworks = () => {
 
                       <div className="p-6 flex flex-col grow justify-between">
                         <div>
-                          <h3 className="text-xl font-bold text-white truncate mb-1">
+                          <h3 className="text-xl font-bold text-slate-800 dark:text-white truncate mb-1">
                             {artwork.title || "Untitled Masterpiece"}
                           </h3>
-                          <p className="text-sm text-white/40 mb-6">
+                          <p className="text-sm text-slate-500 dark:text-white/40 mb-6">
                             By {artwork.artistName || "Unknown Artist"}
                           </p>
                         </div>

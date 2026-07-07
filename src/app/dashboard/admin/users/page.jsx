@@ -138,43 +138,43 @@ export default function AdminUsersDashboard() {
   if (authLoading || loading) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-[#2f3f48] text-white p-4 sm:p-8 relative" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] p-4 sm:p-8 relative" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#243239] p-6 rounded-2xl border border-white/5 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)] shadow-xl">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-[#df6742]/10 text-[#df6742] rounded-xl border border-[#df6742]/20">
               <Users size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-wide">User Registry</h1>
-              <p className="text-xs text-white/40">Manage and audit user roles within the ArtHub platform</p>
+              <h1 className="text-xl font-black tracking-wide text-[var(--text-main)]">User Registry</h1>
+              <p className="text-xs text-[var(--text-muted)]">Manage and audit user roles within the ArtHub platform</p>
             </div>
           </div>
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={16} />
             <input
               type="text"
               placeholder="Search by name, email or role..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#1e262b] border border-white/10 text-xs text-white focus:outline-none focus:border-[#df6742] rounded-xl transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-[var(--background)] border border-[var(--border-line)] text-xs text-[var(--text-main)] focus:outline-none focus:border-[#df6742] rounded-xl transition-all"
             />
           </div>
         </div>
 
         {/* Users Table */}
         {filteredUsers.length === 0 ? (
-          <div className="text-center py-20 bg-[#243239] rounded-2xl border border-white/5 shadow-xl">
-            <p className="text-sm text-white/40">No matching users found.</p>
+          <div className="text-center py-20 bg-[var(--surface)] rounded-2xl border border-[var(--border-line)] shadow-xl">
+            <p className="text-sm text-[var(--text-muted)]">No matching users found.</p>
           </div>
         ) : (
-          <div className="bg-[#243239] rounded-2xl border border-white/5 overflow-hidden shadow-xl">
+          <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border-line)] overflow-hidden shadow-xl">
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 text-white/40 text-[11px] font-bold uppercase tracking-wider bg-black/10">
+                  <tr className="border-b border-[var(--border-line)] text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-wider bg-[var(--hover-bg)]">
                     <th className="py-4 pl-6">User</th>
                     <th className="py-4">Email</th>
                     <th className="py-4">Role</th>
@@ -183,7 +183,7 @@ export default function AdminUsersDashboard() {
                     <th className="py-4 pr-6 text-right">Change Role</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 text-xs sm:text-sm">
+                <tbody className="divide-y divide-[var(--border-line)] text-xs sm:text-sm">
                   {filteredUsers.map((u, idx) => {
                     const initials = u.name
                       ? u.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
@@ -191,25 +191,25 @@ export default function AdminUsersDashboard() {
                     const avatar = u.profileImage || u.image;
 
                     return (
-                      <tr key={u._id || idx} className="hover:bg-white/2 transition-colors text-white/90">
+                      <tr key={u._id || idx} className="hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-main)]">
                         <td className="py-4 pl-6">
                           <div className="flex items-center gap-3">
                             {avatar ? (
-                              <img src={avatar} alt={u.name || "User"} className="w-9 h-9 rounded-full object-cover border border-white/10" />
+                              <img src={avatar} alt={u.name || "User"} className="w-9 h-9 rounded-full object-cover border border-[var(--border-line)]" />
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#df6742] to-[#b34928] text-white flex items-center justify-center font-bold text-xs shrink-0">
                                 {initials}
                               </div>
                             )}
                             <div className="min-w-0">
-                              <p className="font-bold text-white/90 truncate max-w-40">{u.name || "Anonymous"}</p>
-                              <p className="text-[10px] text-white/30 font-mono mt-0.5 truncate max-w-35">ID: {u._id || u.id}</p>
+                              <p className="font-bold text-[var(--text-main)] truncate max-w-40">{u.name || "Anonymous"}</p>
+                              <p className="text-[10px] text-[var(--text-subtle)] font-mono mt-0.5 truncate max-w-35">ID: {u._id || u.id}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 text-white/70">
+                        <td className="py-4 text-[var(--text-muted)]">
                           <div className="flex items-center gap-1.5 max-w-50 truncate">
-                            <Mail size={13} className="text-white/30 shrink-0" />
+                            <Mail size={13} className="text-[var(--text-subtle)] shrink-0" />
                             <span className="truncate">{u.email || "N/A"}</span>
                           </div>
                         </td>
@@ -223,9 +223,9 @@ export default function AdminUsersDashboard() {
                             {u.subscriptionTier || "free"}
                           </span>
                         </td>
-                        <td className="py-4 text-white/40 font-mono text-[11px]">
+                        <td className="py-4 text-[var(--text-subtle)] font-mono text-[11px]">
                           <div className="flex items-center gap-1.5">
-                            <Calendar size={12} className="text-white/20" />
+                            <Calendar size={12} className="text-[var(--text-subtle)]" />
                             <span>{formatDate(u.createdAt || u.updatedAt)}</span>
                           </div>
                         </td>
@@ -233,7 +233,7 @@ export default function AdminUsersDashboard() {
                           <select
                             value={u.role || "user"}
                             onChange={(e) => handleRoleChangeTrigger(u, e.target.value)}
-                            className="bg-[#1e262b] border border-white/10 text-white text-[11px] font-bold py-1.5 px-2.5 rounded-xl outline-none focus:border-[#df6742] cursor-pointer transition-colors"
+                            className="bg-[var(--background)] border border-[var(--border-line)] text-[var(--text-main)] text-[11px] font-bold py-1.5 px-2.5 rounded-xl outline-none focus:border-[#df6742] cursor-pointer transition-colors"
                           >
                             <option value="user">User</option>
                             <option value="artist">Artist</option>
@@ -253,10 +253,10 @@ export default function AdminUsersDashboard() {
       {/* Role Change Confirmation Modal */}
       {isModalOpen && targetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#243239] border border-white/10 w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
             <button
               onClick={() => { if (!isUpdating) setIsModalOpen(false); }}
-              className="absolute top-4 right-4 text-white/40 hover:text-white/90 transition-colors"
+              className="absolute top-4 right-4 text-[var(--text-subtle)] hover:text-[var(--text-main)] transition-colors"
               disabled={isUpdating}
             >
               <X size={18} />
@@ -265,12 +265,12 @@ export default function AdminUsersDashboard() {
               <div className="p-2 bg-amber-500/10 rounded-lg border border-amber-500/20">
                 <ShieldCheck size={20} />
               </div>
-              <h3 className="text-lg font-bold text-white tracking-wide">Confirm Role Change</h3>
+              <h3 className="text-lg font-bold text-[var(--text-main)] tracking-wide">Confirm Role Change</h3>
             </div>
-            <div className="text-xs text-white/70 leading-relaxed space-y-2">
+            <div className="text-xs text-[var(--text-muted)] leading-relaxed space-y-2">
               <p>
                 Changing role for:
-                <span className="text-white font-bold block mt-1 text-sm bg-black/20 p-2 rounded-xl border border-white/5">
+                <span className="text-[var(--text-main)] font-bold block mt-1 text-sm bg-[var(--hover-bg)] p-2 rounded-xl border border-[var(--border-line)]">
                   {targetUser.name} ({targetUser.email})
                 </span>
               </p>
@@ -283,7 +283,7 @@ export default function AdminUsersDashboard() {
               <button
                 onClick={() => setIsModalOpen(false)}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-white/5 border border-white/5 hover:bg-white/10 text-xs font-semibold rounded-xl text-white/80 transition-all uppercase tracking-wider"
+                className="px-4 py-2 bg-[var(--hover-bg)] border border-[var(--border-line)] hover:bg-[var(--border-line)] text-xs font-semibold rounded-xl text-[var(--text-main)] transition-all uppercase tracking-wider"
               >
                 Cancel
               </button>

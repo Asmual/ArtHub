@@ -71,31 +71,31 @@ export default function ExploreArtistsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#2f3f48] pb-16" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] pb-16" style={{ fontFamily: "'Montserrat', sans-serif" }}>
      
-      <div className="border-b border-white/5 bg-[#243239] py-12 shadow-inner">
+      <div className="border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#243239] py-12 shadow-sm dark:shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
          
           <div className="text-center md:text-left space-y-2">
-            <div className="inline-flex items-center gap-2 bg-[#df6742]/10 border border-[#df6742]/30 text-[#df6742] px-3 py-1 rounded-full text-[10px] font-bold tracking-[2px] uppercase">
+            <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-[#df6742]/10 border border-[#df6742]/30 text-[#df6742] px-3 py-1 rounded-full text-[10px] font-bold tracking-[2px] uppercase">
               <Compass className="w-3 h-3" /> Global Creators Network
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black text-white tracking-wide">
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-800 dark:text-white tracking-wide">
               Explore All <span className="text-[#df6742]">Artists</span>
             </h1>
-            <p className="text-white/40 text-xs sm:text-sm max-w-xl">
+            <p className="text-slate-500 dark:text-white/40 text-xs sm:text-sm max-w-xl">
               Meet the professional visionary minds shaping contemporary global fine arts and digital masterpieces.
             </p>
           </div>
 
           {!loading && !error && artists.length > 0 && (
-            <div className="bg-[#1e262b] border border-white/5 rounded-2xl px-6 py-4 flex items-center gap-3 shadow-md self-center">
-              <div className="p-2.5 bg-[#df6742]/10 rounded-xl text-[#df6742]">
+            <div className="bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-2xl px-6 py-4 flex items-center gap-3 shadow-sm dark:shadow-md self-center">
+              <div className="p-2.5 bg-orange-50 dark:bg-[#df6742]/10 rounded-xl text-[#df6742]">
                 <Users size={18} />
               </div>
               <div>
-                <p className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Verified Registry</p>
-                <p className="text-sm font-black text-white">
+                <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase font-bold tracking-wider">Verified Registry</p>
+                <p className="text-sm font-black text-slate-800 dark:text-white">
                   <span className="text-[#df6742] text-lg font-black">{artists.length}</span> Active Creators
                 </p>
               </div>
@@ -106,13 +106,13 @@ export default function ExploreArtistsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {error ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-[#243239] rounded-2xl border border-white/5">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-3">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-[#243239] rounded-2xl border border-slate-200 dark:border-white/5">
+            <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center mb-3">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
                 <circle cx="12" cy="12" r="10" /><path d="M12 8v4M12 16h.01" />
               </svg>
             </div>
-            <p className="text-white/60 text-xs font-semibold">{error}</p>
+            <p className="text-slate-600 dark:text-white/60 text-xs font-semibold">{error}</p>
           </div>
         ) : (
           <AllArtists artists={artists} loading={loading} />

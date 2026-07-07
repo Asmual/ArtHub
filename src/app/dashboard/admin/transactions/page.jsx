@@ -76,14 +76,14 @@ export default function AdminTransactionsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#2f3f48] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#2f3f48] p-6 sm:p-10 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Header */}
@@ -91,45 +91,45 @@ export default function AdminTransactionsPage() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <FaExchangeAlt className="text-[#df6742] text-xl" /> Transaction Ledger
           </h1>
-          <p className="text-xs text-white/40 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Monitor all platform payments and Stripe checkout records.
           </p>
         </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-[#243239] border border-white/5 rounded-2xl p-5 shadow-md">
-            <p className="text-[10px] uppercase text-white/40 font-bold tracking-wider">Total Revenue</p>
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 shadow-md">
+            <p className="text-[10px] uppercase text-[var(--text-muted)] font-bold tracking-wider">Total Revenue</p>
             <h3 className="text-2xl font-black text-emerald-400 mt-1">${totalRevenue.toFixed(2)}</h3>
           </div>
-          <div className="bg-[#243239] border border-white/5 rounded-2xl p-5 shadow-md">
-            <p className="text-[10px] uppercase text-white/40 font-bold tracking-wider">Total Transactions</p>
-            <h3 className="text-2xl font-black text-white mt-1">{transactions.length}</h3>
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 shadow-md">
+            <p className="text-[10px] uppercase text-[var(--text-muted)] font-bold tracking-wider">Total Transactions</p>
+            <h3 className="text-2xl font-black text-[var(--text-main)] mt-1">{transactions.length}</h3>
           </div>
-          <div className="bg-[#243239] border border-white/5 rounded-2xl p-5 shadow-md">
-            <p className="text-[10px] uppercase text-white/40 font-bold tracking-wider">Gateway</p>
-            <h3 className="text-sm font-bold text-white mt-2 flex items-center gap-1.5">
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 shadow-md">
+            <p className="text-[10px] uppercase text-[var(--text-muted)] font-bold tracking-wider">Gateway</p>
+            <h3 className="text-sm font-bold text-[var(--text-main)] mt-2 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Stripe Connected
             </h3>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 bg-[#243239] border border-white/5 p-4 rounded-xl shadow-md">
+        <div className="flex flex-col sm:flex-row items-center gap-4 bg-[var(--surface)] border border-[var(--border-line)] p-4 rounded-xl shadow-md">
           <div className="relative w-full sm:w-72">
             <input
               type="text"
               placeholder="Search email, transaction ID, title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#2f3f48] border border-white/8 rounded-xl pl-9 pr-4 py-2.5 text-xs focus:outline-none focus:border-[#df6742]/60 transition-all text-white"
+              className="w-full bg-[var(--background)] border border-[var(--border-line)] rounded-xl pl-9 pr-4 py-2.5 text-xs focus:outline-none focus:border-[#df6742]/60 transition-all text-[var(--text-main)]"
             />
-            <FaSearch className="absolute left-3 top-3.5 text-xs text-white/30" />
+            <FaSearch className="absolute left-3 top-3.5 text-xs text-[var(--text-subtle)]" />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#2f3f48] border border-white/8 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#df6742]/60 cursor-pointer text-white/80 w-full sm:w-auto"
+            className="bg-[var(--background)] border border-[var(--border-line)] rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#df6742]/60 cursor-pointer text-[var(--text-muted)] w-full sm:w-auto"
           >
             <option value="all">All</option>
             <option value="paid">Paid</option>
@@ -138,17 +138,17 @@ export default function AdminTransactionsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-[#243239] border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#df6742]" />
-                <p className="text-xs text-white/40">Loading transactions...</p>
+                <p className="text-xs text-[var(--text-muted)]">Loading transactions...</p>
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-white/4 border-b border-white/5 text-[11px] font-bold uppercase tracking-wider text-white/50">
+                  <tr className="bg-[var(--hover-bg)] border-b border-[var(--border-line)] text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
                     <th className="p-4 pl-6">Transaction / Buyer</th>
                     <th className="p-4">Artwork</th>
                     <th className="p-4">Amount</th>
@@ -157,12 +157,12 @@ export default function AdminTransactionsPage() {
                     <th className="p-4 text-center pr-6">Receipt</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 text-xs sm:text-sm">
+                <tbody className="divide-y divide-[var(--border-line)] text-xs sm:text-sm">
                   {filteredTransactions.map((txn) => (
-                    <tr key={txn._id || txn.id} className="hover:bg-white/2 transition-colors text-white/90">
+                    <tr key={txn._id || txn.id} className="hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-main)]">
                       <td className="p-4 pl-6 space-y-1">
-                        <p className="font-mono text-white/40 text-[11px] truncate max-w-40">{txn.transactionId || "N/A"}</p>
-                        <p className="font-semibold text-white/80 truncate max-w-50">{txn.buyerEmail || "N/A"}</p>
+                        <p className="font-mono text-[var(--text-subtle)] text-[11px] truncate max-w-40">{txn.transactionId || "N/A"}</p>
+                        <p className="font-semibold text-[var(--text-main)] truncate max-w-50">{txn.buyerEmail || "N/A"}</p>
                       </td>
                       <td className="p-4">
                         <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-blue-500/10 text-blue-400 max-w-40 truncate block">
@@ -172,7 +172,7 @@ export default function AdminTransactionsPage() {
                       <td className="p-4 font-bold text-[#df6742]">
                         ${(Number(txn.price) || Number(txn.amount) || 0).toFixed(2)}
                       </td>
-                      <td className="p-4 text-white/50 font-medium">
+                      <td className="p-4 text-[var(--text-muted)] font-medium">
                         <span className="flex items-center gap-1">
                           <FaCreditCard className="text-[11px]" /> CARD
                         </span>
@@ -191,7 +191,7 @@ export default function AdminTransactionsPage() {
                       <td className="p-4 text-center pr-6">
                         <button
                           onClick={() => toast.success(`Invoice: ${txn._id || txn.id}`)}
-                          className="p-2 bg-[#2f3f48] hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-colors border border-white/5"
+                          className="p-2 bg-[var(--background)] hover:bg-[var(--hover-bg)] text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-lg transition-colors border border-[var(--border-line)]"
                           title="Download Receipt"
                         >
                           <FaDownload className="text-[11px]" />
@@ -204,7 +204,7 @@ export default function AdminTransactionsPage() {
             )}
           </div>
           {!loading && filteredTransactions.length === 0 && (
-            <p className="text-center text-xs text-white/30 py-12">No transactions found.</p>
+            <p className="text-center text-xs text-[var(--text-subtle)] py-12">No transactions found.</p>
           )}
         </div>
 

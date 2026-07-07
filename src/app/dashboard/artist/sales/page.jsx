@@ -76,15 +76,15 @@ export default function SalesPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-[#2f3f48] flex flex-col items-center justify-center text-white gap-3">
+      <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center text-[var(--text-main)] gap-3">
         <FaSpinner className="animate-spin text-2xl text-[#df6742]" />
-        <p className="text-xs text-white/40 tracking-wider">Compiling analytical ledger statistics...</p>
+        <p className="text-xs text-[var(--text-muted)] tracking-wider">Compiling analytical ledger statistics...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#2f3f48] p-6 sm:p-10 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-5xl mx-auto space-y-8">
        
         {/* Top Operational Metrics Hub */}
@@ -92,36 +92,36 @@ export default function SalesPage() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <FaChartLine className="text-[#df6742] text-xl" /> Sales &amp; Revenue Reports
           </h1>
-          <p className="text-xs text-white/40 mt-1">Review ledger transactions generated dynamically from safe checkout operations.</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1">Review ledger transactions generated dynamically from safe checkout operations.</p>
         </div>
 
         {/* Highlight Stats Overview Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-[#243239] border border-white/5 rounded-2xl p-5 flex items-center gap-4 shadow-md">
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 flex items-center gap-4 shadow-md">
             <div className="w-12 h-12 rounded-xl bg-[#df6742]/10 flex items-center justify-center text-[#df6742]">
               <FaDollarSign className="text-xl" />
             </div>
             <div>
-              <p className="text-[10px] uppercase text-white/40 font-bold tracking-wider">Total Net Earnings</p>
-              <h3 className="text-2xl font-black text-white mt-0.5">${totalEarnings.toFixed(2)}</h3>
+              <p className="text-[10px] uppercase text-[var(--text-muted)] font-bold tracking-wider">Total Net Earnings</p>
+              <h3 className="text-2xl font-black text-[var(--text-main)] mt-0.5">${totalEarnings.toFixed(2)}</h3>
             </div>
           </div>
 
-          <div className="bg-[#243239] border border-white/5 rounded-2xl p-5 flex items-center gap-4 shadow-md">
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 flex items-center gap-4 shadow-md">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
               <FaShoppingBag className="text-lg" />
             </div>
             <div>
-              <p className="text-[10px] uppercase text-white/40 font-bold tracking-wider">Masterworks Sold</p>
-              <h3 className="text-2xl font-black text-white mt-0.5">{salesHistory.length} Invoices</h3>
+              <p className="text-[10px] uppercase text-[var(--text-muted)] font-bold tracking-wider">Masterworks Sold</p>
+              <h3 className="text-2xl font-black text-[var(--text-main)] mt-0.5">{salesHistory.length} Invoices</h3>
             </div>
           </div>
         </div>
 
         {/* Ledger Order Record Rows Block */}
-        <div className="bg-[#243239] border border-white/5 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="pb-2 border-b border-white/5">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+        <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="pb-2 border-b border-[var(--border-line)]">
+            <h3 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1.5">
               <FaRegClock className="text-xs" /> Detailed Order Statements
             </h3>
           </div>
@@ -130,24 +130,24 @@ export default function SalesPage() {
             {salesHistory.map((invoice) => (
               <div
                 key={invoice._id}
-                className="bg-[#2f3f48] border border-white/4 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#df6742]/30 transition-all duration-200"
+                className="bg-[var(--background)] border border-[var(--border-line)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#df6742]/30 transition-all duration-200"
               >
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs text-white/40 font-semibold uppercase tracking-wide">
+                  <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wide">
                     <span className="font-mono">ID: {invoice._id}</span>
-                    <span className="w-1 h-1 rounded-full bg-white/20" />
+                    <span className="w-1 h-1 rounded-full bg-[var(--text-subtle)]" />
                     <span>{formatDate(invoice.createdAt || invoice.date)}</span>
                   </div>
-                  <h4 className="text-base font-bold text-neutral-100">
+                  <h4 className="text-base font-bold text-[var(--text-main)]">
                     {invoice.artworkTitle || invoice.title || "Untitled Masterwork"}
                   </h4>
-                  <p className="text-xs text-white/50 font-medium">
-                    Buyer: <span className="text-white/70 font-mono">{invoice.buyerEmail || invoice.buyer}</span>
+                  <p className="text-xs text-[var(--text-muted)] font-medium">
+                    Buyer: <span className="text-[var(--text-muted)] font-mono">{invoice.buyerEmail || invoice.buyer}</span>
                   </p>
                 </div>
                
-                <div className="sm:text-right bg-black/10 border border-white/5 px-4 py-2 rounded-xl">
-                  <span className="text-xs text-white/30 uppercase font-bold block tracking-wider">Payout</span>
+                <div className="sm:text-right bg-[var(--hover-bg)] border border-[var(--border-line)] px-4 py-2 rounded-xl">
+                  <span className="text-xs text-[var(--text-subtle)] uppercase font-bold block tracking-wider">Payout</span>
                   <span className="text-lg font-black text-emerald-400">
                     ${Number(invoice.amount || invoice.price || 0).toFixed(2)}
                   </span>
@@ -156,7 +156,7 @@ export default function SalesPage() {
             ))}
 
             {salesHistory.length === 0 && (
-              <p className="text-center text-xs text-white/30 py-12">No successful checkout receipts logged inside your account ledger.</p>
+              <p className="text-center text-xs text-[var(--text-subtle)] py-12">No successful checkout receipts logged inside your account ledger.</p>
             )}
           </div>
         </div>

@@ -93,7 +93,7 @@ export default function AnalyticsPage() {
   if (authLoading || loading) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-[#2f3f48] p-6 sm:p-10 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Header */}
@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <FaChartBar className="text-[#df6742] text-xl" /> Platform Analytics
           </h1>
-          <p className="text-xs text-white/40 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Real-time tracking of marketplace performance, users, and category distribution.
           </p>
         </div>
@@ -114,13 +114,13 @@ export default function AnalyticsPage() {
             { label: "Active Artists", value: `${metrics.activeArtists} Artists`, icon: FaChartLine, color: "text-blue-400", bg: "bg-blue-500/10" },
             { label: "Total Artworks", value: `${metrics.totalArtworksPublished} Items`, icon: FaPalette, color: "text-amber-400", bg: "bg-amber-500/10" },
           ].map(({ label, value, icon: Icon, color, bg }, i) => (
-            <div key={i} className="bg-[#243239] border border-white/5 rounded-2xl p-5 shadow-md flex items-center gap-4">
+            <div key={i} className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 shadow-md flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center ${color}`}>
                 <Icon className="text-lg" />
               </div>
               <div>
-                <p className="text-[10px] uppercase text-white/40 font-bold tracking-wider">{label}</p>
-                <h3 className="text-xl font-black text-white mt-0.5">{value}</h3>
+                <p className="text-[10px] uppercase text-[var(--text-muted)] font-bold tracking-wider">{label}</p>
+                <h3 className="text-xl font-black text-[var(--text-main)] mt-0.5">{value}</h3>
               </div>
             </div>
           ))}
@@ -130,23 +130,23 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Category Distribution */}
-          <div className="lg:col-span-7 bg-[#243239] border border-white/5 rounded-2xl p-6 shadow-xl space-y-6">
-            <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+          <div className="lg:col-span-7 bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-6 shadow-xl space-y-6">
+            <div className="flex items-center gap-2 border-b border-[var(--border-line)] pb-3">
               <FaChartPie className="text-[#df6742] text-sm" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white/70">Artworks by Category</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Artworks by Category</h3>
             </div>
 
             {categoriesData.length === 0 ? (
-              <p className="text-sm text-white/30 text-center py-8">No category data available.</p>
+              <p className="text-sm text-[var(--text-subtle)] text-center py-8">No category data available.</p>
             ) : (
               <div className="space-y-4">
                 {categoriesData.map((cat, idx) => (
                   <div key={idx} className="space-y-1.5">
                     <div className="flex justify-between items-center text-xs font-medium">
-                      <span className="text-white/80">{cat.name} ({cat.count} artworks)</span>
-                      <span className="text-white/40 font-mono">{cat.percentage}%</span>
+                      <span className="text-[var(--text-main)]">{cat.name} ({cat.count} artworks)</span>
+                      <span className="text-[var(--text-muted)] font-mono">{cat.percentage}%</span>
                     </div>
-                    <div className="w-full h-2.5 bg-[#2f3f48] rounded-full overflow-hidden">
+                    <div className="w-full h-2.5 bg-[var(--background)] rounded-full overflow-hidden">
                       <div
                         className={`h-full ${cat.color} rounded-full transition-all duration-700`}
                         style={{ width: `${cat.percentage}%` }}
@@ -159,10 +159,10 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Summary Panel */}
-          <div className="lg:col-span-5 bg-[#243239] border border-white/5 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+          <div className="lg:col-span-5 bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center gap-2 border-b border-[var(--border-line)] pb-3">
               <FaChartLine className="text-[#df6742] text-sm" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white/70">Platform Summary</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Platform Summary</h3>
             </div>
             <div className="space-y-3">
               {[
@@ -171,8 +171,8 @@ export default function AnalyticsPage() {
                 { label: "Artworks Listed", value: metrics.totalArtworksPublished, color: "text-amber-400" },
                 { label: "Total Revenue", value: `$${metrics.platformGrossRevenue.toLocaleString()}`, color: "text-emerald-400" },
               ].map(({ label, value, color }, i) => (
-                <div key={i} className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0">
-                  <span className="text-xs text-white/50 font-medium">{label}</span>
+                <div key={i} className="flex items-center justify-between py-2.5 border-b border-[var(--border-line)] last:border-0">
+                  <span className="text-xs text-[var(--text-muted)] font-medium">{label}</span>
                   <span className={`text-sm font-black ${color}`}>{value}</span>
                 </div>
               ))}

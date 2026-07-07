@@ -98,7 +98,7 @@ export default function AdminChartsPage() {
   if (!mounted || authLoading) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-[#2f3f48] p-6 sm:p-10 text-white" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-6xl mx-auto space-y-8">
 
         {/* Header */}
@@ -107,14 +107,14 @@ export default function AdminChartsPage() {
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <FaChartLine className="text-[#df6742] text-xl" /> Data Visualization Hub
             </h1>
-            <p className="text-xs text-white/40 mt-1">
+            <p className="text-xs text-[var(--text-muted)] mt-1">
               Sales trends and artwork category distribution charts.
             </p>
           </div>
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-2 bg-[#243239] hover:bg-[#1f2a30] border border-white/5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
+            className="flex items-center gap-2 bg-[var(--surface)] hover:bg-[var(--hover-bg)] border border-[var(--border-line)] px-4 py-2.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 text-[var(--text-main)]"
           >
             <FaSyncAlt className={`text-xs text-[#df6742] ${loading ? "animate-spin" : ""}`} />
             Refresh Charts
@@ -129,25 +129,25 @@ export default function AdminChartsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
             {/* Sales & Revenue Bar Chart */}
-            <div className="lg:col-span-7 bg-[#243239] border border-white/5 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
-              <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+            <div className="lg:col-span-7 bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-[var(--border-line)] pb-3">
                 <FaChartLine className="text-[#df6742] text-sm" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white/70">Sales & Revenue Overview</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Sales & Revenue Overview</h3>
               </div>
               <div className="w-full h-80 text-xs">
                 {salesData.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-white/30 text-xs">
+                  <div className="h-full flex items-center justify-center text-[var(--text-subtle)] text-xs">
                     No sales data available yet.
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={salesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" />
-                      <YAxis stroke="rgba(255,255,255,0.4)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-line)" />
+                      <XAxis dataKey="name" stroke="var(--text-muted)" />
+                      <YAxis stroke="var(--text-muted)" />
                       <Tooltip
-                        contentStyle={{ backgroundColor: "#2f3f48", borderColor: "rgba(255,255,255,0.1)", borderRadius: "12px", color: "#fff" }}
-                        itemStyle={{ color: "#fff" }}
+                        contentStyle={{ backgroundColor: "var(--surface)", borderColor: "var(--border-line)", borderRadius: "12px", color: "var(--text-main)" }}
+                        itemStyle={{ color: "var(--text-main)" }}
                       />
                       <Legend wrapperStyle={{ paddingTop: "10px" }} />
                       <Bar dataKey="Revenue" fill="#df6742" radius={[4, 4, 0, 0]} />
@@ -159,14 +159,14 @@ export default function AdminChartsPage() {
             </div>
 
             {/* Category Pie Chart */}
-            <div className="lg:col-span-5 bg-[#243239] border border-white/5 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
-              <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+            <div className="lg:col-span-5 bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-[var(--border-line)] pb-3">
                 <FaChartPie className="text-[#df6742] text-sm" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white/70">Artworks by Category</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Artworks by Category</h3>
               </div>
               <div className="w-full h-64 flex items-center justify-center">
                 {categoryData.length === 0 ? (
-                  <div className="text-white/30 text-xs">No category data available.</div>
+                  <div className="text-[var(--text-subtle)] text-xs">No category data available.</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -184,7 +184,7 @@ export default function AdminChartsPage() {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{ backgroundColor: "#2f3f48", borderColor: "rgba(255,255,255,0.1)", borderRadius: "12px", color: "#fff" }}
+                        contentStyle={{ backgroundColor: "var(--surface)", borderColor: "var(--border-line)", borderRadius: "12px", color: "var(--text-main)" }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -192,12 +192,12 @@ export default function AdminChartsPage() {
               </div>
 
               {/* Pie Chart Legend */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-[11px]">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--border-line)] text-[11px]">
                 {categoryData.map((entry, index) => (
                   <div key={entry.name} className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                    <span className="text-white/70 truncate">{entry.name}</span>
-                    <span className="text-white/30 font-mono ml-auto">({entry.value})</span>
+                    <span className="text-[var(--text-muted)] truncate">{entry.name}</span>
+                    <span className="text-[var(--text-subtle)] font-mono ml-auto">({entry.value})</span>
                   </div>
                 ))}
               </div>

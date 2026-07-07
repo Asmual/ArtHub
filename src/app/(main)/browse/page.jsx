@@ -101,8 +101,8 @@ export default async function BrowseArtworksPage({ searchParams }) {
     <Suspense 
       key={JSON.stringify(params)} // Forces Suspense to trigger loading state when URL search parameters change
       fallback={
-        <div className="min-h-screen bg-[#2f3f48] flex items-center justify-center">
-          <p className="text-white text-sm font-medium animate-pulse">Querying Catalog Databases...</p>
+        <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] flex items-center justify-center">
+          <p className="text-slate-600 dark:text-white text-sm font-medium animate-pulse">Querying Catalog Databases...</p>
         </div>
       }
     >

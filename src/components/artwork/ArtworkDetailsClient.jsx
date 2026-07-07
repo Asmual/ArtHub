@@ -1,14 +1,13 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 import ReviewSection from "./ReviewSection";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-// Helper function to generate a valid backend JWT token using user email
 const getAuthToken = async (base, email) => {
   const res = await fetch(`${base}/api/users/generate-token`, {
     method: "POST",
@@ -26,10 +25,10 @@ export default function ArtworkDetailsClient({ artwork }) {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const artistId =
+    artwork?.resolvedArtistId ||
     artwork?.artistId ||
     artwork?.userId ||
-    artwork?.artist?._id ||
-    artwork?.artist;
+    artwork?.artist?._id;
 
   const artistRealName =
     artwork?.artistName || artwork?.artist?.name || "Zainul Abedin";
@@ -73,7 +72,6 @@ export default function ArtworkDetailsClient({ artwork }) {
 
       const targetToken = await getAuthToken(base, user.email);
 
-      // ফ্রন্টএন্ড ট্র্যাকিং লগ মেটাডেটা ভেরিফিকেশন
       const payload = {
         artworkId: artwork?._id,
         price: Number(artwork.price),
@@ -82,8 +80,8 @@ export default function ArtworkDetailsClient({ artwork }) {
         buyerEmail: user.email,
         userId: user.id,
       };
-      
-      console.log("[FRONTEND LOG] Dispatched payload payload maps to checkout stream: ", payload);
+     
+      console.log("[FRONTEND LOG] Dispatched payload maps to checkout stream: ", payload);
 
       const response = await fetch(
         `${base}/api/payment/create-checkout-session`,
@@ -130,31 +128,36 @@ export default function ArtworkDetailsClient({ artwork }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8 text-white">
+    <main className="min-h-screen bg-white dark:bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8 text-slate-800 dark:text-white">
       <div className="max-w-5xl mx-auto space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-          <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-neutral-500/30 bg-neutral-900/40">
-            <img
-              src={artwork.image}
-              alt={artwork.title}
-              className="w-full h-full object-cover"
-            />
-            <span className="absolute top-4 left-4 bg-[#df6742] text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">
+          <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-neutral-500/30 bg-slate-100 dark:bg-neutral-900/40">
+            {artwork.image && (
+              <Image
+                src={artwork.image}
+                alt={artwork.title || "Artwork Image"}
+                fill
+                priority
+                sizes="(max-w-768px) 100vw, 50vw"
+                className="object-cover"
+              />
+            )}
+            <span className="absolute top-4 left-4 z-10 bg-[#df6742] text-white text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">
               {artwork.category}
             </span>
           </div>
 
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight mb-2">
+              <h1 className="text-3xl font-extrabold tracking-tight mb-2 text-slate-800 dark:text-white">
                 {artwork.title}
               </h1>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-slate-500 dark:text-neutral-400">
                 Published on {formatBDDateTime(artwork.createdAt)}
               </p>
             </div>
 
-            <div className="bg-black/25 p-5 rounded-xl border border-white/10 shadow-lg">
+            <div className="bg-slate-50 dark:bg-black/25 p-5 rounded-xl border border-slate-200 dark:border-white/10 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   {artistId ? (
@@ -162,7 +165,7 @@ export default function ArtworkDetailsClient({ artwork }) {
                       href={`/artists-profile/${artistId.toString()}`}
                       className="inline-block group"
                     >
-                      <h4 className="text-base font-black text-white hover:text-[#df6742] transition-colors flex items-center gap-2 cursor-pointer">
+                      <h4 className="text-base font-black text-slate-800 dark:text-white hover:text-[#df6742] transition-colors flex items-center gap-2 cursor-pointer">
                         {artistRealName}
                         <span
                           className="inline-flex items-center justify-center bg-[#1d9bf0] text-white rounded-full p-0.5"
@@ -180,11 +183,11 @@ export default function ArtworkDetailsClient({ artwork }) {
                       </h4>
                     </Link>
                   ) : (
-                    <h4 className="text-base font-bold text-white/90 flex items-center gap-1.5">
+                    <h4 className="text-base font-bold text-slate-700 dark:text-white/90 flex items-center gap-1.5">
                       {artistRealName}
                     </h4>
                   )}
-                  <p className="text-xs text-white/60 tracking-wider font-medium uppercase mt-1">
+                  <p className="text-xs text-slate-500 dark:text-white/60 tracking-wider font-medium uppercase mt-1">
                     {artwork.specialty || artwork.category || "Fine Art"} Artist
                     / Creator
                   </p>
@@ -193,17 +196,17 @@ export default function ArtworkDetailsClient({ artwork }) {
             </div>
 
             <div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-2">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 mb-2">
                 Description
               </h2>
-              <p className="text-sm text-neutral-300 leading-relaxed max-w-prose">
+              <p className="text-sm text-slate-600 dark:text-neutral-300 leading-relaxed max-w-prose">
                 {artwork.description}
               </p>
             </div>
 
-            <div className="pt-4 border-t border-neutral-500/20 grid grid-cols-2 gap-4">
+            <div className="pt-4 border-t border-slate-200 dark:border-neutral-500/20 grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-neutral-400 uppercase font-semibold">
+                <p className="text-xs text-slate-500 dark:text-neutral-400 uppercase font-semibold">
                   Purchase Price
                 </p>
                 <p className="text-2xl font-black text-[#df6742] mt-1">
@@ -211,15 +214,15 @@ export default function ArtworkDetailsClient({ artwork }) {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-neutral-400 uppercase font-semibold">
+                <p className="text-xs text-slate-500 dark:text-neutral-400 uppercase font-semibold">
                   Availability
                 </p>
                 {artwork.isSold ? (
-                  <span className="inline-block mt-2 bg-red-500/20 text-red-400 text-xs font-bold px-2.5 py-1 rounded-md uppercase">
+                  <span className="inline-block mt-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold px-2.5 py-1 rounded-md uppercase">
                     Sold Out
                   </span>
                 ) : (
-                  <span className="inline-block mt-2 bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-md uppercase">
+                  <span className="inline-block mt-2 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-md uppercase">
                     Available
                   </span>
                 )}
@@ -234,7 +237,7 @@ export default function ArtworkDetailsClient({ artwork }) {
                 }
                 className={`w-full text-sm font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 tracking-wide uppercase ${
                   artwork.isSold || isAdmin || isArtist
-                    ? "bg-neutral-700 text-neutral-500 cursor-not-allowed"
+                    ? "bg-slate-200 dark:bg-neutral-700 text-slate-400 dark:text-neutral-500 cursor-not-allowed"
                     : "bg-[#df6742] hover:bg-[#c5522f] text-white active:scale-[0.99]"
                 }`}
               >
@@ -245,9 +248,9 @@ export default function ArtworkDetailsClient({ artwork }) {
           </div>
         </div>
 
-        <div className="border-t border-neutral-500/30 pt-8">
+        <div className="border-t border-slate-200 dark:border-neutral-500/30 pt-8">
           {isPending ? (
-            <div className="text-sm text-neutral-400 animate-pulse pl-1">
+            <div className="text-sm text-slate-500 dark:text-neutral-400 animate-pulse pl-1">
               Verifying authentication status...
             </div>
           ) : (

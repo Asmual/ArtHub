@@ -5,7 +5,7 @@ export default function MainLayout({ children }) {
   return (
     <>
       <Navbar />
-      <main>{children}</main>
+      <main className="min-h-full flex flex-col">{children}</main>
       <Footer />
     </>
   );

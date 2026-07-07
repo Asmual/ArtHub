@@ -3,9 +3,9 @@ import NextLink from "next/link";
 
 export default function Artcard({ artwork }) {
   return (
-    <div className="bg-[#1e262b] rounded-2xl overflow-hidden border border-white/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between">
+    <div className="bg-white dark:bg-[#1e262b] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between">
       {/* Image Container */}
-      <div className="relative aspect-4/3 w-full overflow-hidden bg-black/10">
+      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-black/10">
         <img
           src={artwork.image || artwork.imageUrl}
           alt={artwork.title}
@@ -27,10 +27,10 @@ export default function Artcard({ artwork }) {
       {/* Content Body */}
       <div className="p-4 flex flex-col grow justify-between">
         <div>
-          <h3 className="text-base font-bold text-white truncate mb-0.5">
+          <h3 className="text-base font-bold text-slate-800 dark:text-white truncate mb-0.5">
             {artwork.title}
           </h3>
-          <p className="text-xs text-white/40 mb-4 truncate">
+          <p className="text-xs text-slate-500 dark:text-white/40 mb-4 truncate">
             By {artwork.artistName || "Unknown"}
           </p>
         </div>
