@@ -26,7 +26,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
 
   // Sync state if URL category changes dynamically
   useEffect(() => {

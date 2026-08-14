@@ -5,14 +5,17 @@
 import React, { useState, useEffect } from "react";
 import { useSession, authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
-import { 
-  User, 
-  Mail, 
-  Camera, 
-  Save, 
-  ShieldCheck, 
-  Loader2, 
-  RefreshCcw 
+import {
+  User,
+  Mail,
+  Camera,
+  Save,
+  ShieldCheck,
+  Loader2,
+  RefreshCcw,
+  Phone,
+  FileText,
+  Sparkles
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -21,14 +24,21 @@ export default function ProfilePage() {
 
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [speciality, setSpeciality] = useState("");
+
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Sync state with session data
+  // Sync component state with session data
   useEffect(() => {
     if (user) {
       setName(user.name || "");
       setImage(user.image || "");
+      setPhone(user.phone || "");
+      setBio(user.bio || "");
+      setSpeciality(user.speciality || "");
     }
   }, [user]);
 
@@ -42,7 +52,6 @@ export default function ProfilePage() {
     formData.append("image", file);
 
     try {
-   
       const apiUrl = process.env.NEXT_PUBLIC_IMGBB_API_URL || "https://api.imgbb.com/1/upload";
       const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
@@ -79,10 +88,12 @@ export default function ProfilePage() {
 
     setIsUpdating(true);
     try {
-      // Using BetterAuth / authClient to update user profile
       await authClient.updateUser({
         name: name,
         image: image,
+        phone: phone,
+        bio: bio,
+        speciality: speciality,
       }, {
         onSuccess: () => {
           toast.success("Profile updated successfully!");
@@ -108,12 +119,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 px-4 sm:px-0">
       {/* Header Section */}
       <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)] flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-main)]">Profile Management</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1">Update your personal information and profile picture.</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1">Update your personal information and profile details.</p>
         </div>
         <div className="hidden sm:block">
           <div className="px-3 py-1 bg-[#df6742]/10 border border-[#df6742]/20 rounded-full">
@@ -122,100 +133,144 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Avatar Upload Section */}
-        <div className="lg:col-span-1 bg-[var(--surface)] p-8 rounded-2xl border border-[var(--border-line)] flex flex-col items-center justify-center text-center">
+      {/* Main Profile Form Wrapper */}
+      <div className="bg-[var(--surface)] p-6 sm:p-8 rounded-2xl border border-[var(--border-line)]">
+        
+        {/* Compact Square Image Section at the Top */}
+        <div className="flex flex-col items-center justify-center pb-8 border-b border-[var(--border-line)] mb-6">
           <div className="relative group">
-            <div className="w-32 h-32 rounded-full border-4 border-[#df6742] overflow-hidden bg-[var(--hover-bg)] relative">
-              {isUploading ? (
+            <div className="w-28 h-28 rounded-xl border-2 border-[#df6742] overflow-hidden bg-[var(--hover-bg)] relative shadow-md">
+              {isUploading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
-                  <RefreshCcw className="text-white animate-spin w-6 h-6" />
+                  <RefreshCcw className="text-white animate-spin w-5 h-5" />
                 </div>
-              ) : null}
+              )}
               {image ? (
-                <img 
-                  src={image} 
-                  alt="Profile" 
+                <img
+                  src={image}
+                  alt="Profile"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover" 
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-[var(--text-subtle)]">
+                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[var(--text-subtle)]">
                   {user?.name?.charAt(0)}
                 </div>
               )}
             </div>
-            
+           
             {/* Upload Trigger */}
-            <label className="absolute bottom-1 right-1 bg-[#df6742] p-2 rounded-full cursor-pointer hover:bg-[#c55332] transition-colors shadow-lg border-2 border-[var(--surface)]">
-              <Camera size={18} className="text-white" />
-              <input 
-                type="file" 
-                className="hidden" 
-                accept="image/*" 
+            <label className="absolute -bottom-2 -right-2 bg-[#df6742] p-2 rounded-lg cursor-pointer hover:bg-[#c55332] transition-colors shadow-lg border-2 border-[var(--surface)]">
+              <Camera size={16} className="text-white" />
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
                 onChange={handleImageUpload}
                 disabled={isUploading}
               />
             </label>
           </div>
-          
-          <h2 className="mt-4 text-lg font-bold text-[var(--text-main)] truncate max-w-full">{user?.name}</h2>
-          <p className="text-[var(--text-muted)] text-xs truncate max-w-full">{user?.email}</p>
+          <h2 className="mt-3 text-lg font-bold text-[var(--text-main)]">{name || user?.name}</h2>
+          <p className="text-[var(--text-muted)] text-xs">{user?.email}</p>
         </div>
 
-        {/* Right: Info Form Section */}
-        <div className="lg:col-span-2 bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)]">
-          <form onSubmit={handleUpdateProfile} className="space-y-5">
-            {/* Name Field */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
-                <input 
-                  type="text" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-main)] focus:border-[#df6742]/50 focus:outline-none transition-all"
-                />
-              </div>
+        {/* Input Fields Form */}
+        <form onSubmit={handleUpdateProfile} className="space-y-5">
+          {/* Name Field */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name"
+                className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-main)] focus:border-[#df6742]/50 focus:outline-none transition-all"
+              />
             </div>
+          </div>
 
-            {/* Email Field (Disabled) */}
-            <div className="space-y-2 opacity-60">
-              <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Email Address (Primary)</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
-                <input 
-                  type="email" 
-                  value={user?.email || ""} 
-                  disabled
-                  className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-muted)] cursor-not-allowed"
-                />
-              </div>
+          {/* Email Field (Disabled) */}
+          <div className="space-y-2 opacity-60">
+            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Email Address (Primary)</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
+              <input
+                type="email"
+                value={user?.email || ""}
+                disabled
+                className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-muted)] cursor-not-allowed"
+              />
             </div>
+          </div>
 
-            {/* Verification Status */}
-            <div className="flex items-center gap-2 px-4 py-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
-              <ShieldCheck className="text-emerald-500" size={16} />
-              <p className="text-[11px] text-emerald-500/80 font-medium">Your account is verified and secure.</p>
+          {/* Mobile Number Field */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Mobile Number</label>
+            <div className="relative">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Enter mobile number"
+                className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-main)] focus:border-[#df6742]/50 focus:outline-none transition-all"
+              />
             </div>
+          </div>
 
-            {/* Action Button */}
-            <button
-              type="submit"
-              disabled={isUpdating || isUploading}
-              className="w-full bg-[#df6742] hover:bg-[#c55332] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
-            >
-              {isUpdating ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Save size={19} />
-              )}
-              {isUpdating ? "Saving Changes..." : "Update Profile"}
-            </button>
-          </form>
-        </div>
+          {/* Speciality Field */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Speciality</label>
+            <div className="relative">
+              <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-subtle)]" size={18} />
+              <input
+                type="text"
+                value={speciality}
+                onChange={(e) => setSpeciality(e.target.value)}
+                placeholder="e.g., Oil Painting, Digital Art, Sculpting"
+                className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-main)] focus:border-[#df6742]/50 focus:outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Bio Field (Textarea) */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider ml-1">Artist Bio</label>
+            <div className="relative">
+              <FileText className="absolute left-4 top-4 text-[var(--text-subtle)]" size={18} />
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Write a brief biography about yourself..."
+                rows={4}
+                className="w-full bg-[var(--hover-bg)] border border-[var(--border-line)] rounded-xl py-3 pl-11 pr-4 text-[var(--text-main)] focus:border-[#df6742]/50 focus:outline-none transition-all resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Verification Status */}
+          <div className="flex items-center gap-2 px-4 py-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+            <ShieldCheck className="text-emerald-500" size={16} />
+            <p className="text-[11px] text-emerald-500/80 font-medium">Your account is verified and secure.</p>
+          </div>
+
+          {/* Action Button */}
+          <button
+            type="submit"
+            disabled={isUpdating || isUploading}
+            className="w-full bg-[#df6742] hover:bg-[#c55332] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
+          >
+            {isUpdating ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Save size={19} />
+            )}
+            {isUpdating ? "Saving Changes..." : "Update Profile"}
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -125,7 +125,7 @@ const FeaturedArtworks = () => {
                   return (
                     <div
                       key={artId}
-                      className="bg-white dark:bg-[#1e262b] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between"
+                      className="bg-white dark:bg-[#243239] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between"
                     >
                       <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-black/10">
                         {itemImage && (

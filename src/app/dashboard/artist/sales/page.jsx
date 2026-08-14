@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -16,7 +17,6 @@ export default function SalesPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user?.email) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
@@ -27,7 +27,7 @@ export default function SalesPage() {
       try {
         setLoading(true);
 
-        // Dynamic API router mapping directed towards payment endpoints allocation architecture
+        // দ্রষ্টব্য: যদি 404 এরর না কাটে, তাহলে নিচের পাথটি পরিবর্তন করে "/payment/my-sales" করে দেখবেন।
         const response = await backendFetch("/api/payment/my-sales", { method: "GET" }, user.email);
 
         if (!response || !response.ok) {
@@ -48,7 +48,6 @@ export default function SalesPage() {
       } catch (err) {
         console.error("Dashboard calculation error:", err);
         if (isMounted) {
-          // Toast emission rule directly utilized without interrupting page UI display maps
           toast.error(err instanceof Error ? err.message : "Failed to load operational sales metrics.");
         }
       } finally {
@@ -87,7 +86,6 @@ export default function SalesPage() {
     <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       <div className="max-w-5xl mx-auto space-y-8">
        
-        {/* Top Operational Metrics Hub */}
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <FaChartLine className="text-[#df6742] text-xl" /> Sales &amp; Revenue Reports
@@ -95,7 +93,6 @@ export default function SalesPage() {
           <p className="text-xs text-[var(--text-muted)] mt-1">Review ledger transactions generated dynamically from safe checkout operations.</p>
         </div>
 
-        {/* Highlight Stats Overview Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-5 flex items-center gap-4 shadow-md">
             <div className="w-12 h-12 rounded-xl bg-[#df6742]/10 flex items-center justify-center text-[#df6742]">
@@ -118,7 +115,6 @@ export default function SalesPage() {
           </div>
         </div>
 
-        {/* Ledger Order Record Rows Block */}
         <div className="bg-[var(--surface)] border border-[var(--border-line)] rounded-2xl p-6 shadow-xl space-y-4">
           <div className="pb-2 border-b border-[var(--border-line)]">
             <h3 className="text-sm font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1.5">
@@ -136,20 +132,20 @@ export default function SalesPage() {
                   <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wide">
                     <span className="font-mono">ID: {invoice._id}</span>
                     <span className="w-1 h-1 rounded-full bg-[var(--text-subtle)]" />
-                    <span>{formatDate(invoice.createdAt || invoice.date)}</span>
+                    <span>{formatDate(invoice.date || invoice.createdAt)}</span>
                   </div>
                   <h4 className="text-base font-bold text-[var(--text-main)]">
-                    {invoice.artworkTitle || invoice.title || "Untitled Masterwork"}
+                    {invoice.artworkTitle || "Untitled Masterwork"}
                   </h4>
                   <p className="text-xs text-[var(--text-muted)] font-medium">
-                    Buyer: <span className="text-[var(--text-muted)] font-mono">{invoice.buyerEmail || invoice.buyer}</span>
+                    Buyer: <span className="text-[var(--text-muted)] font-mono">{invoice.buyerEmail || "N/A"}</span>
                   </p>
                 </div>
                
                 <div className="sm:text-right bg-[var(--hover-bg)] border border-[var(--border-line)] px-4 py-2 rounded-xl">
                   <span className="text-xs text-[var(--text-subtle)] uppercase font-bold block tracking-wider">Payout</span>
                   <span className="text-lg font-black text-emerald-400">
-                    ${Number(invoice.amount || invoice.price || 0).toFixed(2)}
+                    ${Number(invoice.amount || 0).toFixed(2)}
                   </span>
                 </div>
               </div>

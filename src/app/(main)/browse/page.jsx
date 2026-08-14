@@ -16,14 +16,14 @@ const escapeRegex = (string) => {
 export default async function BrowseArtworksPage({ searchParams }) {
   // Await searchParams in Next.js 15+ environments to safely read values
   const params = await searchParams;
-  
+
   const search = params?.search || "";
   const category = params?.category || "";
   const sort = params?.sort || "newest";
   const minPrice = params?.minPrice || "";
   const maxPrice = params?.maxPrice || "";
-  const page = Math.max(1, Number(params?.page || 1));
-  const limit = Math.max(1, Number(params?.limit || 12));
+  // const page = Math.max(1, Number(params?.page || 1));
+  // const limit = Math.max(1, Number(params?.limit || 12));
 
   let artworks = [];
   let totalCount = 0;
@@ -40,15 +40,25 @@ export default async function BrowseArtworksPage({ searchParams }) {
     }
 
     // 2. Dynamic Category Match (Supports 'all' bypass)
-    if (category.trim() && category !== "undefined" && category !== "null" && category !== "all") {
-      finalFilter.category = { $regex: escapeRegex(category.trim()), $options: "i" };
+    if (
+      category.trim() &&
+      category !== "undefined" &&
+      category !== "null" &&
+      category !== "all"
+    ) {
+      finalFilter.category = {
+        $regex: escapeRegex(category.trim()),
+        $options: "i",
+      };
     }
 
     // 3. Price Range Boundaries Validation
     if (minPrice || maxPrice) {
       finalFilter.price = {};
-      if (minPrice && !isNaN(minPrice)) finalFilter.price.$gte = Number(minPrice);
-      if (maxPrice && !isNaN(maxPrice)) finalFilter.price.$lte = Number(maxPrice);
+      if (minPrice && !isNaN(minPrice))
+        finalFilter.price.$gte = Number(minPrice);
+      if (maxPrice && !isNaN(maxPrice))
+        finalFilter.price.$lte = Number(maxPrice);
       if (Object.keys(finalFilter.price).length === 0) delete finalFilter.price;
     }
 
@@ -61,11 +71,12 @@ export default async function BrowseArtworksPage({ searchParams }) {
     const sortOpt = sortMap[sort] || { createdAt: -1 };
 
     // 5. Pagination Skip Offset Formula
-    const skip = (page - 1) * limit;
+    // const skip = (page - 1) * limit;
 
     // Execute concurrent tracking operations to optimize database processing time
     const [data, total] = await Promise.all([
-      db.collection("artworks")
+      db
+        .collection("artworks")
         .find(finalFilter, {
           projection: {
             title: 1,
@@ -75,42 +86,46 @@ export default async function BrowseArtworksPage({ searchParams }) {
             isSold: 1,
             artistName: 1,
             createdAt: 1,
-          }
+          },
         })
         .sort(sortOpt)
-        .skip(skip)
-        .limit(limit)
         .toArray(),
-      db.collection("artworks").countDocuments(finalFilter)
+
+      db.collection("artworks").countDocuments(finalFilter),
     ]);
 
     // Format BSON objects into safe serializable JSON streams
-    artworks = data.map(item => ({
+    artworks = data.map((item) => ({
       ...item,
       _id: item._id.toString(),
-      createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString()
+      createdAt: item.createdAt
+        ? new Date(item.createdAt).toISOString()
+        : new Date().toISOString(),
     }));
-    
+
     totalCount = total;
-   
   } catch (collectionFetchError) {
-    console.error(`[DATABASE] Structural dataset compilation error inside artworks stream execution: ${collectionFetchError.message}`);
+    console.error(
+      `[DATABASE] Structural dataset compilation error inside artworks stream execution: ${collectionFetchError.message}`,
+    );
   }
 
   return (
-    <Suspense 
+    <Suspense
       key={JSON.stringify(params)} // Forces Suspense to trigger loading state when URL search parameters change
       fallback={
         <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] flex items-center justify-center">
-          <p className="text-slate-600 dark:text-white text-sm font-medium animate-pulse">Querying Catalog Databases...</p>
+          <p className="text-slate-600 dark:text-white text-sm font-medium animate-pulse">
+            Querying Catalog Databases...
+          </p>
         </div>
       }
     >
-      <BrowseArtworksClient 
-        initialArtworks={artworks} 
+      <BrowseArtworksClient
+        initialArtworks={artworks}
         totalArtworks={totalCount}
-        currentPage={page}
-        totalPages={Math.ceil(totalCount / limit)}
+        currentPage={1}
+        totalPages={1}
       />
     </Suspense>
   );

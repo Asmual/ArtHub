@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -30,45 +29,44 @@ const getDashboardLinks = (role) => {
   if (role === "buyer" || role === "user") {
     return [
       ...common,
-      { href: "/dashboard/user/purchase-history", label: "Purchase History",   icon: ShoppingBag },
-      { href: "/dashboard/user/bought-artworks",  label: "Bought Artworks",    icon: ImageIcon },
-      { href: "/dashboard/user/profile",           label: "Profile Management", icon: User },
+      { href: "/dashboard/user/purchase-history", label: "Purchase History", icon: ShoppingBag },
+      { href: "/dashboard/user/bought-artworks", label: "Bought Artworks", icon: ImageIcon },
+      { href: "/dashboard/user/profile", label: "Profile Management", icon: User },
     ];
   }
   if (role === "artist") {
     return [
       ...common,
-      { href: "/dashboard/artist/manage-artworks", label: "Manage Artworks",    icon: Palette },
-      { href: "/dashboard/artist/add-art",          label: "Add Artwork",         icon: PlusSquare },
-      { href: "/dashboard/artist/sales",            label: "Sales History",       icon: TrendingUp },
-      { href: "/dashboard/artist/profile",          label: "Profile Management",  icon: User },
+      { href: "/dashboard/artist/manage-artworks", label: "Manage Artworks", icon: Palette },
+      { href: "/dashboard/artist/add-art", label: "Add Artwork", icon: PlusSquare },
+      { href: "/dashboard/artist/sales", label: "Sales History", icon: TrendingUp },
+      { href: "/dashboard/artist/profile", label: "Profile Management", icon: User },
     ];
   }
   if (role === "admin") {
     return [
       ...common,
-      { href: "/dashboard/admin/users",        label: "Manage Users",          icon: Users },
-      { href: "/dashboard/admin/artworks",     label: "Manage All Artworks",   icon: Shield },
+      { href: "/dashboard/admin/users", label: "Manage Users", icon: Users },
+      { href: "/dashboard/admin/artworks", label: "Manage All Artworks", icon: Shield },
       { href: "/dashboard/admin/transactions", label: "View All Transactions", icon: CreditCard },
-      { href: "/dashboard/admin/charts",       label: "Charts & Analytics",    icon: BarChart2 },
-      { href: "/dashboard/admin/profile",      label: "Profile Management",    icon: User },
+      { href: "/dashboard/admin/charts", label: "Charts & Analytics", icon: BarChart2 },
+      { href: "/dashboard/admin/profile", label: "Profile Management", icon: User },
     ];
   }
   return [];
 };
 
 const getRoleBadgeColor = (role) => {
-  if (role === "admin")  return "bg-purple-600 border border-purple-400/30";
-  if (role === "artist") return "bg-amber-600  border border-amber-400/30";
+  if (role === "admin") return "bg-purple-600 border border-purple-400/30";
+  if (role === "artist") return "bg-amber-600 border border-amber-400/30";
   return "bg-[var(--brand)] border border-orange-400/30";
 };
 
 const isValidImageUrl = (url) =>
-  Boolean(url) && url !== "null" && url !== "undefined" && url.trim() !== "";
+  Boolean(url) && url !== "null" && url !== "undefined" && typeof url === "string" && url.trim() !== "";
 
 /* ============================================================
-   STABLE PRESENTATIONAL COMPONENTS
-   Defined outside Navbar so identity stays stable across renders.
+   PRESENTATIONAL COMPONENTS
 ============================================================ */
 const NavLink = ({ href, children, active }) => (
   <NextLink
@@ -82,28 +80,26 @@ const NavLink = ({ href, children, active }) => (
   </NextLink>
 );
 
-const UserInitials = ({ name, size = "w-10 h-10", textSize = "text-lg" }) => (
-  <div className={`bg-[var(--brand)] text-white rounded-full ${size} border-2 border-[var(--brand)] flex items-center justify-center shrink-0`}>
-    <span className={`${textSize} font-bold uppercase leading-none`}>
-      {name ? name.charAt(0) : "U"}
-    </span>
+const FallbackUserIcon = ({ size = "w-8 h-8", iconSize = 18 }) => (
+  <div className={`bg-[var(--brand)] text-white rounded-full ${size} flex items-center justify-center shrink-0 shadow-sm`}>
+    <User size={iconSize} />
   </div>
 );
 
-const AvatarImage = ({ user, hasValidImage, onImageError, size = "w-8 h-8", ringClass = "ring-2 ring-[var(--brand)]/40" }) =>
+const AvatarImage = ({ user, hasValidImage, onImageError, size = "w-8 h-8", ringClass = "ring-2 ring-[var(--brand)]/40", iconSize = 18 }) =>
   hasValidImage ? (
-    <div className={`${size} rounded-full overflow-hidden ${ringClass} shrink-0`}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+    <div className={`${size} rounded-full overflow-hidden ${ringClass} shrink-0 bg-neutral-200`}>
       <img
         src={user.image}
-        alt={user?.name || "User avatar"}
+        alt={user?.name || "User profile image"}
         referrerPolicy="no-referrer"
+        crossOrigin="anonymous"
         onError={onImageError}
         className="w-full h-full object-cover"
       />
     </div>
   ) : (
-    <UserInitials name={user?.name} size={size} />
+    <FallbackUserIcon size={size} iconSize={iconSize} />
   );
 
 const SearchSuggestions = ({ isSearching, searchResults, onClose }) => (
@@ -127,7 +123,6 @@ const SearchSuggestions = ({ isSearching, searchResults, onClose }) => (
           >
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-[var(--hover-bg)] shrink-0 border border-border-line">
               {art.image && (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img src={art.image} alt={art.title} className="w-full h-full object-cover" />
               )}
             </div>
@@ -139,7 +134,7 @@ const SearchSuggestions = ({ isSearching, searchResults, onClose }) => (
                 by {art.artistName || art.artist?.name || "Unknown"}
               </p>
             </div>
-            <span className="text-sm font-bold text-(--brand) shrink-0">${art.price}</span>
+            <span className="text-sm font-bold text-[var(--brand)] shrink-0">${art.price}</span>
           </NextLink>
         ))}
       </>
@@ -151,14 +146,15 @@ const SearchSuggestions = ({ isSearching, searchResults, onClose }) => (
 
 const AvatarDropdown = ({ user, hasValidImage, onImageError, onNavigateProfile, onLogout }) => (
   <div className="absolute right-0 top-full mt-2.5 w-72 bg-surface border border-border-line rounded-2xl shadow-2xl z-50 overflow-hidden">
-    <div className="p-4 bg-(--surface-elevated) border-b border-border-line">
+    <div className="p-4 bg-surface border-b border-border-line">
       <div className="flex items-center gap-3.5 mb-3">
-        <button onClick={onNavigateProfile} className="cursor-pointer focus:outline-none shrink-0">
+        <button onClick={onNavigateProfile} type="button" className="cursor-pointer focus:outline-none shrink-0">
           <AvatarImage
             user={user}
             hasValidImage={hasValidImage}
             onImageError={onImageError}
             size="w-10 h-10"
+            iconSize={22}
             ringClass="ring-2 ring-[var(--brand)]/50"
           />
         </button>
@@ -182,8 +178,9 @@ const AvatarDropdown = ({ user, hasValidImage, onImageError, onNavigateProfile, 
     </div>
     <div className="p-2 bg-surface">
       <button
+        type="button"
         onClick={onLogout}
-        className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-colors group"
+        className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-colors group cursor-pointer"
       >
         <LogOut size={15} className="group-hover:translate-x-0.5 transition-transform" />
         Logout
@@ -193,55 +190,61 @@ const AvatarDropdown = ({ user, hasValidImage, onImageError, onNavigateProfile, 
 );
 
 /* ============================================================
-   NAVBAR COMPONENT
+   MAIN NAVBAR COMPONENT
 ============================================================ */
 const Navbar = () => {
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
   const { data: session, isPending } = useSession();
   const user = session?.user;
 
-  const [isMobileMenuOpen,      setIsMobileMenuOpen]      = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileDashboardOpen, setIsMobileDashboardOpen] = useState(false);
-  const [isDashboardOpen,       setIsDashboardOpen]       = useState(false);
-  const [isAvatarOpen,          setIsAvatarOpen]          = useState(false);
-  const [imageError,            setImageError]            = useState(false);
-  const [isMobileSearchOpen,    setIsMobileSearchOpen]    = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  const [searchQuery,   setSearchQuery]   = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [searchResults,  setSearchResults]  = useState([]);
-  const [isSearching,    setIsSearching]    = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const dashboardRef     = useRef(null);
-  const avatarRef        = useRef(null);
+  const dashboardRef = useRef(null);
+  const avatarRef = useRef(null);
   const desktopSearchRef = useRef(null);
-  const mobileSearchRef  = useRef(null);
+  const mobileSearchRef = useRef(null);
 
-  useEffect(() => { setImageError(false); }, [user]);
-
-  /* ---- Close dropdowns on outside click ---- */
+  /* Reset image error when user updates */
   useEffect(() => {
-    const handle = (e) => {
-      if (dashboardRef.current     && !dashboardRef.current.contains(e.target))     setIsDashboardOpen(false);
-      if (avatarRef.current        && !avatarRef.current.contains(e.target))        setIsAvatarOpen(false);
+    setImageError(false);
+  }, [user?.image]);
+
+  /* Close dropdowns on outside click */
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dashboardRef.current && !dashboardRef.current.contains(e.target)) setIsDashboardOpen(false);
+      if (avatarRef.current && !avatarRef.current.contains(e.target)) setIsAvatarOpen(false);
       if (desktopSearchRef.current && !desktopSearchRef.current.contains(e.target)) setIsSearchFocused(false);
-      if (mobileSearchRef.current  && !mobileSearchRef.current.contains(e.target))  setIsMobileSearchOpen(false);
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)) setIsMobileSearchOpen(false);
     };
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  /* ---- Debounced live search ---- */
+  /* Debounced live search */
   useEffect(() => {
     const fetchResults = async () => {
-      if (!searchQuery.trim()) { setSearchResults([]); return; }
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        return;
+      }
       setIsSearching(true);
       try {
         const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-        const res  = await fetch(`${base}/api/artworks/search?query=${encodeURIComponent(searchQuery.trim())}`);
+        const res = await fetch(`${base}/api/artworks/search?query=${encodeURIComponent(searchQuery.trim())}`);
         if (res.ok) {
-          const data       = await res.json();
+          const data = await res.json();
           const normalized = Array.isArray(data) ? data : (data.artworks || []);
           setSearchResults(normalized.slice(0, 5));
         } else {
@@ -292,17 +295,21 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const closeDesktopSearch = () => { setIsSearchFocused(false); setSearchQuery(""); };
-  const closeMobileSearch  = () => { setIsMobileSearchOpen(false); setSearchQuery(""); };
+  const closeDesktopSearch = () => {
+    setIsSearchFocused(false);
+    setSearchQuery("");
+  };
 
-  const isActive       = (path) => pathname === path;
+  const closeMobileSearch = () => {
+    setIsMobileSearchOpen(false);
+    setSearchQuery("");
+  };
+
+  const isActive = (path) => pathname === path;
   const dashboardLinks = user ? getDashboardLinks(user.role) : [];
-  const hasValidImage  = isValidImageUrl(user?.image) && !imageError;
+  const hasValidImage = isValidImageUrl(user?.image) && !imageError;
   const handleImageError = () => setImageError(true);
 
-  /* ============================================================
-     RENDER
-  ============================================================ */
   return (
     <nav
       className="bg-background text-foreground shadow-lg sticky top-0 z-50 h-16 flex items-center border-b border-border-line"
@@ -311,7 +318,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center h-16 gap-4">
 
-          {/* ── BRAND LOGO ── */}
+          {/* BRAND LOGO */}
           <NextLink href="/" className="flex items-center gap-2.5 group shrink-0">
             <Image
               src="/Images/ArtHubLogo.png"
@@ -325,7 +332,7 @@ const Navbar = () => {
             </span>
           </NextLink>
 
-          {/* ── DESKTOP SEARCH BAR ── */}
+          {/* DESKTOP SEARCH BAR */}
           <div ref={desktopSearchRef} className="hidden md:block flex-1 mx-6 max-w-md relative">
             <form onSubmit={handleSearchSubmit}>
               <div className={`flex items-center w-full border rounded-full px-3.5 py-1.5 gap-2 transition-all duration-200 ${
@@ -358,9 +365,9 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* ── DESKTOP NAV LINKS ── */}
+          {/* DESKTOP NAV LINKS */}
           <div className="hidden md:flex items-center gap-6 shrink-0">
-            <NavLink href="/"       active={isActive("/")}>Home</NavLink>
+            <NavLink href="/" active={isActive("/")}>Home</NavLink>
             <NavLink href="/browse" active={isActive("/browse")}>Browse Artworks</NavLink>
 
             {user && (
@@ -403,7 +410,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* ── DESKTOP AUTH / UTILITIES SECTION ── */}
+          {/* DESKTOP AUTH & UTILITIES SECTION */}
           <div className="hidden md:flex items-center ml-auto gap-4 shrink-0">
             <ThemeToggle />
 
@@ -446,7 +453,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* ── MOBILE CONTROLS (Theme Toggle, Search, + Hamburger) ── */}
+          {/* MOBILE CONTROLS */}
           <div className="flex md:hidden items-center gap-2 ml-auto">
             <ThemeToggle />
             <button
@@ -455,7 +462,7 @@ const Navbar = () => {
               aria-label="Toggle search"
               className={`p-2 rounded-xl border transition-colors ${
                 isMobileSearchOpen
-                  ? "text-[var(--brand)] bg-[var(--brand)]/10 border-(--brand)/30"
+                  ? "text-[var(--brand)] bg-[var(--brand)]/10 border-[var(--brand)]/30"
                   : "text-foreground/80 bg-[var(--hover-bg)] border-border-line hover:bg-[var(--hover-bg)]"
               }`}
             >
@@ -474,7 +481,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* ── MOBILE SEARCH PANEL ── */}
+      {/* MOBILE SEARCH PANEL */}
       {isMobileSearchOpen && (
         <div
           ref={mobileSearchRef}
@@ -510,7 +517,7 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* ── MOBILE DRAWER MENU ── */}
+      {/* MOBILE DRAWER MENU */}
       {isMobileMenuOpen && (
         <div className="absolute top-16 left-0 w-full md:hidden bg-surface border-t border-border-line shadow-xl z-50 max-h-[calc(100vh-64px)] overflow-y-auto">
           <div className="flex flex-col items-center gap-2 px-6 pt-5 pb-6">
@@ -535,7 +542,7 @@ const Navbar = () => {
               Browse Artworks
             </NextLink>
 
-            {/* Mobile dashboard accordion */}
+            {/* MOBILE DASHBOARD ACCORDION */}
             {user && (
               <div className="w-full max-w-sm">
                 <button
@@ -553,7 +560,7 @@ const Navbar = () => {
                 </button>
 
                 {isMobileDashboardOpen && (
-                  <div className="mt-2 bg-[var(--surface-elevated)] rounded-xl overflow-hidden border border-border-line flex flex-col items-center w-full">
+                  <div className="mt-2 bg-surface rounded-xl overflow-hidden border border-border-line flex flex-col items-center w-full">
                     {dashboardLinks.map(({ href, label, icon: Icon }, index) => (
                       <NextLink
                         key={href}
@@ -576,12 +583,12 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* Mobile auth / user card */}
+            {/* MOBILE AUTH & USER DETAILS */}
             <div className="pt-4 border-t border-border-line mt-2 w-full max-w-sm">
               {isPending ? (
                 <div className="h-20 bg-[var(--hover-bg)] animate-pulse rounded-2xl w-full" />
               ) : user ? (
-                <div className="bg-[var(--surface-elevated)] rounded-2xl p-4 border border-border-line flex flex-col items-center gap-3.5 w-full">
+                <div className="bg-surface rounded-2xl p-4 border border-border-line flex flex-col items-center gap-3.5 w-full">
                   <div className="flex flex-col items-center text-center gap-2">
                     <button type="button" onClick={navigateToProfile} className="cursor-pointer focus:outline-none">
                       <AvatarImage
@@ -589,6 +596,7 @@ const Navbar = () => {
                         hasValidImage={hasValidImage}
                         onImageError={handleImageError}
                         size="w-10 h-10"
+                        iconSize={22}
                         ringClass="ring-2 ring-[var(--brand)]/50"
                       />
                     </button>
@@ -603,7 +611,7 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] transition-colors shadow-md"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] transition-colors shadow-md cursor-pointer"
                   >
                     <LogOut size={14} />
                     Logout

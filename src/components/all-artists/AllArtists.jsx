@@ -18,9 +18,10 @@ const AVATAR_GRADIENTS = [
 ];
 
 const formatCount = (n = 0) => {
-  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
+  const num = Number(n) || 0;
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+  return String(num);
 };
 
 const getInitials = (name = "") => {
@@ -28,7 +29,24 @@ const getInitials = (name = "") => {
   return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 };
 
-// সিঙ্কড স্কেলেটন লোডার কার্ড
+const getArtworksCount = (artist = {}) => {
+  if (typeof artist.totalArtworks === "number") return artist.totalArtworks;
+  if (typeof artist.totalArts === "number") return artist.totalArts;
+  if (typeof artist.artworksCount === "number") return artist.artworksCount;
+  if (Array.isArray(artist.artworks)) return artist.artworks.length;
+  if (Array.isArray(artist.arts)) return artist.arts.length;
+  return Number(artist.totalArtworks || artist.totalArts || artist.artworksCount || artist.artworksLength || 0);
+};
+
+const getSalesCount = (artist = {}) => {
+  if (typeof artist.totalSold === "number") return artist.totalSold;
+  if (typeof artist.totalSales === "number") return artist.totalSales;
+  if (typeof artist.salesCount === "number") return artist.salesCount;
+  if (Array.isArray(artist.sales)) return artist.sales.length;
+  if (Array.isArray(artist.sold)) return artist.sold.length;
+  return Number(artist.totalSold || artist.totalSales || artist.salesCount || artist.soldCount || 0);
+};
+
 const SkeletonCard = () => (
   <div className="bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-2xl p-6 flex flex-col items-center animate-pulse">
     <div className="w-17 h-17 rounded-full bg-slate-200 dark:bg-white/10 border-2 border-slate-100 dark:border-[#2f3f48] mb-4 mt-2" />
@@ -47,13 +65,11 @@ export default function AllArtists({ artists = [], loading = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('All');
 
-  // ইউনিক স্পেশাল্টি লিস্ট বের করা (ফিল্টার ড্রপডাউনের জন্য)
   const specialties = useMemo(() => {
     const list = new Set(artists.map(a => a?.specialty).filter(Boolean));
     return ['All', ...Array.from(list)];
   }, [artists]);
 
-  // ইনফিনিট লুপ ছাড়া সেফ ফিল্টারিং (useMemo ব্যবহার করা হয়েছে পারফরম্যান্সের জন্য)
   const filteredArtists = useMemo(() => {
     return artists.filter((artist) => {
       if (!artist) return false;
@@ -71,9 +87,7 @@ export default function AllArtists({ artists = [], loading = false }) {
 
   return (
     <div className="space-y-8">
-      {/* ফিল্টার এবং সার্চ বার কন্ট্রোল */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-[#243239] p-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-lg">
-        {/* সার্চ ইনপুট */}
         <div className="relative w-full md:max-w-md">
           <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30 text-sm" />
           <input
@@ -85,7 +99,6 @@ export default function AllArtists({ artists = [], loading = false }) {
           />
         </div>
 
-        {/* ড্রপডাউন ফিল্টার */}
         <div className="flex items-center gap-3 w-full md:w-auto">
           <FaSlidersH className="text-[#df6742] text-sm hidden sm:block" />
           <select
@@ -102,7 +115,6 @@ export default function AllArtists({ artists = [], loading = false }) {
         </div>
       </div>
 
-      {/* মেইন গ্রিড লেআউট */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
@@ -116,28 +128,28 @@ export default function AllArtists({ artists = [], loading = false }) {
           {filteredArtists.map((artist, i) => {
             const artistRating = artist.rating ? Number(artist.rating).toFixed(1) : "5.0";
             const gradient = AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length];
-            const dynamicImage = artist.image || artist.profileImage;
+            const dynamicImage = artist.image || artist.profileImage || artist.avatar;
             const artistId = artist._id?.toString() || artist._id || i;
+
+            const artworksCount = getArtworksCount(artist);
+            const salesCount = getSalesCount(artist);
 
             return (
               <div
                 key={artistId}
                 className="group bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-2xl p-6 shadow-sm dark:shadow-none transition-all duration-300 hover:border-[#df6742]/40 hover:-translate-y-1 flex flex-col items-center text-center relative"
               >
-                {/* র্যাঙ্ক ব্যাজ */}
                 {i < 3 && (
                   <div className={`absolute top-4 left-4 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold z-10 ${RANK_BADGE[i]}`}>
                     {i + 1}
                   </div>
                 )}
 
-                {/* রেটিং ব্যাজ */}
                 <div className="absolute top-4 right-4 bg-white/90 dark:bg-[#2f3f48]/90 backdrop-blur-md border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-lg flex items-center gap-1 z-10">
                   <FaStar className="text-amber-400 text-xs" />
                   <span className="text-slate-800 dark:text-white text-[11px] font-bold">{artistRating}</span>
                 </div>
 
-                {/* প্রোফাইল ইমেজ বা ইনিশিয়াল */}
                 <div className="relative mb-4 mt-2">
                   {dynamicImage ? (
                     <img
@@ -153,7 +165,6 @@ export default function AllArtists({ artists = [], loading = false }) {
                   <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-[#243239]" />
                 </div>
 
-        
                 <p className="text-[16px] font-bold text-slate-800 dark:text-white leading-tight mb-1 group-hover:text-[#df6742] transition-colors duration-200 w-full truncate px-1">
                   {artist.name || "Unknown Artist"}
                 </p>
@@ -161,11 +172,10 @@ export default function AllArtists({ artists = [], loading = false }) {
                   {artist.specialty || "Visual Artist"}
                 </p>
 
-          
                 <div className="grid grid-cols-2 gap-2 mb-6 w-full">
                   {[
-                    { label: "Artworks", value: formatCount(artist.totalArtworks ?? artist.totalArts) },
-                    { label: "Sales", value: formatCount(artist.totalSold ?? artist.totalSales) },
+                    { label: "Artworks", value: formatCount(artworksCount) },
+                    { label: "Sales", value: formatCount(salesCount) },
                   ].map(({ label, value }) => (
                     <div key={label} className="bg-slate-50 dark:bg-white/4 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 flex flex-col items-center gap-0.5">
                       <span className="text-[15px] font-bold text-[#df6742]">{value}</span>
@@ -174,7 +184,6 @@ export default function AllArtists({ artists = [], loading = false }) {
                   ))}
                 </div>
 
-         
                 <Link
                   href={`/artists-profile/${artistId}`}
                   className="mt-auto block w-full py-2.5 text-center text-xs font-bold tracking-wide bg-[#df6742] text-white hover:bg-[#ca5633] active:scale-[0.98] rounded-xl shadow-lg shadow-[#df6742]/10 transition-all duration-200"
