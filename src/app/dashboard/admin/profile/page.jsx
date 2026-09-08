@@ -72,29 +72,48 @@ export default function ProfilePage() {
     }
   };
 
-  // Handle Profile Update via authClient
+  // Handle Profile Update via authClient and backend API
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     if (!name.trim()) return toast.error("Name cannot be empty");
 
     setIsUpdating(true);
     try {
-      // Using BetterAuth / authClient to update user profile
+      // Update BetterAuth user session
       await authClient.updateUser({
         name: name,
         image: image,
-      }, {
-        onSuccess: () => {
-          toast.success("Profile updated successfully!");
-          setIsUpdating(false);
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message || "Failed to update profile");
-          setIsUpdating(false);
-        }
       });
+
+      // Synchronize changes to MongoDB database
+      const base = (
+        process.env.NEXT_PUBLIC_API_URL ||
+        "https://arthub-server-z4w8.onrender.com"
+      ).replace(/\/$/, "");
+
+      const resToken = await fetch(`${base}/api/users/generate-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      if (resToken.ok) {
+        const { token } = await resToken.json();
+        await fetch(`${base}/api/users/profile`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name, image }),
+        });
+      }
+
+      toast.success("Profile updated successfully!");
     } catch (error) {
+      console.error("[PROFILE ERROR] Admin profile update error:", error);
       toast.error("Something went wrong");
+    } finally {
       setIsUpdating(false);
     }
   };

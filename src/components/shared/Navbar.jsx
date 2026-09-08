@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -242,17 +243,17 @@ const Navbar = () => {
       }
       setIsSearching(true);
       try {
-        const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
         const res = await fetch(`${base}/api/artworks/search?query=${encodeURIComponent(searchQuery.trim())}`);
         if (res.ok) {
           const data = await res.json();
-          const normalized = Array.isArray(data) ? data : (data.artworks || []);
-          setSearchResults(normalized.slice(0, 5));
+          const normalized = Array.isArray(data) ? data : (data.artworks || data.data || []);
+          setSearchResults(normalized.slice(0, 8));
         } else {
           setSearchResults([]);
         }
       } catch (err) {
-        console.error("Live search error:", err);
+        console.error("[NAVBAR SEARCH ERROR]", err);
         setSearchResults([]);
       } finally {
         setIsSearching(false);

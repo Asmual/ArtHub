@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ObjectId } from "mongodb";
 import { getDB } from "@/lib/mongodb";
 import BrowseArtworksClient from "@/components/artwork/BrowseArtworksClient";
 
@@ -32,11 +33,41 @@ export default async function BrowseArtworksPage({ searchParams }) {
     const db = await getDB();
     const finalFilter = {};
 
-    // 1. Live Search Logic (Title or Artist Name matching)
+    // 1. Search Logic (Title, Category, Artist Name, or Artist Email)
     if (search.trim() && search !== "undefined" && search !== "null") {
       const sanitizedSearch = escapeRegex(search.trim());
       const searchRegex = new RegExp(sanitizedSearch, "i");
-      finalFilter.$or = [{ title: searchRegex }, { artistName: searchRegex }];
+
+      // Resolve matching artist users from user collection
+      const matchingArtists = await db
+        .collection("user")
+        .find(
+          { $or: [{ name: searchRegex }, { email: searchRegex }] },
+          { projection: { _id: 1, email: 1 } }
+        )
+        .toArray();
+
+      const matchedArtistIds = matchingArtists.map((a) => a._id.toString());
+      const matchedArtistOids = matchingArtists.map((a) => a._id);
+      const matchedArtistEmails = matchingArtists.map((a) => a.email).filter(Boolean);
+
+      finalFilter.$or = [
+        { title: searchRegex },
+        { artistName: searchRegex },
+        { category: searchRegex },
+        ...(matchedArtistIds.length > 0
+          ? [
+              { userId: { $in: [...matchedArtistIds, ...matchedArtistOids] } },
+              { artistId: { $in: [...matchedArtistIds, ...matchedArtistOids] } },
+            ]
+          : []),
+        ...(matchedArtistEmails.length > 0
+          ? [
+              { artistEmail: { $in: matchedArtistEmails } },
+              { userEmail: { $in: matchedArtistEmails } },
+            ]
+          : []),
+      ];
     }
 
     // 2. Dynamic Category Match (Supports 'all' bypass)
@@ -85,6 +116,9 @@ export default async function BrowseArtworksPage({ searchParams }) {
             category: 1,
             isSold: 1,
             artistName: 1,
+            userId: 1,
+            artistEmail: 1,
+            userEmail: 1,
             createdAt: 1,
           },
         })
@@ -94,14 +128,67 @@ export default async function BrowseArtworksPage({ searchParams }) {
       db.collection("artworks").countDocuments(finalFilter),
     ]);
 
+    // Auto-populate artistName from users collection if missing
+    const missingArtistUserIds = data
+      .filter((a) => !a.artistName && a.userId)
+      .map((a) => a.userId);
+    const missingArtistEmails = data
+      .filter((a) => !a.artistName && (a.artistEmail || a.userEmail))
+      .map((a) => a.artistEmail || a.userEmail);
+
+    const artistNameMap = new Map();
+    if (missingArtistUserIds.length > 0 || missingArtistEmails.length > 0) {
+      const userOids = [];
+      const userStrIds = [];
+      missingArtistUserIds.forEach((uid) => {
+        try {
+          userOids.push(new ObjectId(uid));
+        } catch {
+          userStrIds.push(uid);
+        }
+      });
+
+      const matchedUsers = await db
+        .collection("user")
+        .find({
+          $or: [
+            ...(userOids.length > 0 ? [{ _id: { $in: userOids } }] : []),
+            ...(userStrIds.length > 0 ? [{ _id: { $in: userStrIds } }] : []),
+            ...(missingArtistEmails.length > 0
+              ? [{ email: { $in: missingArtistEmails } }]
+              : []),
+          ],
+        })
+        .toArray();
+
+      matchedUsers.forEach((u) => {
+        if (u._id) artistNameMap.set(u._id.toString(), u.name);
+        if (u.email) artistNameMap.set(u.email.toLowerCase(), u.name);
+      });
+    }
+
     // Format BSON objects into safe serializable JSON streams
-    artworks = data.map((item) => ({
-      ...item,
-      _id: item._id.toString(),
-      createdAt: item.createdAt
-        ? new Date(item.createdAt).toISOString()
-        : new Date().toISOString(),
-    }));
+    artworks = data.map((item) => {
+      const resolvedArtistName =
+        item.artistName ||
+        (item.userId && artistNameMap.get(item.userId.toString())) ||
+        (item.artistEmail && artistNameMap.get(item.artistEmail.toLowerCase())) ||
+        (item.userEmail && artistNameMap.get(item.userEmail.toLowerCase())) ||
+        "Unknown Artist";
+
+      return {
+        _id: item._id.toString(),
+        title: item.title,
+        image: item.image,
+        price: item.price,
+        category: item.category,
+        isSold: item.isSold,
+        artistName: resolvedArtistName,
+        createdAt: item.createdAt
+          ? new Date(item.createdAt).toISOString()
+          : new Date().toISOString(),
+      };
+    });
 
     totalCount = total;
   } catch (collectionFetchError) {

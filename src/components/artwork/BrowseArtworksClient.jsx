@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -10,12 +9,13 @@ import Artcard from "@/components/artwork/Artcard";
 export default function BrowseArtworksClient({ initialArtworks = [] }) {
   const searchParams = useSearchParams();
   
-  // Get initial category from URL query (?category=...) or default to "All"
+  // Get initial values from URL query (?category=..., ?search=...)
   const urlCategory = searchParams.get("category") || "All";
+  const urlSearch = searchParams.get("search") || "";
 
   // Search & Filter States
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
   const [selectedCategory, setSelectedCategory] = useState(urlCategory);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -28,12 +28,18 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  // Sync state if URL category changes dynamically
+  // Sync state if URL parameters change dynamically
   useEffect(() => {
-    if (searchParams.get("category")) {
-      setSelectedCategory(searchParams.get("category"));
-      setCurrentPage(1);
+    const categoryParam = searchParams.get("category");
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
     }
+    const searchParam = searchParams.get("search");
+    if (searchParam !== null && searchParam !== undefined) {
+      setSearchQuery(searchParam);
+      setDebouncedSearch(searchParam);
+    }
+    setCurrentPage(1);
   }, [searchParams]);
 
   // Debounce search query to optimize performance
@@ -73,7 +79,8 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
       result = result.filter(
         (art) =>
           art.title?.toLowerCase().includes(query) ||
-          art.artistName?.toLowerCase().includes(query),
+          art.artistName?.toLowerCase().includes(query) ||
+          art.category?.toLowerCase().includes(query),
       );
     }
 
