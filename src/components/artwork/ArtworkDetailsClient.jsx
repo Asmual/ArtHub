@@ -34,7 +34,11 @@ export default function ArtworkDetailsClient({ artwork }) {
     artwork?.artistName || artwork?.artist?.name || "Zainul Abedin";
 
   const isAdmin = user?.role === "admin";
-  const isArtist = user?.role === "artist";
+  const isOwner =
+    user &&
+    (user.email?.toLowerCase() === artwork?.artistEmail?.toLowerCase() ||
+      user.email?.toLowerCase() === artwork?.userEmail?.toLowerCase() ||
+      user.id === artistId?.toString());
 
   const hasPaid =
     artwork.isSold &&
@@ -56,6 +60,7 @@ export default function ArtworkDetailsClient({ artwork }) {
     }
   };
 
+  // Initiate Stripe checkout redirection
   const handleStripeCheckout = async () => {
     if (!user) {
       toast.error("Please login to purchase this artwork!");
@@ -75,13 +80,7 @@ export default function ArtworkDetailsClient({ artwork }) {
       const payload = {
         artworkId: artwork?._id,
         price: Number(artwork.price),
-        artworkName: artwork.title,
-        userEmail: user.email,
-        buyerEmail: user.email,
-        userId: user.id,
       };
-     
-      console.log("[FRONTEND LOG] Dispatched payload maps to checkout stream: ", payload);
 
       const response = await fetch(
         `${base}/api/payment/create-checkout-session`,
@@ -106,26 +105,28 @@ export default function ArtworkDetailsClient({ artwork }) {
       }
 
       if (data.url) {
-        console.log(`[FRONTEND SUCCESS] Secure Gateway Route Target URL intercepted: ${data.url}`);
         window.location.href = data.url;
       } else {
         throw new Error("Stripe secure gateway url missing from response.");
       }
     } catch (err) {
-      console.error("Redirection pipeline checkpoint error:", err);
+      console.error("[PAYMENT ERROR] Checkout redirection error:", err);
       toast.error(err.message || "An unexpected network fault occurred.");
     } finally {
       setIsRedirecting(false);
     }
   };
 
+  // Determine button display text based on status
   const getButtonText = () => {
     if (isRedirecting) return "Connecting Gateway...";
     if (artwork.isSold) return "Sold Out";
-    if (isAdmin) return "Purchase Locked (Admin)";
-    if (isArtist) return "Purchase Locked (Artist)";
+    if (isAdmin) return "Admin View Only";
+    if (isOwner) return "Your Artwork";
     return "Buy Now";
   };
+
+  const isBuyDisabled = Boolean(artwork.isSold || isRedirecting || isAdmin || isOwner);
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8 text-slate-800 dark:text-white">
@@ -232,11 +233,9 @@ export default function ArtworkDetailsClient({ artwork }) {
             <div className="pt-2">
               <button
                 onClick={handleStripeCheckout}
-                disabled={
-                  artwork.isSold || isRedirecting || isAdmin || isArtist
-                }
+                disabled={isBuyDisabled}
                 className={`w-full text-sm font-bold py-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 tracking-wide uppercase ${
-                  artwork.isSold || isAdmin || isArtist
+                  isBuyDisabled
                     ? "bg-slate-200 dark:bg-neutral-700 text-slate-400 dark:text-neutral-500 cursor-not-allowed"
                     : "bg-[#df6742] hover:bg-[#c5522f] text-white active:scale-[0.99]"
                 }`}

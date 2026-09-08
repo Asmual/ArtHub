@@ -27,7 +27,7 @@ export default function SalesPage() {
       try {
         setLoading(true);
 
-        // দ্রষ্টব্য: যদি 404 এরর না কাটে, তাহলে নিচের পাথটি পরিবর্তন করে "/payment/my-sales" করে দেখবেন।
+        // Fetch sales transactions for the authenticated artist
         const response = await backendFetch("/api/payment/my-sales", { method: "GET" }, user.email);
 
         if (!response || !response.ok) {

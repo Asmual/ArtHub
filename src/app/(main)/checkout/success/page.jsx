@@ -1,96 +1,177 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { CheckCircle, Loader2, CreditCard } from "lucide-react";
+import { CheckCircle, Loader2, ArrowRight, Palette, ShoppingBag, Home } from "lucide-react";
+import Link from "next/link";
 import toast from "react-hot-toast";
 
-// Helper to retrieve a valid backend-validated JWT token matching database pipeline context
+// Helper to retrieve JWT token for authenticated requests
 const getAuthToken = async (base, email) => {
   const res = await fetch(`${base}/api/users/generate-token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
   });
-  if (!res.ok) throw new Error("Token generation failed.");
+  if (!res.ok) throw new Error("Authentication token generation failed.");
   const { token } = await res.json();
   return token;
 };
 
-export default function SuccessPage() {
+// Success content component wrapped in Suspense for Next.js searchParams compatibility
+function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get("session_id");
   const { data: session, isPending: authLoading } = authClient.useSession();
- 
-  const [syncing, setSyncing] = useState(true);
-  const syncExecuted = useRef(false); // Guard variable to intercept StrictMode duplicate rendering leaks
 
+  const [syncing, setSyncing] = useState(true);
+  const [orderDetails, setOrderDetails] = useState(null);
+  const syncExecuted = useRef(false);
+
+  // Synchronize and verify payment with server
   useEffect(() => {
     if (authLoading || !sessionId || !session?.user?.email || syncExecuted.current) return;
 
-    const synchronizeDatabaseLedger = async () => {
+    const verifyTransaction = async () => {
       try {
         syncExecuted.current = true;
         const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-
-        // Fetch fresh backend validated authentication bearer context
         const backendToken = await getAuthToken(base, session.user.email);
 
         const res = await fetch(`${base}/api/payment/verify-payment-sync`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${backendToken}`
+            Authorization: `Bearer ${backendToken}`,
           },
-          body: JSON.stringify({ sessionId })
+          body: JSON.stringify({ sessionId }),
         });
 
-        const data = await res.json();
+        const result = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.message || "Failed ledger database allocation alignment synchronization.");
+          throw new Error(result.message || "Failed to verify payment status.");
         }
 
-        toast.success("Transaction successfully captured inside core database ledger!");
+        if (result.data) {
+          setOrderDetails(result.data);
+        }
+        toast.success("Payment verified! Your artwork is secured.");
       } catch (err) {
-        console.error("Ecosystem sync error logging exception statement:", err);
-        toast.error(err.message || "Error synchronizing payment lifecycle parameters.");
+        console.error("[PAYMENT ERROR] Sync error:", err);
+        toast.error(err.message || "Could not verify payment status.");
       } finally {
         setSyncing(false);
       }
     };
 
-    synchronizeDatabaseLedger();
+    verifyTransaction();
   }, [sessionId, session, authLoading]);
 
+  // Loading state
   if (authLoading || syncing) {
     return (
-      <div className="min-h-screen bg-[#243239] flex flex-col items-center justify-center gap-3 text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
-        <p className="text-xs text-white/50 tracking-wider">Verifying transaction secure ledger logs...</p>
+      <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center gap-3 text-[var(--text-main)]">
+        <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
+        <h2 className="text-lg font-bold">Verifying Payment...</h2>
+        <p className="text-xs text-[var(--text-muted)]">Confirming your transaction with the secure ledger...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#243239] text-white flex items-center justify-center p-4" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="text-center p-8 max-w-md bg-[#1e262b] rounded-2xl border border-white/5 shadow-2xl space-y-4">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] flex items-center justify-center p-4 sm:p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+      <div className="w-full max-w-lg bg-[var(--surface)] p-8 sm:p-10 rounded-2xl border border-[var(--border-line)] shadow-2xl text-center space-y-6">
+        
+        {/* Success Icon */}
         <div className="flex justify-center">
-          <CheckCircle className="w-16 h-16 text-emerald-500 animate-bounce" />
+          <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+            <CheckCircle className="w-10 h-10 text-emerald-500" />
+          </div>
         </div>
-        <h1 className="text-3xl font-black text-emerald-400">Payment Successful!</h1>
-        <p className="text-white/60 text-sm leading-relaxed">
-          Your premium checkout clearance pipeline passed validation. The purchased artwork is now logged to your client profile database configuration.
-        </p>
-        <button
-          onClick={() => router.push("/dashboard/payment")}
-          className="inline-flex items-center gap-2 mt-4 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
-        >
-          <CreditCard className="w-4 h-4" /> View Purchased Invoices
-        </button>
+
+        {/* Title and Confirmation Message */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-black text-emerald-500 tracking-tight">Payment Successful!</h1>
+          <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+            Thank you for your purchase! Your payment has been confirmed and the artwork has been added to your collection.
+          </p>
+        </div>
+
+        {/* Order Details Card */}
+        {orderDetails && (
+          <div className="p-5 bg-[var(--background)] rounded-xl border border-[var(--border-line)] text-left space-y-3">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-[var(--text-muted)] font-medium">Artwork</span>
+              <span className="font-bold text-[var(--text-main)] truncate max-w-[200px]">
+                {orderDetails.artworkTitle || orderDetails.artworkDetails?.title || "Original Artwork"}
+              </span>
+            </div>
+
+            <div className="h-px bg-[var(--border-line)]" />
+
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-[var(--text-muted)] font-medium">Total Paid</span>
+              <span className="text-base font-black text-emerald-500 font-mono">
+                ${Number(orderDetails.price || orderDetails.amount || 0).toFixed(2)}
+              </span>
+            </div>
+
+            <div className="h-px bg-[var(--border-line)]" />
+
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-[var(--text-muted)] font-medium">Transaction ID</span>
+              <span className="font-mono text-[10px] text-[var(--text-muted)] select-all truncate max-w-[200px]">
+                {orderDetails.transactionId || sessionId}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation Action Buttons */}
+        <div className="space-y-3 pt-2">
+          <Link
+            href="/dashboard/user/bought-artworks"
+            className="w-full bg-[#df6742] hover:bg-[#c55332] text-white font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#df6742]/10"
+          >
+            <Palette className="w-4 h-4" /> View in My Collection
+          </Link>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/dashboard/user/purchase-history"
+              className="bg-[var(--background)] hover:bg-[var(--hover-bg)] text-[var(--text-main)] border border-[var(--border-line)] font-semibold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" /> Order History
+            </Link>
+
+            <Link
+              href="/browse"
+              className="bg-[var(--background)] hover:bg-[var(--hover-bg)] text-[var(--text-main)] border border-[var(--border-line)] font-semibold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
+            >
+              <Home className="w-3.5 h-3.5" /> Browse More
+            </Link>
+          </div>
+        </div>
+
       </div>
     </div>
+  );
+}
+
+// Exported page component with Suspense boundary
+export default function SuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+        </div>
+      }
+    >
+      <SuccessContent />
+    </Suspense>
   );
 }

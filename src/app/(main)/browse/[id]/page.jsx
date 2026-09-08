@@ -65,7 +65,7 @@ export default async function ArtworkDetailsPage({ params }) {
         }
       }
 
-      // ক্লায়েন্টে ডেটা পাঠানোর আগে নিশ্চিত করা হচ্ছে যেন কোনো ObjectId অবজেক্ট অবশিষ্ট না থাকে
+      // Serialize MongoDB ObjectIds to strings before passing to client component
       artwork = {
         ...data,
         _id: data._id.toString(),

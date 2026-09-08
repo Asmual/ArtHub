@@ -115,13 +115,13 @@ const TopArtists = () => {
             {loading
               ? [0, 1, 2].map((i) => <SkeletonCard key={i} />)
               : artists.map((artist, i) => {
-                  // ব্যাকএন্ডের সম্ভাব্য প্রপার্টি ম্যাপিং সেফটি চেক
+                  // Safeguard rating and avatar property fallbacks
                   const artistRating = artist.rating || artist.avgRating || "5.0";
                   const gradient = AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length];
                   const dynamicImage = artist.image || artist.profileImage || artist.avatar;
                   const artistId = artist._id?.toString() || artist.id || artist._id || i;
 
-                  // ডাটাবেজের বিচিত্র ফিল্ড স্ট্রাকচার হ্যান্ডেল করার ব্যাকআপ প্রপার্টি স্কিম
+                  // Normalize artwork and sales count properties across database schema variations
                   const totalArtworksCount = artist.totalArtworks ?? artist.totalArts ?? artist.artworksCount ?? 0;
                   const totalSoldLines = artist.totalSold ?? artist.totalSales ?? artist.salesCount ?? 0;
 

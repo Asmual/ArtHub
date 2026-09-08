@@ -42,7 +42,7 @@ export default function ProfilePage() {
     formData.append("image", file);
 
     try {
-      // .env.local ফাইল থেকে ডাইনামিকালি URL এবং API Key রিড করা হচ্ছে
+      // Upload image to ImgBB storage API
       const apiUrl = process.env.NEXT_PUBLIC_IMGBB_API_URL || "https://api.imgbb.com/1/upload";
       const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 

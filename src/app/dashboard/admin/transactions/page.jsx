@@ -46,7 +46,8 @@ export default function AdminTransactionsPage() {
 
       if (!res.ok) throw new Error("Failed to fetch transactions.");
       const data = await res.json();
-      setTransactions(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : (data?.data || data?.transactions || []);
+      setTransactions(list);
     } catch (err) {
       console.error("Transaction fetch error:", err);
       toast.error("Could not load transaction history.");

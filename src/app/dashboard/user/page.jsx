@@ -81,9 +81,8 @@ export default function UserDashboardLanding() {
       if (!res.ok) throw new Error("Failed to fetch orders from server endpoint.");
      
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setRecentOrders(data.slice(0, 3));
-      }
+      const list = Array.isArray(data) ? data : (data?.data || data?.orders || []);
+      setRecentOrders(list.slice(0, 3));
     } catch (err) {
       console.error("Dashboard data fetch error:", err);
     } finally {
