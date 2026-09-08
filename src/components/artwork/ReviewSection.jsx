@@ -24,6 +24,18 @@ const formatTimeAgo = (timestamp) => {
   return date.toLocaleDateString();
 };
 
+// Helper to retrieve JWT token for authenticated requests
+const getAuthToken = async (base, email) => {
+  const res = await fetch(`${base}/api/users/generate-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error("Authentication token generation failed.");
+  const { token } = await res.json();
+  return token;
+};
+
 const ReviewSection = ({ artworkId, currentUser, hasPaid, isAdmin, isArtist }) => {
   const [reviews, setReviews] = useState([]);
   const [text, setText] = useState("");
@@ -69,20 +81,25 @@ const ReviewSection = ({ artworkId, currentUser, hasPaid, isAdmin, isArtist }) =
     return () => clearInterval(tickerInterval);
   }, [fetchReviews]);
 
+  // Submit new review comment
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentUser || !text.trim()) return;
 
     try {
+      const token = await getAuthToken(cleanBaseUrl, currentUser.email);
       const response = await fetch(`${cleanBaseUrl}/api/reviews`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           artworkId,
           userEmail: currentUser.email,
           userName: currentUser.name,
           userImage: currentUser.image || "",
-          text: text.trim()
+          text: text.trim(),
         }),
       });
 
@@ -90,22 +107,30 @@ const ReviewSection = ({ artworkId, currentUser, hasPaid, isAdmin, isArtist }) =
         setText("");
         fetchReviews();
         triggerToast("Comment posted successfully!");
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        triggerToast(errData.message || "Failed to post comment.");
       }
     } catch (error) {
-      console.error("Error executing safe review delivery:", error);
+      console.error("[REVIEW ERROR] Post review error:", error);
+      triggerToast("Error posting comment.");
     }
   };
 
+  // Update existing review comment
   const handleUpdate = async (reviewId) => {
     if (!editText.trim() || !currentUser) return;
     try {
+      const token = await getAuthToken(cleanBaseUrl, currentUser.email);
       const response = await fetch(`${cleanBaseUrl}/api/reviews/${reviewId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           text: editText.trim(),
-          userEmail: currentUser.email
-        })
+        }),
       });
 
       if (response.ok) {
@@ -113,9 +138,12 @@ const ReviewSection = ({ artworkId, currentUser, hasPaid, isAdmin, isArtist }) =
         setEditText("");
         fetchReviews();
         triggerToast("Comment updated successfully!");
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        triggerToast(errData.message || "Failed to update comment.");
       }
     } catch (error) {
-      console.error("Mutation submission failure encountered:", error);
+      console.error("[REVIEW ERROR] Update review error:", error);
     }
   };
 
@@ -124,13 +152,17 @@ const ReviewSection = ({ artworkId, currentUser, hasPaid, isAdmin, isArtist }) =
     setShowDeleteModal(true);
   };
 
+  // Delete review comment
   const executeDelete = async () => {
     if (!targetedDeleteId || !currentUser) return;
     try {
+      const token = await getAuthToken(cleanBaseUrl, currentUser.email);
       const response = await fetch(`${cleanBaseUrl}/api/reviews/${targetedDeleteId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail: currentUser.email })
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -138,9 +170,12 @@ const ReviewSection = ({ artworkId, currentUser, hasPaid, isAdmin, isArtist }) =
         setTargetedDeleteId(null);
         fetchReviews();
         triggerToast("Successfully deleted comment!");
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        triggerToast(errData.message || "Failed to delete comment.");
       }
     } catch (error) {
-      console.error("Purge operations channel communication failure:", error);
+      console.error("[REVIEW ERROR] Delete review error:", error);
     }
   };
 

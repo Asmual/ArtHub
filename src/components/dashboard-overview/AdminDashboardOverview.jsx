@@ -238,7 +238,7 @@ export default function AdminDashboardOverview({ session: initialSession }) {
          <div className="flex items-center justify-between mb-4">
            <h2 className="text-base font-bold text-[var(--text-main)]">Recent Sales</h2>
            <Link
-             href="/admin/sales"
+             href="/dashboard/admin/transactions"
              className="text-xs font-bold text-[#df6742] bg-[#df6742]/5 hover:bg-[#df6742]/10 border border-[#df6742]/10 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all"
            >
              View All <ArrowUpRight className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export default function AdminDashboardOverview({ session: initialSession }) {
              View Stripe-linked financial charts and artwork category analytics in the core system module.
            </p>
            <Link
-             href="/admin/charts"
+             href="/dashboard/admin/charts"
              className="inline-flex items-center gap-2 bg-[#df6742] hover:bg-[#c95835] text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-colors shadow-md w-fit"
            >
              Launch Charts <ArrowUpRight className="w-4 h-4" />

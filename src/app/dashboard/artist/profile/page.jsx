@@ -18,6 +18,18 @@ import {
   Sparkles
 } from "lucide-react";
 
+// Helper to retrieve JWT token for authenticated requests
+const getAuthToken = async (base, email) => {
+  const res = await fetch(`${base}/api/users/generate-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error("Authentication token generation failed.");
+  const { token } = await res.json();
+  return token;
+};
+
 export default function ProfilePage() {
   const { data: session, isPending } = useSession();
   const user = session?.user;
@@ -31,16 +43,38 @@ export default function ProfilePage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Sync component state with session data
+  const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+
+  // Load database profile data for artist
   useEffect(() => {
-    if (user) {
-      setName(user.name || "");
-      setImage(user.image || "");
-      setPhone(user.phone || "");
-      setBio(user.bio || "");
-      setSpeciality(user.speciality || "");
-    }
-  }, [user]);
+    if (!user?.email) return;
+
+    setName(user.name || "");
+    setImage(user.image || "");
+
+    const fetchDatabaseProfile = async () => {
+      try {
+        const token = await getAuthToken(base, user.email);
+        const res = await fetch(`${base}/api/users/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const dbUser = await res.json();
+          if (dbUser) {
+            if (dbUser.name) setName(dbUser.name);
+            if (dbUser.image) setImage(dbUser.image);
+            if (dbUser.phone) setPhone(dbUser.phone);
+            if (dbUser.bio) setBio(dbUser.bio);
+            if (dbUser.specialty || dbUser.speciality) setSpeciality(dbUser.specialty || dbUser.speciality);
+          }
+        }
+      } catch (err) {
+        console.error("[PROFILE ERROR] Database profile fetch error:", err);
+      }
+    };
+
+    fetchDatabaseProfile();
+  }, [user?.email, base, user]);
 
   // Handle Image Upload to ImgBB
   const handleImageUpload = async (e) => {
@@ -74,38 +108,55 @@ export default function ProfilePage() {
         toast.error(data.error?.message || "Image upload failed");
       }
     } catch (error) {
-      console.error("Upload Error:", error);
+      console.error("[UPLOAD ERROR] Image upload error:", error);
       toast.error("Error uploading image");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Handle Profile Update via authClient
+  // Handle Profile Update across BetterAuth and MongoDB database
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     if (!name.trim()) return toast.error("Name cannot be empty");
 
     setIsUpdating(true);
     try {
+      const token = await getAuthToken(base, user.email);
+
+      // Update BetterAuth session for name and image
       await authClient.updateUser({
         name: name,
         image: image,
-        phone: phone,
-        bio: bio,
-        speciality: speciality,
-      }, {
-        onSuccess: () => {
-          toast.success("Profile updated successfully!");
-          setIsUpdating(false);
-        },
-        onError: (ctx) => {
-          toast.error(ctx.error.message || "Failed to update profile");
-          setIsUpdating(false);
-        }
       });
+
+      // Update extended artist fields in MongoDB database
+      const res = await fetch(`${base}/api/users/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          image,
+          phone,
+          bio,
+          specialty: speciality,
+          speciality: speciality,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to update profile attributes.");
+      }
+
+      toast.success("Profile updated successfully!");
     } catch (error) {
-      toast.error("Something went wrong");
+      console.error("[PROFILE ERROR] Update profile error:", error);
+      toast.error(error.message || "Something went wrong.");
+    } finally {
       setIsUpdating(false);
     }
   };

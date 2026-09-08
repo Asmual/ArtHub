@@ -118,7 +118,7 @@ const SearchSuggestions = ({ isSearching, searchResults, onClose }) => (
         {searchResults.map((art) => (
           <NextLink
             key={art._id || art.id}
-            href={`/artworks/${art._id || art.id}`}
+            href={`/browse/${art._id || art.id}`}
             onClick={onClose}
             className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--hover-bg)] transition-colors group"
           >
