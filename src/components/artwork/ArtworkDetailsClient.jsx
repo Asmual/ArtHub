@@ -35,15 +35,20 @@ export default function ArtworkDetailsClient({ artwork }) {
 
   const isAdmin = user?.role === "admin";
   const isOwner =
-    user &&
-    (user.email?.toLowerCase() === artwork?.artistEmail?.toLowerCase() ||
-      user.email?.toLowerCase() === artwork?.userEmail?.toLowerCase() ||
-      user.id === artistId?.toString());
+    Boolean(user) &&
+    Boolean(
+      (artwork?.artistEmail && user.email?.toLowerCase() === artwork.artistEmail?.toLowerCase()) ||
+      (artwork?.userEmail && user.email?.toLowerCase() === artwork.userEmail?.toLowerCase()) ||
+      (artistId && user.id?.toString() === artistId.toString())
+    );
+  const isArtist = user?.role === "artist" || isOwner;
 
   const hasPaid =
-    artwork.isSold &&
-    (artwork.buyerId === user?.id ||
-      artwork.buyerId?.toString() === user?.id?.toString());
+    Boolean(artwork?.isSold) &&
+    Boolean(
+      (artwork?.buyerId && (artwork.buyerId === user?.id || artwork.buyerId?.toString() === user?.id?.toString())) ||
+      (artwork?.buyerEmail && user?.email && artwork.buyerEmail.toLowerCase() === user.email.toLowerCase())
+    );
 
   const formatBDDateTime = (dateString) => {
     if (!dateString) return "N/A";
