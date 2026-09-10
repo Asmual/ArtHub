@@ -4,8 +4,6 @@ import { getDB } from "@/lib/mongodb";
 
 export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
-
 export async function POST(req) {
   try {
     const { sessionId } = await req.json().catch(() => ({}));
@@ -16,6 +14,15 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      return NextResponse.json(
+        { error: true, message: "Stripe secret key is not configured in server environment." },
+        { status: 500 }
+      );
+    }
+    const stripe = new Stripe(secretKey);
 
     // Retrieve session from Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId);

@@ -5,7 +5,6 @@ import { verifyJwt } from "@/lib/jwt";
 
 export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
 const PLAN_CONFIGS = {
   basic: {
@@ -76,6 +75,15 @@ export async function POST(req) {
       process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
       "http://localhost:3000"
     ).replace(/\/$/, "");
+
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      return NextResponse.json(
+        { error: true, message: "Stripe secret key is not configured in server environment." },
+        { status: 500 }
+      );
+    }
+    const stripe = new Stripe(secretKey);
 
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
