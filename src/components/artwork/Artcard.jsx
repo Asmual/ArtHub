@@ -42,16 +42,16 @@ export default function Artcard({ artwork }) {
 
   return (
     <div
-      className="group relative bg-white dark:bg-[#1e262b] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 hover:border-[var(--brand)]/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+      className="group relative bg-white dark:bg-[#1e262b] rounded-2xl overflow-hidden border border-slate-200/90 dark:border-white/10 hover:border-[var(--brand)]/50 shadow-sm hover:shadow-2xl hover:shadow-[var(--brand)]/10 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Artwork Image Container */}
-      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-black/20">
+      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-black/30">
         <NextLink href={`/browse/${artId}`} className="block w-full h-full">
           <img
             src={artwork.image || artwork.imageUrl || "/placeholder-art.jpg"}
             alt={artwork.title || "Artwork"}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
           />
         </NextLink>
 
@@ -59,11 +59,12 @@ export default function Artcard({ artwork }) {
         <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 pointer-events-none">
           {/* Status Badge */}
           {isSold ? (
-            <span className="bg-red-600/90 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-sm border border-red-500/30">
+            <span className="bg-red-600/90 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs border border-red-500/30">
               Sold Out
             </span>
           ) : (
-            <span className="bg-emerald-600/90 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-sm border border-emerald-500/30">
+            <span className="bg-emerald-600/90 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs border border-emerald-500/30 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               Available
             </span>
           )}
@@ -72,6 +73,13 @@ export default function Artcard({ artwork }) {
           {artwork.category && (
             <span className="bg-black/60 backdrop-blur-md text-white/90 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border border-white/10">
               {artwork.category}
+            </span>
+          )}
+
+          {/* Sales Indicator Badge if sold */}
+          {artwork.salesCount > 0 && (
+            <span className="bg-[#df6742]/90 backdrop-blur-md text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border border-[#df6742]/40 shadow-xs">
+              {artwork.salesCount} Sold
             </span>
           )}
         </div>
@@ -84,11 +92,11 @@ export default function Artcard({ artwork }) {
           className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-200 cursor-pointer shadow-md ${
             inWishlist
               ? "bg-white dark:bg-[#1e262b] border-red-500/40 text-red-500 scale-105"
-              : "bg-white/80 dark:bg-black/40 border-white/20 text-slate-600 dark:text-white/70 hover:text-red-500 hover:scale-110"
+              : "bg-white/80 dark:bg-black/50 border-white/20 text-slate-600 dark:text-white/70 hover:text-red-500 hover:scale-110"
           }`}
         >
           <Heart
-            size={16}
+            size={15}
             className={`transition-colors ${inWishlist ? "fill-red-500" : ""}`}
           />
         </button>
@@ -96,9 +104,9 @@ export default function Artcard({ artwork }) {
         {/* Quick View Hover Strip */}
         <NextLink
           href={`/browse/${artId}`}
-          className="absolute inset-x-0 bottom-0 py-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold"
+          className="absolute inset-x-0 bottom-0 py-2 bg-gradient-to-t from-black/85 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold"
         >
-          <Eye size={13} /> View Artwork
+          <Eye size={13} /> View Masterpiece
         </NextLink>
       </div>
 
@@ -114,10 +122,24 @@ export default function Artcard({ artwork }) {
             {artwork.title}
           </NextLink>
 
-          {/* Artist Name */}
-          <p className="text-xs text-slate-500 dark:text-white/40 truncate mt-0.5">
-            By <span className="font-semibold text-slate-700 dark:text-white/70">{artwork.artistName || artwork.artist?.name || "Independent Artist"}</span>
-          </p>
+          {/* Artist Name with Direct Profile Link & Avatar Badge */}
+          <div className="flex items-center gap-1.5 mt-1">
+            <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-[#df6742] to-[#b34928] text-[9px] font-black text-white flex items-center justify-center shrink-0 uppercase">
+              {(artwork.artistName || "A")[0]}
+            </div>
+            {artwork.artistId ? (
+              <NextLink
+                href={`/artists-profile/${artwork.artistId}`}
+                className="text-xs text-slate-500 dark:text-white/50 hover:text-[var(--brand)] dark:hover:text-[var(--brand)] transition-colors truncate font-medium"
+              >
+                By <span className="font-semibold text-slate-700 dark:text-white/80">{artwork.artistName || "Independent Artist"}</span>
+              </NextLink>
+            ) : (
+              <p className="text-xs text-slate-500 dark:text-white/50 truncate font-medium">
+                By <span className="font-semibold text-slate-700 dark:text-white/80">{artwork.artistName || "Independent Artist"}</span>
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Pricing & Interactive Action Area */}
@@ -179,7 +201,7 @@ export default function Artcard({ artwork }) {
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white text-xs font-bold py-2 px-2.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                className="bg-gradient-to-r from-[var(--brand)] to-[#b34928] hover:opacity-95 text-white text-xs font-bold py-2 px-2.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1"
               >
                 <span>Buy Now</span>
                 <ArrowRight size={12} />

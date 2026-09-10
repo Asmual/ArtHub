@@ -38,42 +38,110 @@ export async function GET(request, { params }) {
     delete userDoc.hashedPassword;
 
     const artistStrId = userDoc._id.toString();
+    const cleanName = (userDoc.name || "").trim();
+
+    const artworkConditions = [
+      { userId: artistStrId },
+      { artistId: artistStrId },
+      { userId: userDoc._id },
+      { artistId: userDoc._id },
+    ];
+    if (userDoc.email) {
+      artworkConditions.push(
+        { artistEmail: userDoc.email },
+        { artistEmail: userDoc.email.toLowerCase() },
+        { userEmail: userDoc.email }
+      );
+    }
+    if (cleanName) {
+      artworkConditions.push({
+        artistName: { $regex: new RegExp(`^${cleanName}$`, "i") },
+      });
+    }
+
     const artworks = await db
       .collection("artworks")
-      .find({
-        $or: [
-          { userId: artistStrId },
-          { artistId: artistStrId },
-          { userId: userDoc._id },
-          { artistId: userDoc._id },
-          { artistEmail: userDoc.email },
-          { userEmail: userDoc.email },
-        ],
-      })
+      .find({ $or: artworkConditions })
+      .sort({ createdAt: -1 })
       .toArray();
 
-    const totalSold = artworks.filter((a) => a.isSold === true).length;
-    const totalArtworks = artworks.length;
-    const totalEarnings = artworks
-      .filter((a) => a.isSold === true)
-      .reduce((sum, a) => sum + Number(a.price || 0), 0);
+    // Collect artist artwork IDs and titles to link orders
+    const artworkIdList = artworks.map((a) => a._id.toString());
+    const artworkTitleList = artworks.map((a) => a.title).filter(Boolean);
 
-    const serializedArtworks = artworks.map((art) => ({
-      ...art,
-      _id: art._id.toString(),
-      artistName: art.artistName || userDoc.name,
-      createdAt: art.createdAt
-        ? new Date(art.createdAt).toISOString()
-        : new Date().toISOString(),
-    }));
+    const orderConditions = [
+      { artistId: artistStrId },
+      { "artwork.artistId": artistStrId },
+    ];
+    if (userDoc.email) {
+      orderConditions.push(
+        { artistEmail: userDoc.email },
+        { artistEmail: userDoc.email.toLowerCase() },
+        { "artwork.artistEmail": userDoc.email },
+        { "artworkDetails.artistEmail": userDoc.email }
+      );
+    }
+    if (cleanName) {
+      orderConditions.push(
+        { "artworkDetails.artistName": cleanName },
+        { "artwork.artistName": cleanName }
+      );
+    }
+    if (artworkIdList.length > 0) {
+      orderConditions.push(
+        { artworkId: { $in: artworkIdList } },
+        { "artwork._id": { $in: artworkIdList } }
+      );
+    }
+    if (artworkTitleList.length > 0) {
+      orderConditions.push(
+        { artworkTitle: { $in: artworkTitleList } }
+      );
+    }
+
+    const orders = await db
+      .collection("orders")
+      .find({ $or: orderConditions })
+      .toArray();
+
+    const totalSold = orders.length;
+    const totalArtworks = artworks.length;
+    const totalEarnings = orders.reduce(
+      (sum, ord) => sum + Number(ord.amount || ord.price || 0),
+      0
+    );
+
+    const serializedArtworks = artworks.map((art) => {
+      const artStrId = art._id.toString();
+      const artSales = orders.filter(
+        (o) =>
+          o.artworkId === artStrId ||
+          (art.title && o.artworkTitle === art.title)
+      ).length;
+      const stock = typeof art.quantity === "number" ? art.quantity : 10;
+
+      return {
+        ...art,
+        _id: artStrId,
+        artistName: art.artistName || userDoc.name,
+        quantity: stock,
+        isSold: stock === 0,
+        salesCount: artSales,
+        createdAt: art.createdAt
+          ? new Date(art.createdAt).toISOString()
+          : new Date().toISOString(),
+      };
+    });
 
     return NextResponse.json({
       artist: {
         ...userDoc,
         _id: artistStrId,
         totalArtworks,
-        totalSold: userDoc.totalSold ?? totalSold,
+        totalSold,
+        totalSales: totalSold,
         totalEarnings,
+        totalRevenue: totalEarnings,
       },
       artworks: serializedArtworks,
     });

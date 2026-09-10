@@ -27,36 +27,73 @@ export async function GET(req, { params }) {
 
     const artist = await db.collection("user").findOne(query);
 
-    const artworkQuery = {
-      $or: [
-        { userId: decodedId },
-        { artistId: decodedId },
-      ],
-    };
+    const artistStrId = artist?._id?.toString() || decodedId;
+    const cleanName = (artist?.name || "").trim();
+
+    const artworkConditions = [
+      { userId: artistStrId },
+      { artistId: artistStrId },
+    ];
     if (artist?.email) {
-      artworkQuery.$or.push({ artistEmail: artist.email }, { userEmail: artist.email });
+      artworkConditions.push(
+        { artistEmail: artist.email },
+        { artistEmail: artist.email.toLowerCase() },
+        { userEmail: artist.email }
+      );
     }
-    if (ObjectId.isValid(id)) {
-      artworkQuery.$or.push({ userId: new ObjectId(id) }, { artistId: new ObjectId(id) });
+    if (cleanName) {
+      artworkConditions.push({
+        artistName: { $regex: new RegExp(`^${cleanName}$`, "i") },
+      });
     }
 
-    const artworks = await db.collection("artworks").find(artworkQuery).toArray();
+    const artworks = await db.collection("artworks").find({ $or: artworkConditions }).toArray();
     const totalArtworks = artworks.length;
+    const artworkIdList = artworks.map((a) => a._id.toString());
+    const artworkTitleList = artworks.map((a) => a.title).filter(Boolean);
 
-    // Calculate total earnings from sold artworks or orders
-    const orderQuery = {
-      $or: [
-        { artistId: id },
-        ...(artist?.email ? [{ artistEmail: artist.email }] : []),
-      ],
-    };
-    const orders = await db.collection("orders").find(orderQuery).toArray();
-    const totalEarnings = orders.reduce((sum, ord) => sum + (Number(ord.amount) || 0), 0);
+    // Calculate total earnings from real orders
+    const orderConditions = [
+      { artistId: artistStrId },
+      { "artwork.artistId": artistStrId },
+    ];
+    if (artist?.email) {
+      orderConditions.push(
+        { artistEmail: artist.email },
+        { artistEmail: artist.email.toLowerCase() },
+        { "artwork.artistEmail": artist.email },
+        { "artworkDetails.artistEmail": artist.email }
+      );
+    }
+    if (cleanName) {
+      orderConditions.push(
+        { "artworkDetails.artistName": cleanName },
+        { "artwork.artistName": cleanName }
+      );
+    }
+    if (artworkIdList.length > 0) {
+      orderConditions.push(
+        { artworkId: { $in: artworkIdList } },
+        { "artwork._id": { $in: artworkIdList } }
+      );
+    }
+    if (artworkTitleList.length > 0) {
+      orderConditions.push(
+        { artworkTitle: { $in: artworkTitleList } }
+      );
+    }
+
+    const orders = await db.collection("orders").find({ $or: orderConditions }).toArray();
+    const totalEarnings = orders.reduce(
+      (sum, ord) => sum + (Number(ord.amount || ord.price) || 0),
+      0
+    );
 
     return NextResponse.json({
       totalArtworks,
       totalEarnings,
       totalSales: orders.length,
+      totalSold: orders.length,
     });
   } catch (err) {
     console.error("[ARTISTS API ERROR] stats GET:", err);
