@@ -57,7 +57,7 @@ export async function POST(req) {
       );
     }
 
-    const { plan, interval = "monthly" } = body;
+    const { plan, interval = "monthly", name = "", phone = "" } = body;
     const normalizedPlan = (plan || "").toLowerCase();
     const config = PLAN_CONFIGS[normalizedPlan];
 
@@ -105,6 +105,8 @@ export async function POST(req) {
         plan: normalizedPlan,
         interval,
         artistEmail: email,
+        artistName: name || "",
+        artistPhone: phone || "",
         amount: String(priceInDollars),
         artLimit: config.artLimit,
       },

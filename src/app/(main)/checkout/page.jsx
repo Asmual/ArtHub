@@ -3,10 +3,11 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { Loader2, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Loader2, ShieldCheck, ArrowLeft, Lock, Palette } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import DemoCardWidget from "@/components/checkout/DemoCardWidget";
 
 // Checkout content component wrapped in Suspense for Next.js searchParams compatibility
 function CheckoutContent() {
@@ -18,7 +19,15 @@ function CheckoutContent() {
   const orderPrice = parseFloat(searchParams.get("price") || "0");
 
   const { data: session, isPending: authLoading } = authClient.useSession();
+  const user = session?.user;
+
   const [isProcessing, setIsProcessing] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+
+  const effectiveName = customerName !== "" ? customerName : (user?.name || "");
+  const effectiveEmail = customerEmail !== "" ? customerEmail : (user?.email || "");
 
   // Validate parameters and redirect if invalid
   useEffect(() => {
@@ -30,8 +39,9 @@ function CheckoutContent() {
 
   // Handle Stripe checkout session creation
   const handleCheckout = async () => {
-    if (!session?.user?.email) {
-      toast.error("Please login to proceed with checkout.");
+    const finalEmail = effectiveEmail.trim();
+    if (!finalEmail) {
+      toast.error("Please enter your email or login to proceed with checkout.");
       router.push("/login");
       return;
     }
@@ -40,7 +50,7 @@ function CheckoutContent() {
 
     try {
       const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-      const backendToken = await getAuthToken(base, session.user.email);
+      const backendToken = await getAuthToken(base, finalEmail);
 
       const response = await fetch(`${base}/api/payment/create-checkout-session`, {
         method: "POST",
@@ -51,6 +61,9 @@ function CheckoutContent() {
         body: JSON.stringify({
           artworkId: artworkId,
           price: orderPrice,
+          name: effectiveName.trim(),
+          email: finalEmail,
+          phone: customerPhone.trim(),
         }),
       });
 
@@ -82,60 +95,138 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] flex items-center justify-center p-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="w-full max-w-md bg-[var(--surface)] p-8 rounded-2xl border border-[var(--border-line)] shadow-2xl text-center">
-        
-        {/* Header */}
-        <h2 className="text-2xl font-black text-[var(--text-main)] mb-2 tracking-wide">
-          Secure <span className="text-[#df6742]">Checkout</span>
-        </h2>
-        <p className="text-sm text-[var(--text-muted)] mb-6">
-          You will be redirected to Stripe to securely complete your payment.
-        </p>
-
-        {/* Order Summary */}
-        <div className="mb-6 p-4 bg-[var(--background)] rounded-xl border border-[var(--border-line)] text-left space-y-2">
-          <div className="flex justify-between items-center gap-4">
-            <span className="text-xs text-[var(--text-muted)] uppercase font-bold shrink-0">Artwork:</span>
-            <span className="text-sm font-medium text-[var(--text-main)] truncate text-right w-full">{artworkName}</span>
-          </div>
-          <div className="h-px bg-[var(--border-line)] w-full" />
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-[var(--text-muted)] font-medium">Total Payable:</span>
-            <span className="text-xl font-bold text-[#df6742]">${orderPrice.toFixed(2)}</span>
-          </div>
+    <div
+      className="min-h-screen bg-[var(--background)] text-[var(--text-main)] py-8 sm:py-12 px-4 sm:px-6"
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+    >
+      <div className="max-w-5xl mx-auto">
+        {/* Top Back Navigation */}
+        <div className="mb-6">
+          <Link
+            href={`/browse/${artworkId}`}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Artwork Details
+          </Link>
         </div>
 
-        {/* Security Badge */}
-        <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] justify-center mb-6">
-          <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          <span>Encrypted 256-bit Stripe checkout</span>
+        {/* Page Title */}
+        <div className="mb-8 space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand)]">
+            Direct Artist Purchase
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-main)] tracking-tight">
+            Secure <span className="text-[#df6742]">Checkout</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[var(--text-muted)]">
+            Complete your artwork acquisition securely via Stripe sandbox payment gateway.
+          </p>
         </div>
 
-        {/* Checkout Button */}
-        <button
-          onClick={handleCheckout}
-          disabled={isProcessing || !artworkId}
-          className="w-full bg-[#df6742] hover:bg-[#c55332] disabled:bg-white/5 disabled:text-white/20 text-white font-bold py-4 rounded-xl text-sm tracking-wider uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-[#df6742]/10 mb-3"
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Redirecting to Stripe...
-            </>
-          ) : (
-            "Proceed to Stripe Pay"
-          )}
-        </button>
+        {/* Two-Column Grid: Left Details & Demo Card, Right Invoice */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Artwork Info & Demo Card */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Artwork Details Snippet */}
+            <div className="p-5 rounded-2xl bg-[var(--surface)] border border-[var(--border-line)] flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-[#df6742] shrink-0">
+                  <Palette size={24} />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--text-muted)]">
+                    Purchasing Original Piece
+                  </span>
+                  <h3 className="text-base font-bold text-[var(--text-main)] line-clamp-1">
+                    {artworkName}
+                  </h3>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-lg font-black text-[#df6742]">
+                  ${orderPrice.toFixed(2)}
+                </span>
+                <span className="text-[10px] text-[var(--text-muted)] block">USD</span>
+              </div>
+            </div>
 
-        {/* Return link */}
-        <Link
-          href={`/browse/${artworkId}`}
-          className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Artwork Details
-        </Link>
+            {/* Interactive Demo Test Card & Customer Details */}
+            <DemoCardWidget
+              customerName={effectiveName}
+              setCustomerName={setCustomerName}
+              customerEmail={effectiveEmail}
+              setCustomerEmail={setCustomerEmail}
+              customerPhone={customerPhone}
+              setCustomerPhone={setCustomerPhone}
+            />
+          </div>
 
+          {/* Right Column: Order Summary & Proceed Button */}
+          <div className="lg:col-span-5 space-y-5">
+            <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border-line)] shadow-lg space-y-5">
+              <h2 className="text-base font-bold text-[var(--text-main)] border-b border-[var(--border-line)] pb-3">
+                Order Summary
+              </h2>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex justify-between text-[var(--text-muted)]">
+                  <span>Item</span>
+                  <span className="font-semibold text-[var(--text-main)] truncate max-w-[200px] text-right">
+                    {artworkName}
+                  </span>
+                </div>
+                <div className="flex justify-between text-[var(--text-muted)]">
+                  <span>Authenticity Guarantee</span>
+                  <span className="font-semibold text-emerald-500">100% Verified Original</span>
+                </div>
+                <div className="flex justify-between text-[var(--text-muted)]">
+                  <span>Standard Packaging</span>
+                  <span className="font-semibold text-emerald-500">Free / Included</span>
+                </div>
+
+                <div className="pt-3 border-t border-[var(--border-line)] flex justify-between items-baseline text-sm">
+                  <span className="font-bold text-[var(--text-main)]">Total Due</span>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-[#df6742]">
+                      ${orderPrice.toFixed(2)}
+                    </span>
+                    <span className="text-[10px] text-[var(--text-muted)] block">USD</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Security Badge */}
+              <div className="p-3 rounded-xl bg-[var(--hover-bg)] border border-[var(--border-line)] flex items-center gap-2.5 text-xs text-[var(--text-muted)]">
+                <Lock size={15} className="text-emerald-500 shrink-0" />
+                <span>256-bit encrypted checkout via Stripe.</span>
+              </div>
+
+              {/* Action Button */}
+              <button
+                type="button"
+                onClick={handleCheckout}
+                disabled={isProcessing || !artworkId}
+                className="w-full py-3.5 px-4 rounded-xl bg-[#df6742] hover:bg-[#c55332] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md shadow-[#df6742]/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Redirecting to Stripe...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Proceed to Stripe Pay (${orderPrice.toFixed(2)})</span>
+                    <ShieldCheck size={16} />
+                  </>
+                )}
+              </button>
+
+              <p className="text-[10px] text-[var(--text-muted)] text-center leading-relaxed">
+                By clicking proceed, you will be securely redirected to Stripe to input the demo card details.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

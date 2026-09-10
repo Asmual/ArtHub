@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import NextLink from "next/link";
 import toast from "react-hot-toast";
+import DemoCardWidget from "@/components/checkout/DemoCardWidget";
 
 const PLAN_DATA = {
   basic: {
@@ -91,10 +92,16 @@ function PurchaseContent() {
   const [interval, setInterval] = useState(intervalParam === "yearly" ? "yearly" : "monthly");
   const [subInfo, setSubInfo] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
 
   const plan = PLAN_DATA[planParam] || PLAN_DATA.basic;
   const price = interval === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
   const totalBilled = interval === "yearly" ? price * 12 : price;
+
+  const effectiveName = customerName !== "" ? customerName : (user?.name || "");
+  const effectiveEmail = customerEmail !== "" ? customerEmail : (user?.email || "");
 
   useEffect(() => {
     if (isCanceled) {
@@ -103,16 +110,18 @@ function PurchaseContent() {
   }, [isCanceled]);
 
   useEffect(() => {
-    if (!user?.email) return;
-    fetch(`/api/subscription?email=${encodeURIComponent(user.email)}`)
+    const targetEmail = customerEmail.trim() || user?.email;
+    if (!targetEmail) return;
+    fetch(`/api/subscription?email=${encodeURIComponent(targetEmail)}`)
       .then((r) => r.json())
       .then((d) => d.success && setSubInfo(d))
       .catch(() => {});
-  }, [user?.email]);
+  }, [user?.email, customerEmail]);
 
   const handleProceedToStripe = async () => {
-    if (!user?.email) {
-      toast("Please login to proceed with checkout.");
+    const finalEmail = effectiveEmail.trim();
+    if (!finalEmail) {
+      toast("Please enter your email or login to proceed with checkout.");
       router.push(`/login?redirect=/pricing/checkout?plan=${plan.id}&interval=${interval}`);
       return;
     }
@@ -125,7 +134,9 @@ function PurchaseContent() {
         body: JSON.stringify({
           plan: plan.id,
           interval,
-          email: user.email,
+          email: finalEmail,
+          name: effectiveName.trim(),
+          phone: customerPhone.trim(),
         }),
       });
 
@@ -252,6 +263,16 @@ function PurchaseContent() {
               </ul>
             </div>
           </div>
+
+          {/* Interactive Demo Test Card & Customer Details */}
+          <DemoCardWidget
+            customerName={effectiveName}
+            setCustomerName={setCustomerName}
+            customerEmail={effectiveEmail}
+            setCustomerEmail={setCustomerEmail}
+            customerPhone={customerPhone}
+            setCustomerPhone={setCustomerPhone}
+          />
         </div>
 
         {/* Right Column: Checkout Invoice & Stripe Button */}

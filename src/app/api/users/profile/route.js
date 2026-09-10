@@ -98,6 +98,26 @@ export async function PUT(req) {
       { projection: { password: 0, hashedPassword: 0 } }
     );
 
+    // Sync artist image and name across their artworks
+    if (image !== undefined || name !== undefined) {
+      const artworkUpdate = {};
+      if (image !== undefined) artworkUpdate.artistImage = image;
+      if (name !== undefined) artworkUpdate.artistName = name;
+      
+      const userIdStr = updatedUser?._id?.toString();
+      await db.collection("artworks").updateMany(
+        {
+          $or: [
+            { artistEmail: email },
+            { artistEmail: email.toLowerCase() },
+            { userEmail: email },
+            ...(userIdStr ? [{ userId: userIdStr }, { artistId: userIdStr }] : []),
+          ],
+        },
+        { $set: artworkUpdate }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       message: "Profile updated successfully.",

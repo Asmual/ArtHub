@@ -115,7 +115,7 @@ export default function ProfileManagement({ role: explicitRole }) {
     }
   }, [authLoading, user?.email, loadProfile]);
 
-  // Handle Image Upload to ImgBB
+  // Handle Image Upload via internal upload API
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -131,34 +131,46 @@ export default function ProfileManagement({ role: explicitRole }) {
     }
 
     setIsUploading(true);
+    const uploadToast = toast.loading("Uploading and saving profile photo...");
     const formData = new FormData();
     formData.append("image", file);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_IMGBB_API_URL || "https://api.imgbb.com/1/upload";
-      const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
-
-      if (!apiKey) {
-        toast.error("ImgBB API key is missing in configuration.");
-        setIsUploading(false);
-        return;
-      }
-
-      const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
       const data = await response.json();
-      if (data.success && data.data?.url) {
-        setImage(data.data.url);
-        toast.success("Profile photo uploaded!");
+      if (data.success && data.url) {
+        const newImageUrl = data.url;
+        setImage(newImageUrl);
+
+        // Immediately update BetterAuth session and database
+        try {
+          await authClient.updateUser({
+            image: newImageUrl,
+          });
+
+          await fetch("/api/users/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: user?.email,
+              image: newImageUrl,
+            }),
+          });
+        } catch (syncErr) {
+          console.warn("Background profile photo sync notice:", syncErr);
+        }
+
+        toast.success("Profile photo updated successfully.", { id: uploadToast });
       } else {
-        toast.error(data.error?.message || "Failed to upload image.");
+        toast.error(data.message || "Failed to upload image.", { id: uploadToast });
       }
     } catch (error) {
       console.error("[UPLOAD ERROR] Image upload failed:", error);
-      toast.error("Network error during photo upload.");
+      toast.error("Network error during photo upload.", { id: uploadToast });
     } finally {
       setIsUploading(false);
     }
