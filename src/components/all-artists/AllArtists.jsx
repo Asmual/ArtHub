@@ -86,25 +86,25 @@ export default function AllArtists({ artists = [], loading = false }) {
   }, [artists, searchTerm, specialtyFilter]);
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-[#243239] p-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-lg">
-        <div className="relative w-full md:max-w-md">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30 text-sm" />
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-white dark:bg-[#243239] p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-white/5 shadow-xs">
+        <div className="relative w-full sm:max-w-md">
+          <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30 text-xs" />
           <input
             type="text"
             placeholder="Search master artists by name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-white/20 focus:outline-none focus:border-[#df6742]/50 transition-colors"
+            className="w-full bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-lg pl-9 pr-3.5 py-2 text-xs sm:text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-white/25 focus:outline-none focus:border-[#df6742]/50 transition-colors"
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <FaSlidersH className="text-[#df6742] text-sm hidden sm:block" />
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <FaSlidersH className="text-[#df6742] text-xs hidden sm:block" />
           <select
             value={specialtyFilter}
             onChange={(e) => setSpecialtyFilter(e.target.value)}
-            className="w-full md:w-48 bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-white focus:outline-none focus:border-[#df6742]/50 transition-colors cursor-pointer"
+            className="w-full sm:w-44 bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-800 dark:text-white focus:outline-none focus:border-[#df6742]/50 transition-colors cursor-pointer"
           >
             {specialties.map((spec) => (
               <option key={spec} value={spec} className="bg-white dark:bg-[#243239] text-slate-800 dark:text-white">
@@ -116,15 +116,15 @@ export default function AllArtists({ artists = [], loading = false }) {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
           {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : filteredArtists.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-[#243239] rounded-2xl border border-slate-200 dark:border-white/5">
-          <p className="text-slate-500 dark:text-white/40 text-sm">No artists found matching your criteria.</p>
+        <div className="text-center py-12 bg-white dark:bg-[#243239] rounded-xl border border-slate-200 dark:border-white/5">
+          <p className="text-slate-500 dark:text-white/40 text-xs">No artists found matching your criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
           {filteredArtists.map((artist, i) => {
             const artistRating = artist.rating ? Number(artist.rating).toFixed(1) : "5.0";
             const gradient = AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length];
@@ -137,56 +137,56 @@ export default function AllArtists({ artists = [], loading = false }) {
             return (
               <div
                 key={artistId}
-                className="group bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-2xl p-6 shadow-sm dark:shadow-none transition-all duration-300 hover:border-[#df6742]/40 hover:-translate-y-1 flex flex-col items-center text-center relative"
+                className="group bg-white dark:bg-[#243239] border border-slate-200 dark:border-white/8 rounded-xl p-4 sm:p-5 shadow-xs transition-all duration-300 hover:border-[#df6742]/40 hover:-translate-y-0.5 flex flex-col items-center text-center relative"
               >
                 {i < 3 && (
-                  <div className={`absolute top-4 left-4 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold z-10 ${RANK_BADGE[i]}`}>
+                  <div className={`absolute top-3.5 left-3.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold z-10 ${RANK_BADGE[i]}`}>
                     {i + 1}
                   </div>
                 )}
 
-                <div className="absolute top-4 right-4 bg-white/90 dark:bg-[#2f3f48]/90 backdrop-blur-md border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-lg flex items-center gap-1 z-10">
-                  <FaStar className="text-amber-400 text-xs" />
-                  <span className="text-slate-800 dark:text-white text-[11px] font-bold">{artistRating}</span>
+                <div className="absolute top-3.5 right-3.5 bg-white/90 dark:bg-[#2f3f48]/90 backdrop-blur-md border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-md flex items-center gap-1 z-10">
+                  <FaStar className="text-amber-400 text-[10px]" />
+                  <span className="text-slate-800 dark:text-white text-[10px] font-bold">{artistRating}</span>
                 </div>
 
-                <div className="relative mb-4 mt-2">
+                <div className="relative mb-3 mt-1">
                   {dynamicImage ? (
                     <img
                       src={dynamicImage}
                       alt={artist.name || "Artist Profile"}
-                      className="w-17 h-17 rounded-full object-cover border-[3px] border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 transition-all duration-300"
+                      className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 transition-all duration-300"
                     />
                   ) : (
-                    <div className={`w-17 h-17 rounded-full bg-linear-to-br border-[3px] border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 flex items-center justify-center text-white text-xl font-bold transition-all duration-300 ${gradient}`}>
+                    <div className={`w-14 h-14 rounded-full bg-linear-to-br border-2 border-white dark:border-[#2f3f48] ring-2 ring-[#df6742]/20 group-hover:ring-[#df6742]/50 flex items-center justify-center text-white text-base font-bold transition-all duration-300 ${gradient}`}>
                       {getInitials(artist.name)}
                     </div>
                   )}
-                  <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-[#243239]" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white dark:border-[#243239]" />
                 </div>
 
-                <p className="text-[16px] font-bold text-slate-800 dark:text-white leading-tight mb-1 group-hover:text-[#df6742] transition-colors duration-200 w-full truncate px-1">
+                <p className="text-[14px] font-bold text-slate-800 dark:text-white leading-snug mb-0.5 group-hover:text-[#df6742] transition-colors duration-200 w-full truncate px-1">
                   {artist.name || "Unknown Artist"}
                 </p>
-                <p className="text-[11px] text-slate-500 dark:text-white/40 uppercase tracking-[1px] font-medium mb-5 w-full truncate px-1">
+                <p className="text-[10px] text-slate-500 dark:text-white/40 uppercase tracking-[0.8px] font-medium mb-3 w-full truncate px-1">
                   {artist.specialty || "Visual Artist"}
                 </p>
 
-                <div className="grid grid-cols-2 gap-2 mb-6 w-full">
+                <div className="grid grid-cols-2 gap-1.5 mb-4 w-full">
                   {[
                     { label: "Artworks", value: formatCount(artworksCount) },
                     { label: "Sales", value: formatCount(salesCount) },
                   ].map(({ label, value }) => (
-                    <div key={label} className="bg-slate-50 dark:bg-white/4 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 flex flex-col items-center gap-0.5">
-                      <span className="text-[15px] font-bold text-[#df6742]">{value}</span>
-                      <span className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-[0.7px] font-semibold">{label}</span>
+                    <div key={label} className="bg-slate-50 dark:bg-white/4 border border-slate-200 dark:border-white/5 rounded-lg py-1.5 flex flex-col items-center">
+                      <span className="text-xs font-bold text-[#df6742]">{value}</span>
+                      <span className="text-[8px] text-slate-400 dark:text-white/30 uppercase tracking-[0.5px] font-semibold">{label}</span>
                     </div>
                   ))}
                 </div>
 
                 <Link
                   href={`/artists-profile/${artistId}`}
-                  className="mt-auto block w-full py-2.5 text-center text-xs font-bold tracking-wide bg-[#df6742] text-white hover:bg-[#ca5633] active:scale-[0.98] rounded-xl shadow-lg shadow-[#df6742]/10 transition-all duration-200"
+                  className="mt-auto block w-full py-2 text-center text-xs font-bold tracking-wide bg-[#df6742] text-white hover:bg-[#ca5633] active:scale-[0.98] rounded-lg shadow-xs transition-all duration-200"
                 >
                   View Profile
                 </Link>

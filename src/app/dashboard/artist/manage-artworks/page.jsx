@@ -7,17 +7,8 @@ import Link from "next/link";
 import { FaTrashAlt, FaEdit, FaThLarge, FaSpinner, FaUpload, FaEye, FaPlus, FaMinus } from "react-icons/fa";
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
-
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import BrandLoader from "@/components/shared/BrandLoader";
+import { getAuthToken } from "@/lib/auth-utils";
 
 export default function ManageArtworksPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();
@@ -45,28 +36,44 @@ export default function ManageArtworksPage() {
     const fetchMyArtworks = async () => {
       try {
         setLoading(true);
-        const token = await getAuthToken(base, user.email);
+        let artworkList = null;
 
-        const res = await fetch(`${base}/api/artworks?email=${encodeURIComponent(user.email)}`, {
-          method: "GET",
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-        });
-
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Server returned HTML instead of JSON. Please check backend endpoint.");
+        // 1. Try local Next.js internal API first
+        try {
+          const localRes = await fetch(`/api/artworks?email=${encodeURIComponent(user.email)}`);
+          if (localRes.ok) {
+            const localData = await localRes.json();
+            artworkList = localData && Array.isArray(localData.artworks) ? localData.artworks : (Array.isArray(localData) ? localData : []);
+          }
+        } catch (localErr) {
+          console.warn("Local artworks route skipped, trying external gateway:", localErr);
         }
 
-        if (!res.ok) throw new Error("Failed to load your exhibition inventory.");
-        const data = await res.json();
+        // 2. Fallback to external backend if needed
+        if (!artworkList) {
+          const token = await getAuthToken(user.email);
+
+          const res = await fetch(`${base}/api/artworks?email=${encodeURIComponent(user.email)}`, {
+            method: "GET",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+          });
+
+          const contentType = res.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("Server returned HTML instead of JSON. Please check backend endpoint.");
+          }
+
+          if (!res.ok) throw new Error("Failed to load your exhibition inventory.");
+          const data = await res.json();
+          artworkList = data && Array.isArray(data.artworks) ? data.artworks : (Array.isArray(data) ? data : []);
+        }
 
         if (isMounted) {
-          const artworkList = data && Array.isArray(data.artworks) ? data.artworks : (Array.isArray(data) ? data : []);
-          setArtworks(artworkList);
+          setArtworks(artworkList || []);
         }
       } catch (err) {
         console.error("Fetch inventory error:", err);
@@ -119,7 +126,7 @@ export default function ManageArtworksPage() {
     const currentArtwork = artworks.find(item => item._id === id);
     if (!currentArtwork) return;
 
-    const currentQty = typeof currentArtwork.quantity === "number" ? currentArtwork.quantity : 1;
+    const currentQty = typeof currentArtwork.quantity === "number" ? currentArtwork.quantity : 10;
     const newQuantity = Math.max(0, currentQty + delta);
     const isSold = newQuantity === 0;
 
@@ -254,12 +261,7 @@ export default function ManageArtworksPage() {
   };
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-(--background) flex flex-col items-center justify-center text-(--text-main) gap-3">
-        <FaSpinner className="animate-spin text-2xl text-[#df6742]" />
-        <p className="text-xs text-(--text-muted)">Synchronizing creative vault inventory...</p>
-      </div>
-    );
+    return <BrandLoader text="Synchronizing creative vault inventory..." />;
   }
 
   return (
@@ -293,7 +295,7 @@ export default function ManageArtworksPage() {
               </thead>
               <tbody className="divide-y divide-(--border-line) text-sm">
                 {artworks.map((art) => {
-                  const stockQty = typeof art.quantity === "number" ? art.quantity : 1;
+                  const stockQty = typeof art.quantity === "number" ? art.quantity : 10;
                   return (
                     <tr key={art._id} className="hover:bg-(--hover-bg) transition-colors duration-150">
 

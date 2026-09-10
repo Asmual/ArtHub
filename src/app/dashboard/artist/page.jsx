@@ -15,18 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-
-// Mint a backend-signed JWT (matches verifyToken middleware expectations)
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 export default function ArtistDashboard() {
   const router = useRouter();
@@ -55,34 +44,50 @@ export default function ArtistDashboard() {
     const fetchArtistData = async () => {
       try {
         setLoading(true);
-        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        let statsData = null;
+        let galleryData = null;
 
-        // The /stats route is protected by verifyToken, so we need a signed JWT
-        const token = await getAuthToken(base, user.email);
+        // 1. Try local internal endpoints first
+        try {
+          const [localStats, localGallery] = await Promise.all([
+            fetch(`/api/artists/${user.id}/stats`),
+            fetch(`/api/artworks?email=${encodeURIComponent(user.email || "")}&limit=3`),
+          ]);
+          if (localStats.ok) statsData = await localStats.json();
+          if (localGallery.ok) galleryData = await localGallery.json();
+        } catch (localErr) {
+          console.warn("Local artist stats fetch skipped, trying external gateway:", localErr);
+        }
 
-        const [statsResponse, galleryResponse] = await Promise.all([
-          fetch(`${base}/api/artists/${user.id}/stats`, {
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-            },
-          }),
-          fetch(`${base}/api/artworks?artistId=${user.id}&limit=3&sort=newest`, {
-            headers: { "Content-Type": "application/json" },
-          }),
-        ]);
+        // 2. Fallback to external backend if needed
+        if (!statsData) {
+          const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+          const token = await getAuthToken(user.email);
 
-        const statsData = await statsResponse.json();
-        const galleryData = await galleryResponse.json();
+          const [statsResponse, galleryResponse] = await Promise.all([
+            fetch(`${base}/api/artists/${user.id}/stats`, {
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+              },
+            }),
+            fetch(`${base}/api/artworks?artistId=${user.id}&limit=3&sort=newest`, {
+              headers: { "Content-Type": "application/json" },
+            }),
+          ]);
 
-        if (statsResponse.ok && statsData) {
+          if (statsResponse.ok) statsData = await statsResponse.json();
+          if (galleryResponse.ok) galleryData = await galleryResponse.json();
+        }
+
+        if (statsData) {
           setStats({
             totalArts: statsData.totalArtworks || 0,
-            totalEarnings: statsData.totalRevenue || 0,
+            totalEarnings: statsData.totalEarnings || statsData.totalRevenue || 0,
           });
         }
 
-        if (galleryResponse.ok) {
+        if (galleryData) {
           const list = Array.isArray(galleryData)
             ? galleryData
             : Array.isArray(galleryData?.artworks)

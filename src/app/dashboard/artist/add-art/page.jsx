@@ -5,18 +5,7 @@ import { FaCloudUploadAlt, FaPaintBrush, FaDollarSign, FaTags, FaSpinner, FaTras
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 import Image from "next/image";
-
-// Mint a backend-signed JWT (matches verifyToken middleware expectations)
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 // Upload image to imgBB
 const uploadToImgBB = async (file) => {
@@ -143,9 +132,6 @@ export default function AddArtPage() {
     try {
       setLoading(true);
 
-      // Acquire a proper backend-signed JWT (required by verifyToken middleware)
-      const token = await getAuthToken(base, user.email);
-
       const payload = {
         title: formData.title,
         price: Number(formData.price),
@@ -159,25 +145,39 @@ export default function AddArtPage() {
         description: formData.description,
       };
 
-      const res = await fetch(`${base}/api/artworks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
-      });
+      let saved = false;
 
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned HTML/Error page instead of JSON. Check backend authentication middleware configuration.");
+      // 1. Try local Next.js internal API first
+      try {
+        const localRes = await fetch("/api/artworks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (localRes.ok) {
+          saved = true;
+        }
+      } catch (localErr) {
+        console.warn("Local artwork creation skipped, trying external gateway:", localErr);
       }
 
-      const responseData = await res.json();
+      // 2. Fallback to external backend if needed
+      if (!saved) {
+        const token = await getAuthToken(user.email);
+        const res = await fetch(`${base}/api/artworks`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload),
+        });
 
-      if (!res.ok) {
-        throw new Error(responseData?.message || responseData?.error || "Failed to save artwork.");
+        if (!res.ok) {
+          const responseData = await res.json().catch(() => ({}));
+          throw new Error(responseData?.message || responseData?.error || "Failed to save artwork.");
+        }
       }
 
       toast.success("Artwork published and saved to MongoDB!");

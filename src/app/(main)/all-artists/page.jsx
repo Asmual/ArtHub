@@ -17,9 +17,13 @@ export default function ExploreArtistsPage() {
     const fetchArtists = async () => {
       try {
         setLoading(true);
-        setError(null);
-       
-        const res = await fetch(`${API_BASE}/api/artists`);
+        let res;
+        try {
+          res = await fetch("/api/artists");
+          if (!res.ok) throw new Error("Internal route unsuccessful");
+        } catch {
+          res = await fetch(`${API_BASE}/api/artists`);
+        }
         if (!res.ok) throw new Error("Failed to fetch verified master creators.");
        
         const data = await res.json();
@@ -71,32 +75,32 @@ export default function ExploreArtistsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] pb-16" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] pb-10" style={{ fontFamily: "'Montserrat', sans-serif" }}>
      
-      <div className="border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#243239] py-12 shadow-sm dark:shadow-inner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#243239] py-4 sm:py-5 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
          
-          <div className="text-center md:text-left space-y-2">
-            <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-[#df6742]/10 border border-[#df6742]/30 text-[#df6742] px-3 py-1 rounded-full text-[10px] font-bold tracking-[2px] uppercase">
-              <Compass className="w-3 h-3" /> Global Creators Network
+          <div className="text-center sm:text-left space-y-1">
+            <div className="inline-flex items-center gap-1.5 bg-orange-50 dark:bg-[#df6742]/10 border border-[#df6742]/25 text-[#df6742] px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-[1.5px] uppercase">
+              <Compass className="w-2.5 h-2.5" /> Global Creators
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black text-slate-800 dark:text-white tracking-wide">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">
               Explore All <span className="text-[#df6742]">Artists</span>
             </h1>
-            <p className="text-slate-500 dark:text-white/40 text-xs sm:text-sm max-w-xl">
-              Meet the professional visionary minds shaping contemporary global fine arts and digital masterpieces.
+            <p className="text-slate-500 dark:text-white/50 text-xs max-w-xl">
+              Discover verified artists shaping contemporary fine arts and digital masterpieces.
             </p>
           </div>
 
           {!loading && !error && artists.length > 0 && (
-            <div className="bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-2xl px-6 py-4 flex items-center gap-3 shadow-sm dark:shadow-md self-center">
-              <div className="p-2.5 bg-orange-50 dark:bg-[#df6742]/10 rounded-xl text-[#df6742]">
-                <Users size={18} />
+            <div className="bg-slate-50 dark:bg-[#1e262b] border border-slate-200 dark:border-white/5 rounded-xl px-4 py-2 flex items-center gap-2.5 shadow-xs">
+              <div className="p-1.5 bg-orange-50 dark:bg-[#df6742]/10 rounded-lg text-[#df6742]">
+                <Users size={15} />
               </div>
               <div>
-                <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase font-bold tracking-wider">Verified Registry</p>
-                <p className="text-sm font-black text-slate-800 dark:text-white">
-                  <span className="text-[#df6742] text-lg font-black">{artists.length}</span> Active Creators
+                <p className="text-[9px] text-slate-400 dark:text-white/40 uppercase font-semibold tracking-wider">Verified Registry</p>
+                <p className="text-xs font-bold text-slate-800 dark:text-white">
+                  <span className="text-[#df6742] font-extrabold">{artists.length}</span> Active Creators
                 </p>
               </div>
             </div>
@@ -104,7 +108,7 @@ export default function ExploreArtistsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         {error ? (
           <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-[#243239] rounded-2xl border border-slate-200 dark:border-white/5">
             <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center mb-3">

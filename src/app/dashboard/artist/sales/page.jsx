@@ -2,9 +2,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { FaDollarSign, FaShoppingBag, FaChartLine, FaRegClock, FaSpinner } from "react-icons/fa";
+import { FaDollarSign, FaShoppingBag, FaChartLine, FaRegClock } from "react-icons/fa";
 import { authClient } from "@/lib/auth-client";
 import { backendFetch } from "@/lib/api-client";
+import BrandLoader from "@/components/shared/BrandLoader";
 import toast from "react-hot-toast";
 
 export default function SalesPage() {
@@ -27,23 +28,42 @@ export default function SalesPage() {
       try {
         setLoading(true);
 
-        // Fetch sales transactions for the authenticated artist
-        const response = await backendFetch("/api/payment/my-sales", { method: "GET" }, user.email);
+        let salesList = null;
 
-        if (!response || !response.ok) {
-          throw new Error("Failed to sync structural dashboard data from database.");
+        // 1. Try local Next.js internal API first
+        try {
+          const localRes = await fetch(`/api/payment/my-sales?email=${encodeURIComponent(user.email)}`, {
+            headers: { "Cache-Control": "no-cache" },
+          });
+          if (localRes.ok) {
+            const localData = await localRes.json();
+            if (localData && (Array.isArray(localData.data) || Array.isArray(localData.sales))) {
+              salesList = localData.data || localData.sales;
+            } else if (Array.isArray(localData)) {
+              salesList = localData;
+            }
+          }
+        } catch (localErr) {
+          console.warn("Local sales route skipped, trying fallback:", localErr?.message);
         }
 
-        const result = await response.json();
+        // 2. Fallback to backendFetch if local route didn't return data
+        if (salesList === null) {
+          const response = await backendFetch("/api/payment/my-sales", { method: "GET" }, user.email);
+          if (response && response.ok) {
+            const result = await response.json();
+            if (result && result.success && Array.isArray(result.data)) {
+              salesList = result.data;
+            } else if (Array.isArray(result)) {
+              salesList = result;
+            } else {
+              salesList = [];
+            }
+          }
+        }
 
         if (isMounted) {
-          if (result && result.success && Array.isArray(result.data)) {
-            setSalesHistory(result.data);
-          } else if (Array.isArray(result)) {
-            setSalesHistory(result);
-          } else {
-            setSalesHistory([]);
-          }
+          setSalesHistory(Array.isArray(salesList) ? salesList : []);
         }
       } catch (err) {
         console.error("Dashboard calculation error:", err);
@@ -74,12 +94,7 @@ export default function SalesPage() {
   };
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center text-[var(--text-main)] gap-3">
-        <FaSpinner className="animate-spin text-2xl text-[#df6742]" />
-        <p className="text-xs text-[var(--text-muted)] tracking-wider">Compiling analytical ledger statistics...</p>
-      </div>
-    );
+    return <BrandLoader fullScreen text="Compiling analytical ledger statistics..." />;
   }
 
   return (
