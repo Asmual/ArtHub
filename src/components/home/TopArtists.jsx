@@ -6,15 +6,17 @@ import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 
 const RANK_BADGE = {
-  0: "bg-[#df6742] text-white",
-  1: "bg-slate-200 dark:bg-white/[0.13] text-slate-600 dark:text-white/75",
-  2: "bg-slate-100 dark:bg-white/[0.07] text-slate-500 dark:text-white/45",
+  0: "bg-amber-500 text-white shadow-md shadow-amber-500/30",
+  1: "bg-slate-400 text-white shadow-md",
+  2: "bg-amber-700 text-white shadow-md",
+  3: "bg-[#df6742] text-white shadow-md",
 };
 
 const AVATAR_GRADIENTS = [
   "from-[#e8a0b8] to-[#df6742]",
   "from-[#7ecec4] to-[#185FA5]",
   "from-[#c9a0dc] to-[#534AB7]",
+  "from-[#F59E0B] to-[#EF4444]",
 ];
 
 const formatCount = (n = 0) => {
@@ -56,26 +58,37 @@ const TopArtists = () => {
        
         const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
         
-        const res = await fetch(`${base}/api/artists/top`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
+        let res;
+        try {
+          res = await fetch("/api/artists/top", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Cache-Control": "no-cache",
+            },
+          });
+          if (!res.ok) throw new Error("Internal route unsuccessful");
+        } catch {
+          res = await fetch(`${base}/api/artists/top`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+        }
 
         if (!res.ok) throw new Error("Failed to resolve dynamic top creators catalog.");
        
         const data = await res.json();
       
         const cleanData = Array.isArray(data)
-          ? data.slice(0, 3)
+          ? data.slice(0, 4)
           : [];
 
         if (isMounted) {
           setArtists(cleanData);
         }
       } catch (err) {
-        console.error("Top Creators Fetch Error:", err);
         if (isMounted) {
           setError("Could not retrieve top creators portfolio.");
         }
@@ -94,7 +107,7 @@ const TopArtists = () => {
 
   return (
     <section className="bg-white dark:bg-[#2f3f48] py-16 px-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-[#df6742]/12 border border-[#df6742]/28 text-[#df6742] px-4 py-1.5 rounded-full text-[11px] font-bold tracking-[1.2px] mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[#df6742]" />
@@ -111,9 +124,9 @@ const TopArtists = () => {
         {error && <p className="text-center text-slate-500 dark:text-white/35 text-sm py-10">{error}</p>}
 
         {!error && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {loading
-              ? [0, 1, 2].map((i) => <SkeletonCard key={i} />)
+              ? [0, 1, 2, 3].map((i) => <SkeletonCard key={i} />)
               : artists.map((artist, i) => {
                   // Safeguard rating and avatar property fallbacks
                   const artistRating = artist.rating || artist.avgRating || "5.0";

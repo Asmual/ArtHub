@@ -89,9 +89,9 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
     }
 
     if (availability === "Available") {
-      result = result.filter((art) => !art.isSold);
+      result = result.filter((art) => (typeof art.quantity === "number" ? art.quantity > 0 : !art.isSold));
     } else if (availability === "Sold Out") {
-      result = result.filter((art) => art.isSold);
+      result = result.filter((art) => (typeof art.quantity === "number" ? art.quantity <= 0 : art.isSold));
     }
 
     if (appliedMinPrice !== "") {
@@ -163,10 +163,10 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
         </div>
 
         {/* Core Layout Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           
-          {/* Left Panel: Filters Sidebar */}
-          <div className="bg-slate-50 dark:bg-[#2f3f48] border border-slate-200 dark:border-neutral-500/40 rounded-2xl p-6 h-fit space-y-6">
+          {/* Left Panel: Filters Sidebar - Sticky on Desktop */}
+          <aside className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto bg-slate-50 dark:bg-[#2f3f48] border border-slate-200 dark:border-neutral-500/40 rounded-2xl p-6 space-y-6 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-neutral-500/40 pb-3">
               <h2 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">
                 Filters
@@ -296,7 +296,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                 </button>
               </form>
             </div>
-          </div>
+          </aside>
 
           {/* Right Panel: Content Results */}
           <div className="col-span-1 lg:col-span-3 space-y-6">

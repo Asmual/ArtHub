@@ -5,6 +5,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { getAuthToken } from "@/lib/auth-utils";
 
 const formatTimeAgo = (timestamp) => {
   if (!timestamp) return "Just now";
@@ -22,18 +23,6 @@ const formatTimeAgo = (timestamp) => {
   if (daysPast < 7) return `${daysPast}d ago`;
 
   return date.toLocaleDateString();
-};
-
-// Helper to retrieve JWT token for authenticated requests
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Authentication token generation failed.");
-  const { token } = await res.json();
-  return token;
 };
 
 const ReviewSection = ({ artworkId, currentUser, hasPaid, isAdmin, isArtist }) => {

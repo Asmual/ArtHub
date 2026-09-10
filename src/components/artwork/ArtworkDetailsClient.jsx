@@ -7,17 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import ReviewSection from "./ReviewSection";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 export default function ArtworkDetailsClient({ artwork }) {
   const { data: session, isPending } = authClient.useSession();
