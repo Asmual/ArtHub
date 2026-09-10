@@ -90,6 +90,22 @@ const Footer = () => {
                   Browse Artworks
                 </NextLink>
               </li>
+              <li>
+                <NextLink
+                  href="/all-artists"
+                  className="text-slate-600 dark:text-white/70 hover:text-[#df6742] dark:hover:text-white transition-colors"
+                >
+                  All Artists
+                </NextLink>
+              </li>
+              <li>
+                <NextLink
+                  href="/about-us"
+                  className="text-slate-600 dark:text-white/70 hover:text-[#df6742] dark:hover:text-white transition-colors"
+                >
+                  About Us
+                </NextLink>
+              </li>
             </ul>
           </div>
 

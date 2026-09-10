@@ -156,77 +156,79 @@ const AvatarDropdown = ({
   dashboardLinks = [],
   onClose,
   isActive,
-}) => (
-  <div className="absolute right-0 top-full mt-2.5 w-72 bg-surface border border-border-line rounded-2xl shadow-2xl z-50 overflow-hidden">
-    <div className="p-4 bg-surface border-b border-border-line">
-      <div className="flex items-center gap-3.5 mb-3">
-        <button onClick={onNavigateProfile} type="button" className="cursor-pointer focus:outline-none shrink-0">
+}) => {
+  const roleDisplay =
+    user?.role === "admin"
+      ? "Admin"
+      : user?.role === "artist"
+      ? "Artist"
+      : "Buyer";
+
+  return (
+    <div className="absolute right-0 top-full mt-2 w-64 bg-surface border border-border-line rounded-2xl shadow-xl z-50 overflow-hidden">
+      {/* Compact Header: Avatar + Name + Role Badge (No email, minimal height) */}
+      <div className="px-3.5 py-2.5 bg-surface border-b border-border-line flex items-center gap-3">
+        <button
+          onClick={onNavigateProfile}
+          type="button"
+          className="cursor-pointer focus:outline-none shrink-0"
+          title="View Profile"
+        >
           <AvatarImage
             user={user}
             hasValidImage={hasValidImage}
             onImageError={onImageError}
-            size="w-10 h-10"
-            iconSize={22}
-            ringClass="ring-2 ring-[var(--brand)]/50"
+            size="w-9 h-9"
+            iconSize={18}
+            ringClass="ring-2 ring-[var(--brand)]/40"
           />
         </button>
-        <div className="min-w-0">
-          <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white ${getRoleBadgeColor(user.role)}`}>
-            {user.role}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-foreground truncate leading-tight">
+            {user?.name || "ArtHub User"}
+          </p>
+          <span className={`inline-block px-2 py-0.5 mt-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-white ${getRoleBadgeColor(user?.role)}`}>
+            {roleDisplay}
           </span>
-          <p className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold mt-0.5">Account Holder</p>
         </div>
       </div>
-      <div className="space-y-1.5 bg-[var(--hover-bg)] p-2.5 rounded-xl border border-border-line">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-xs text-foreground/40 font-semibold shrink-0">Name:</span>
-          <p className="text-sm font-bold text-foreground truncate">{user.name || "N/A"}</p>
+
+      {/* DASHBOARD CONTROLS IN AVATAR DROPDOWN */}
+      {dashboardLinks.length > 0 && (
+        <div className="p-1.5 border-b border-border-line max-h-60 overflow-y-auto">
+          <div className="space-y-0.5">
+            {dashboardLinks.map(({ href, label, icon: Icon }) => (
+              <NextLink
+                key={href}
+                href={href}
+                onClick={onClose}
+                className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                  isActive(href)
+                    ? "bg-[var(--brand)] text-white shadow-xs"
+                    : "text-foreground/80 hover:text-[var(--brand)] hover:bg-[var(--hover-bg)]"
+                }`}
+              >
+                <Icon size={14} className="shrink-0" />
+                <span>{label}</span>
+              </NextLink>
+            ))}
+          </div>
         </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-xs text-foreground/40 font-semibold shrink-0">Email:</span>
-          <p className="text-xs font-medium text-foreground/80 select-all truncate">{user.email || "N/A"}</p>
-        </div>
+      )}
+
+      <div className="p-1.5 bg-surface">
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex items-center gap-2.5 w-full px-3 py-1.5 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-500/10 transition-colors group cursor-pointer"
+        >
+          <LogOut size={14} className="group-hover:translate-x-0.5 transition-transform" />
+          Logout
+        </button>
       </div>
     </div>
-
-    {/* DASHBOARD CONTROLS IN AVATAR DROPDOWN */}
-    {dashboardLinks.length > 0 && (
-      <div className="p-2 border-b border-border-line max-h-56 overflow-y-auto">
-        <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground/40">
-          Dashboard Controls
-        </p>
-        <div className="space-y-0.5 mt-1">
-          {dashboardLinks.map(({ href, label, icon: Icon }) => (
-            <NextLink
-              key={href}
-              href={href}
-              onClick={onClose}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                isActive(href)
-                  ? "bg-[var(--brand)] text-white"
-                  : "text-foreground/80 hover:text-[var(--brand)] hover:bg-[var(--hover-bg)]"
-              }`}
-            >
-              <Icon size={14} className="shrink-0" />
-              <span>{label}</span>
-            </NextLink>
-          ))}
-        </div>
-      </div>
-    )}
-
-    <div className="p-2 bg-surface">
-      <button
-        type="button"
-        onClick={onLogout}
-        className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-colors group cursor-pointer"
-      >
-        <LogOut size={15} className="group-hover:translate-x-0.5 transition-transform" />
-        Logout
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 /* ============================================================
    MAIN NAVBAR COMPONENT
@@ -376,7 +378,7 @@ const Navbar = () => {
           </NextLink>
 
           {/* DESKTOP SEARCH BAR */}
-          <div ref={desktopSearchRef} className="hidden md:block flex-1 mx-6 max-w-md relative">
+          <div ref={desktopSearchRef} className="hidden md:block flex-1 mx-3 lg:mx-6 max-w-xs lg:max-w-sm relative">
             <form onSubmit={handleSearchSubmit}>
               <div className={`flex items-center w-full border rounded-full px-3.5 py-1.5 gap-2 transition-all duration-200 ${
                 isSearchFocused
@@ -409,9 +411,11 @@ const Navbar = () => {
           </div>
 
           {/* DESKTOP NAV LINKS */}
-          <div className="hidden md:flex items-center gap-6 shrink-0">
+          <div className="hidden md:flex items-center gap-4 lg:gap-6 shrink-0">
             <NavLink href="/" active={isActive("/")}>Home</NavLink>
             <NavLink href="/browse" active={isActive("/browse")}>Browse Artworks</NavLink>
+            <NavLink href="/all-artists" active={isActive("/all-artists")}>All Artists</NavLink>
+            <NavLink href="/about-us" active={isActive("/about-us")}>About Us</NavLink>
           </div>
 
           {/* DESKTOP AUTH & UTILITIES SECTION */}
@@ -588,7 +592,7 @@ const Navbar = () => {
             <NextLink
               href="/"
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full max-w-sm text-center py-3 rounded-xl text-sm font-bold tracking-wide transition-all ${
+              className={`w-full max-w-sm text-center py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all ${
                 isActive("/") ? "bg-[var(--brand)] text-white shadow-md" : "text-foreground/80 hover:bg-[var(--hover-bg)]"
               }`}
             >
@@ -598,11 +602,31 @@ const Navbar = () => {
             <NextLink
               href="/browse"
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`w-full max-w-sm text-center py-3 rounded-xl text-sm font-bold tracking-wide transition-all ${
+              className={`w-full max-w-sm text-center py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all ${
                 isActive("/browse") ? "bg-[var(--brand)] text-white shadow-md" : "text-foreground/80 hover:bg-[var(--hover-bg)]"
               }`}
             >
               Browse Artworks
+            </NextLink>
+
+            <NextLink
+              href="/all-artists"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`w-full max-w-sm text-center py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all ${
+                isActive("/all-artists") ? "bg-[var(--brand)] text-white shadow-md" : "text-foreground/80 hover:bg-[var(--hover-bg)]"
+              }`}
+            >
+              All Artists
+            </NextLink>
+
+            <NextLink
+              href="/about-us"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`w-full max-w-sm text-center py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all ${
+                isActive("/about-us") ? "bg-[var(--brand)] text-white shadow-md" : "text-foreground/80 hover:bg-[var(--hover-bg)]"
+              }`}
+            >
+              About Us
             </NextLink>
 
             <div className="w-full max-w-sm grid grid-cols-2 gap-2 my-1">
@@ -612,7 +636,7 @@ const Navbar = () => {
                   setIsMobileMenuOpen(false);
                   setIsWishlistOpen(true);
                 }}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-red-500 transition-colors"
+                className="flex items-center justify-center gap-2 py-2 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-red-500 transition-colors"
               >
                 <Heart size={15} className="text-red-500" />
                 Wishlist ({wishlistCount})
@@ -623,7 +647,7 @@ const Navbar = () => {
                   setIsMobileMenuOpen(false);
                   setIsCartOpen(true);
                 }}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-[var(--brand)] transition-colors"
+                className="flex items-center justify-center gap-2 py-2 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-[var(--brand)] transition-colors"
               >
                 <ShoppingBag size={15} className="text-[var(--brand)]" />
                 Cart ({cartCount})
@@ -636,7 +660,7 @@ const Navbar = () => {
                 <button
                   type="button"
                   onClick={() => setIsMobileDashboardOpen((p) => !p)}
-                  className={`w-full flex justify-center items-center gap-2 py-3 rounded-xl text-sm font-bold tracking-wide transition-all ${
+                  className={`w-full flex justify-center items-center gap-2 py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all ${
                     pathname.startsWith("/dashboard")
                       ? "text-[var(--brand)] bg-[var(--hover-bg)]"
                       : "text-foreground/80 hover:bg-[var(--hover-bg)]"
@@ -654,7 +678,7 @@ const Navbar = () => {
                         key={href}
                         href={href}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`w-full py-3 text-sm transition-colors flex items-center justify-center gap-2 ${
+                        className={`w-full py-2.5 text-sm transition-colors flex items-center justify-center gap-2 ${
                           index === 0
                             ? "text-[var(--brand)] font-black border-b border-border-line bg-[var(--hover-bg)]"
                             : isActive(href)
@@ -672,36 +696,35 @@ const Navbar = () => {
             )}
 
             {/* MOBILE AUTH & USER DETAILS */}
-            <div className="pt-4 border-t border-border-line mt-2 w-full max-w-sm">
+            <div className="pt-3 border-t border-border-line mt-1 w-full max-w-sm">
               {isPending ? (
-                <div className="h-20 bg-[var(--hover-bg)] animate-pulse rounded-2xl w-full" />
+                <div className="h-16 bg-[var(--hover-bg)] animate-pulse rounded-2xl w-full" />
               ) : user ? (
-                <div className="bg-surface rounded-2xl p-4 border border-border-line flex flex-col items-center gap-3.5 w-full">
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <button type="button" onClick={navigateToProfile} className="cursor-pointer focus:outline-none">
+                <div className="bg-surface rounded-2xl p-3 border border-border-line flex flex-col items-center gap-2.5 w-full">
+                  <div className="flex items-center gap-3 w-full px-1">
+                    <button type="button" onClick={navigateToProfile} className="cursor-pointer focus:outline-none shrink-0">
                       <AvatarImage
                         user={user}
                         hasValidImage={hasValidImage}
                         onImageError={handleImageError}
-                        size="w-10 h-10"
-                        iconSize={22}
-                        ringClass="ring-2 ring-[var(--brand)]/50"
+                        size="w-9 h-9"
+                        iconSize={18}
+                        ringClass="ring-2 ring-[var(--brand)]/40"
                       />
                     </button>
-                    <div className="flex flex-col items-center mt-1">
-                      <span className={`inline-block text-[9px] font-bold uppercase tracking-wider text-white px-2 py-0.5 rounded-full mb-2 ${getRoleBadgeColor(user.role)}`}>
-                        {user.role}
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="text-xs text-foreground/90 font-bold truncate">{user.name || "ArtHub User"}</div>
+                      <span className={`inline-block text-[9px] font-bold uppercase tracking-wider text-white px-2 py-0.5 rounded-full mt-0.5 ${getRoleBadgeColor(user.role)}`}>
+                        {user.role === "admin" ? "Admin" : user.role === "artist" ? "Artist" : "Buyer"}
                       </span>
-                      <div className="text-[13px] text-foreground/90 font-bold max-w-60 truncate">{user.name}</div>
-                      <div className="text-[11px] text-foreground/50 max-w-60 truncate select-all mt-0.5">{user.email}</div>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-bold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] transition-colors shadow-md cursor-pointer"
+                    className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-bold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] transition-colors shadow-xs cursor-pointer"
                   >
-                    <LogOut size={14} />
+                    <LogOut size={13} />
                     Logout
                   </button>
                 </div>
