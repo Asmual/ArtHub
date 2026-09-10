@@ -3,6 +3,9 @@ import "./globals.css";
 
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { CartProvider } from "@/context/CartContext";
+import CartDrawer from "@/components/cart/CartDrawer";
+import WishlistDrawer from "@/components/cart/WishlistDrawer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,19 +34,23 @@ export default function RootLayout({ children }) {
         className="min-h-full flex flex-col bg-background text-foreground"
       >
         <ThemeProvider>
-          <Toaster
-            position="top-center"
-            reverseOrder={false}
-            toastOptions={{
-              duration: 3000,
-              style: {
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: "14px",
-              },
-            }}
-          />
+          <CartProvider>
+            <Toaster
+              position="top-center"
+              reverseOrder={false}
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: "14px",
+                },
+              }}
+            />
 
-          {children}
+            {children}
+            <CartDrawer />
+            <WishlistDrawer />
+          </CartProvider>
         </ThemeProvider>
       </body>
     </html>

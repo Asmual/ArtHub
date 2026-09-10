@@ -6,18 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { CheckCircle, Loader2, ArrowRight, Palette, ShoppingBag, Home } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-
-// Helper to retrieve JWT token for authenticated requests
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Authentication token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 // Success content component wrapped in Suspense for Next.js searchParams compatibility
 function SuccessContent() {

@@ -12,8 +12,9 @@ import ThemeToggle from "@/components/shared/ThemeToggle";
 import {
   ChevronDown, Search, LayoutDashboard, ShoppingBag, ImageIcon,
   User, Palette, PlusSquare, TrendingUp, Users, Shield, CreditCard,
-  BarChart2, LogOut, X, Menu, Eye,
+  BarChart2, LogOut, X, Menu, Eye, Heart,
 } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 /* ============================================================
    ROLE-BASED DASHBOARD NAVIGATION HELPERS
@@ -146,7 +147,16 @@ const SearchSuggestions = ({ isSearching, searchResults, onClose }) => (
   </div>
 );
 
-const AvatarDropdown = ({ user, hasValidImage, onImageError, onNavigateProfile, onLogout }) => (
+const AvatarDropdown = ({
+  user,
+  hasValidImage,
+  onImageError,
+  onNavigateProfile,
+  onLogout,
+  dashboardLinks = [],
+  onClose,
+  isActive,
+}) => (
   <div className="absolute right-0 top-full mt-2.5 w-72 bg-surface border border-border-line rounded-2xl shadow-2xl z-50 overflow-hidden">
     <div className="p-4 bg-surface border-b border-border-line">
       <div className="flex items-center gap-3.5 mb-3">
@@ -178,11 +188,38 @@ const AvatarDropdown = ({ user, hasValidImage, onImageError, onNavigateProfile, 
         </div>
       </div>
     </div>
+
+    {/* DASHBOARD CONTROLS IN AVATAR DROPDOWN */}
+    {dashboardLinks.length > 0 && (
+      <div className="p-2 border-b border-border-line max-h-56 overflow-y-auto">
+        <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground/40">
+          Dashboard Controls
+        </p>
+        <div className="space-y-0.5 mt-1">
+          {dashboardLinks.map(({ href, label, icon: Icon }) => (
+            <NextLink
+              key={href}
+              href={href}
+              onClick={onClose}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                isActive(href)
+                  ? "bg-[var(--brand)] text-white"
+                  : "text-foreground/80 hover:text-[var(--brand)] hover:bg-[var(--hover-bg)]"
+              }`}
+            >
+              <Icon size={14} className="shrink-0" />
+              <span>{label}</span>
+            </NextLink>
+          ))}
+        </div>
+      </div>
+    )}
+
     <div className="p-2 bg-surface">
       <button
         type="button"
         onClick={onLogout}
-        className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-colors group cursor-pointer"
+        className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-500/10 transition-colors group cursor-pointer"
       >
         <LogOut size={15} className="group-hover:translate-x-0.5 transition-transform" />
         Logout
@@ -198,11 +235,11 @@ const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, isPending } = useSession();
+  const { cartCount, wishlistCount, setIsCartOpen, setIsWishlistOpen } = useCart();
   const user = session?.user;
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileDashboardOpen, setIsMobileDashboardOpen] = useState(false);
-  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -212,7 +249,6 @@ const Navbar = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const dashboardRef = useRef(null);
   const avatarRef = useRef(null);
   const desktopSearchRef = useRef(null);
   const mobileSearchRef = useRef(null);
@@ -225,7 +261,6 @@ const Navbar = () => {
   /* Close dropdowns on outside click */
   useEffect(() => {
     const handleOutsideClick = (e) => {
-      if (dashboardRef.current && !dashboardRef.current.contains(e.target)) setIsDashboardOpen(false);
       if (avatarRef.current && !avatarRef.current.contains(e.target)) setIsAvatarOpen(false);
       if (desktopSearchRef.current && !desktopSearchRef.current.contains(e.target)) setIsSearchFocused(false);
       if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)) setIsMobileSearchOpen(false);
@@ -243,8 +278,15 @@ const Navbar = () => {
       }
       setIsSearching(true);
       try {
-        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-        const res = await fetch(`${base}/api/artworks/search?query=${encodeURIComponent(searchQuery.trim())}`);
+        let res;
+        try {
+          res = await fetch(`/api/artworks/search?query=${encodeURIComponent(searchQuery.trim())}`);
+          if (!res.ok) throw new Error("Internal search unsuccessful");
+        } catch {
+          const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+          res = await fetch(`${base}/api/artworks/search?query=${encodeURIComponent(searchQuery.trim())}`);
+        }
+
         if (res.ok) {
           const data = await res.json();
           const normalized = Array.isArray(data) ? data : (data.artworks || data.data || []);
@@ -252,8 +294,7 @@ const Navbar = () => {
         } else {
           setSearchResults([]);
         }
-      } catch (err) {
-        console.error("[NAVBAR SEARCH ERROR]", err);
+      } catch {
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -371,49 +412,40 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-6 shrink-0">
             <NavLink href="/" active={isActive("/")}>Home</NavLink>
             <NavLink href="/browse" active={isActive("/browse")}>Browse Artworks</NavLink>
-
-            {user && (
-              <div ref={dashboardRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsDashboardOpen((p) => !p)}
-                  className={`text-sm font-semibold tracking-wide transition-colors duration-200 py-1 flex items-center gap-1 cursor-pointer ${
-                    pathname.startsWith("/dashboard") ? "text-[var(--brand)]" : "text-foreground/90 hover:text-[var(--brand)]"
-                  }`}
-                >
-                  <LayoutDashboard size={15} className="mr-0.5" />
-                  Dashboard
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${isDashboardOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {isDashboardOpen && (
-                  <ul className="absolute top-full left-0 mt-2.5 w-56 bg-surface border border-border-line rounded-2xl shadow-2xl overflow-hidden z-50 py-1.5">
-                    {dashboardLinks.map(({ href, label, icon: Icon }, index) => (
-                      <li key={href}>
-                        <NextLink
-                          href={href}
-                          onClick={() => setIsDashboardOpen(false)}
-                          className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium transition-colors ${
-                            index === 0
-                              ? "text-foreground/80 hover:text-[var(--brand)] font-semibold border-b border-border-line pb-3 mb-1.5 hover:bg-[var(--hover-bg)]"
-                              : isActive(href)
-                              ? "text-[var(--brand)] bg-[var(--hover-bg)]"
-                              : "text-foreground/80 hover:text-[var(--brand)] hover:bg-[var(--hover-bg)]"
-                          }`}
-                        >
-                          <Icon size={15} className="shrink-0 opacity-70" />
-                          {label}
-                        </NextLink>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
           </div>
 
           {/* DESKTOP AUTH & UTILITIES SECTION */}
-          <div className="hidden md:flex items-center ml-auto gap-4 shrink-0">
+          <div className="hidden md:flex items-center ml-auto gap-3 shrink-0">
+            {/* WISHLIST BUTTON */}
+            <button
+              type="button"
+              onClick={() => setIsWishlistOpen(true)}
+              aria-label="Wishlist"
+              className="relative p-2 rounded-xl text-foreground/75 hover:text-red-500 hover:bg-[var(--hover-bg)] transition-colors cursor-pointer"
+            >
+              <Heart size={20} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
+                </span>
+              )}
+            </button>
+
+            {/* SHOPPING CART BUTTON */}
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(true)}
+              aria-label="Cart"
+              className="relative p-2 rounded-xl text-foreground/75 hover:text-[var(--brand)] hover:bg-[var(--hover-bg)] transition-colors cursor-pointer"
+            >
+              <ShoppingBag size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[var(--brand)] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </button>
+
             <ThemeToggle />
 
             {isPending ? (
@@ -434,6 +466,9 @@ const Navbar = () => {
                     onImageError={handleImageError}
                     onNavigateProfile={navigateToProfile}
                     onLogout={handleLogout}
+                    dashboardLinks={dashboardLinks}
+                    onClose={() => setIsAvatarOpen(false)}
+                    isActive={isActive}
                   />
                 )}
               </div>
@@ -456,7 +491,33 @@ const Navbar = () => {
           </div>
 
           {/* MOBILE CONTROLS */}
-          <div className="flex md:hidden items-center gap-2 ml-auto">
+          <div className="flex md:hidden items-center gap-1.5 ml-auto">
+            <button
+              type="button"
+              onClick={() => setIsWishlistOpen(true)}
+              aria-label="Wishlist"
+              className="relative p-2 rounded-xl text-foreground/75 hover:text-red-500 bg-[var(--hover-bg)] border border-border-line transition-colors"
+            >
+              <Heart size={18} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(true)}
+              aria-label="Shopping Cart"
+              className="relative p-2 rounded-xl text-foreground/75 hover:text-[var(--brand)] bg-[var(--hover-bg)] border border-border-line transition-colors"
+            >
+              <ShoppingBag size={18} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[var(--brand)] text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
             <ThemeToggle />
             <button
               type="button"
@@ -543,6 +604,31 @@ const Navbar = () => {
             >
               Browse Artworks
             </NextLink>
+
+            <div className="w-full max-w-sm grid grid-cols-2 gap-2 my-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsWishlistOpen(true);
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-red-500 transition-colors"
+              >
+                <Heart size={15} className="text-red-500" />
+                Wishlist ({wishlistCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsCartOpen(true);
+                }}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-[var(--brand)] transition-colors"
+              >
+                <ShoppingBag size={15} className="text-[var(--brand)]" />
+                Cart ({cartCount})
+              </button>
+            </div>
 
             {/* MOBILE DASHBOARD ACCORDION */}
             {user && (
