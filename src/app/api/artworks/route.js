@@ -66,6 +66,42 @@ export async function POST(req) {
     const body = await req.json().catch(() => ({}));
     const db = await getDB();
 
+    const artistEmail = body.artistEmail || body.userEmail || body.email;
+
+    // Verify artist upload quota against active subscription plan
+    if (artistEmail) {
+      const user = (await db.collection("user").findOne({ email: artistEmail })) ||
+                   (await db.collection("users").findOne({ email: artistEmail }));
+
+      const plan = user?.plan || user?.subscription?.plan || "free";
+      const PLAN_LIMITS = { free: 5, basic: 20, pro: 60, ultimate: Infinity };
+      const limit = PLAN_LIMITS[plan] ?? 5;
+
+      if (limit !== Infinity) {
+        const currentCount = await db.collection("artworks").countDocuments({
+          $or: [
+            { artistEmail },
+            { userEmail: artistEmail },
+            { email: artistEmail },
+          ],
+        });
+
+        if (currentCount >= limit) {
+          return NextResponse.json(
+            {
+              error: true,
+              code: "PLAN_LIMIT_REACHED",
+              message: `You have reached the maximum artwork limit (${limit}) for the ${plan.toUpperCase()} plan. Please upgrade to a higher tier to add more artworks.`,
+              currentCount,
+              limit,
+              plan,
+            },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     const qty = typeof body.quantity === "number" ? body.quantity : 10;
     const doc = {
       ...body,
@@ -89,3 +125,4 @@ export async function POST(req) {
     );
   }
 }
+

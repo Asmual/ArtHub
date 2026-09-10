@@ -2,6 +2,7 @@ import CategorySection from "@/components/home/CategorySection";
 import FeaturedArtworks from "@/components/home/FeaturedArtworks";
 import Hero from "@/components/home/Hero";
 import TopArtists from "@/components/home/TopArtists";
+import PricingSection from "@/components/home/PricingSection";
 import SmoothSection from "@/components/shared/SmoothSection";
 
 export default function Home() {
@@ -17,6 +18,10 @@ export default function Home() {
       <SmoothSection>
         <CategorySection />
       </SmoothSection>
+      <SmoothSection>
+        <PricingSection />
+      </SmoothSection>
     </main>
   );
 }
+

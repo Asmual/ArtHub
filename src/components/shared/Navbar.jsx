@@ -416,7 +416,9 @@ const Navbar = () => {
             <NavLink href="/browse" active={isActive("/browse")}>Browse Artworks</NavLink>
             <NavLink href="/all-artists" active={isActive("/all-artists")}>All Artists</NavLink>
             <NavLink href="/about-us" active={isActive("/about-us")}>About Us</NavLink>
+            <NavLink href="/pricing" active={isActive("/pricing")}>Pricing</NavLink>
           </div>
+
 
           {/* DESKTOP AUTH & UTILITIES SECTION */}
           <div className="hidden md:flex items-center ml-auto gap-3 shrink-0">
@@ -628,6 +630,17 @@ const Navbar = () => {
             >
               About Us
             </NextLink>
+
+            <NextLink
+              href="/pricing"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`w-full max-w-sm text-center py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all ${
+                isActive("/pricing") ? "bg-[var(--brand)] text-white shadow-md" : "text-foreground/80 hover:bg-[var(--hover-bg)]"
+              }`}
+            >
+              Pricing
+            </NextLink>
+
 
             <div className="w-full max-w-sm grid grid-cols-2 gap-2 my-1">
               <button

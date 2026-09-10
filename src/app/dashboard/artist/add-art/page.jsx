@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { FaCloudUploadAlt, FaPaintBrush, FaDollarSign, FaTags, FaSpinner, FaTrashAlt } from "react-icons/fa";
+import React, { useState, useRef, useEffect } from "react";
+import NextLink from "next/link";
+import { FaCloudUploadAlt, FaPaintBrush, FaDollarSign, FaTags, FaSpinner, FaTrashAlt, FaCrown } from "react-icons/fa";
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { getAuthToken } from "@/lib/auth-utils";
+
 
 // Upload image to imgBB
 const uploadToImgBB = async (file) => {
@@ -42,6 +44,7 @@ export default function AddArtPage() {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const fileInputRef = useRef(null);
+  const [subInfo, setSubInfo] = useState(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -52,10 +55,23 @@ export default function AddArtPage() {
 
   const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
 
+  useEffect(() => {
+    if (!user?.email) return;
+    fetch(`/api/subscription?email=${encodeURIComponent(user.email)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSubInfo(data);
+        }
+      })
+      .catch((err) => console.error("Failed to check subscription:", err));
+  }, [user?.email]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   /**
    * Handle image file selection and upload to imgBB
@@ -124,6 +140,11 @@ export default function AddArtPage() {
       return;
     }
 
+    if (subInfo && !subInfo.canUploadMore) {
+      toast.error(`Artwork limit reached (${subInfo.artworkLimit} artworks on ${subInfo.plan.toUpperCase()} plan). Please upgrade your plan.`);
+      return;
+    }
+
     if (!isValidDirectImageUrl(imageUrl)) {
       toast.error("Please upload a valid image. The image URL must be from a secure CDN.");
       return;
@@ -156,8 +177,16 @@ export default function AddArtPage() {
         });
         if (localRes.ok) {
           saved = true;
+        } else {
+          const errData = await localRes.json().catch(() => ({}));
+          if (localRes.status === 403 || errData?.code === "PLAN_LIMIT_REACHED") {
+            throw new Error(errData.message || "Artwork limit reached for your current plan. Please upgrade to continue.");
+          }
         }
       } catch (localErr) {
+        if (localErr.message && (localErr.message.includes("limit") || localErr.message.includes("plan") || localErr.message.includes("quota"))) {
+          throw localErr;
+        }
         console.warn("Local artwork creation skipped, trying external gateway:", localErr);
       }
 
@@ -181,6 +210,13 @@ export default function AddArtPage() {
       }
 
       toast.success("Artwork published and saved to MongoDB!");
+      // Refresh quota stats
+      if (user?.email) {
+        fetch(`/api/subscription?email=${encodeURIComponent(user.email)}`)
+          .then((r) => r.json())
+          .then((d) => d.success && setSubInfo(d))
+          .catch(() => {});
+      }
       // Reset form
       setFormData({ title: "", category: "Painting", price: "", description: "" });
       setImagePreview(null);
@@ -204,12 +240,51 @@ export default function AddArtPage() {
       <div className="max-w-4xl mx-auto bg-surface border border-border-line rounded-2xl p-6 sm:p-8 shadow-xl">
        
         {/* Header Block */}
-        <div className="mb-8 border-b border-border-line pb-6">
+        <div className="mb-6 border-b border-border-line pb-6">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <FaPaintBrush className="text-[#df6742]" /> Upload<span className="text-[#df6742]">New Artwork</span>
           </h1>
           <p className="text-xs text-text-muted mt-1">Fill in the details below to exhibit and showcase your dynamic artwork portfolio.</p>
         </div>
+
+        {/* Subscription Plan Quota Notice */}
+        {subInfo && (
+          <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all ${
+            !subInfo.canUploadMore
+              ? "bg-amber-500/10 border-amber-500/30 text-amber-500"
+              : "bg-[var(--hover-bg)] border-border-line text-foreground"
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                !subInfo.canUploadMore ? "bg-amber-500/20 text-amber-500" : "bg-[var(--brand)]/10 text-[var(--brand)]"
+              }`}>
+                <FaCrown size={18} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2 flex-wrap">
+                  <span>Current Plan: <strong className="uppercase text-[var(--brand)]">{subInfo.plan}</strong></span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-border-line text-foreground/80 font-semibold">
+                    {subInfo.artworkCount} / {subInfo.artworkLimit} Artworks
+                  </span>
+                </h4>
+                <p className="text-xs text-foreground/60 mt-0.5">
+                  {!subInfo.canUploadMore
+                    ? `You have reached the maximum allowed artworks on the ${subInfo.plan.toUpperCase()} plan (5 free artworks limit). Please upgrade to add more.`
+                    : `You have ${subInfo.remainingSlots} artwork slot${subInfo.remainingSlots === 1 ? '' : 's'} remaining before requiring an upgrade.`}
+                </p>
+              </div>
+            </div>
+            {!subInfo.canUploadMore && (
+              <NextLink
+                href="/#pricing"
+                className="px-4 py-2 rounded-xl bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white text-xs font-bold transition-all shadow-md shrink-0 whitespace-nowrap"
+              >
+                Upgrade to Premium
+              </NextLink>
+            )}
+          </div>
+        )}
+
 
         {/* Input Form Fields */}
         <form onSubmit={handleSubmit} className="space-y-6">
