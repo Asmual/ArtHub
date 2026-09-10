@@ -11,17 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 export default function UserDashboardLanding() {
   const { data: session, isPending: authLoading } = authClient.useSession();
@@ -40,7 +30,7 @@ export default function UserDashboardLanding() {
 
     const verifyPayment = async () => {
       try {
-        const token = await getAuthToken(base, user.email);
+        const token = await getAuthToken(user.email);
         const res = await fetch(`${base}/api/payment/verify-payment-sync`, {
           method: "POST",
           headers: {
@@ -67,21 +57,35 @@ export default function UserDashboardLanding() {
     if (!user?.email) return;
     try {
       setLoading(true);
-      const token = await getAuthToken(base, user.email);
+      let list = null;
 
-      // Maps perfectly with the newly created backend endpoint using accurate singular base path
-      const res = await fetch(`${base}/api/payment/my-orders`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      // 1. Try local internal API first
+      try {
+        const localRes = await fetch(`/api/payment/my-orders?email=${encodeURIComponent(user.email)}`);
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          list = Array.isArray(localData) ? localData : (localData?.data || localData?.orders || []);
+        }
+      } catch (localErr) {
+        console.warn("Local orders route skipped, trying external gateway:", localErr);
+      }
 
-      if (!res.ok) throw new Error("Failed to fetch orders from server endpoint.");
-     
-      const data = await res.json();
-      const list = Array.isArray(data) ? data : (data?.data || data?.orders || []);
+      // 2. Fallback to external backend if needed
+      if (!list) {
+        const token = await getAuthToken(user.email);
+        const res = await fetch(`${base}/api/payment/my-orders`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch orders from server endpoint.");
+        const data = await res.json();
+        list = Array.isArray(data) ? data : (data?.data || data?.orders || []);
+      }
+
       setRecentOrders(list.slice(0, 3));
     } catch (err) {
       console.error("Dashboard data fetch error:", err);

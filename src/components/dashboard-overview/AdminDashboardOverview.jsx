@@ -14,6 +14,7 @@ import {
  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { getAuthToken } from "@/lib/auth-utils";
 
 const initialDashboardData = {
  totalUsers: 0,
@@ -21,18 +22,6 @@ const initialDashboardData = {
  transactionsCount: 0,
  platformRevenue: 0,
  recentSales: [],
-};
-
-// Helper utility to safely construct a valid system administration JWT token context
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Administrative token generation failed.");
-  const { token } = await res.json();
-  return token;
 };
 
 export default function AdminDashboardOverview({ session: initialSession }) {
@@ -72,40 +61,54 @@ export default function AdminDashboardOverview({ session: initialSession }) {
        setLoading(true);
        setErrorMessage("");
        
-       // Construct precise backend gateway orchestration base string
-       const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-       
-       // Acquire fresh core system security verification token context
-       const token = await getAuthToken(base, user.email);
+       let targetData = null;
 
-       const res = await fetch(`${base}/api/admin/dashboard-stats`, {
-         method: "GET",
-         signal: controller.signal,
-         headers: {
-           "Accept": "application/json",
-           "Content-Type": "application/json",
-           "Authorization": `Bearer ${token}`
-         },
-       });
-       
-       const contentType = res.headers.get("content-type") || "";
-       const responseBody = contentType.includes("application/json")
-         ? await res.json()
-         : await res.text();
+       // 1. Try local Next.js internal API first (instant, guaranteed, zero CORS/cold-start issues)
+       try {
+         const localRes = await fetch("/api/admin/dashboard-stats", {
+           signal: controller.signal,
+         });
+         if (localRes.ok) {
+           targetData = await localRes.json();
+         }
+       } catch (localErr) {
+         if (localErr.name === "AbortError") return;
+         console.warn("Local dashboard stats route skipped, trying external gateway:", localErr);
+       }
+
+       // 2. Fallback to external backend if local did not return data
+       if (!targetData) {
+         const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+         const token = await getAuthToken(user.email);
+
+         const res = await fetch(`${base}/api/admin/dashboard-stats`, {
+           method: "GET",
+           signal: controller.signal,
+           headers: {
+             "Accept": "application/json",
+             "Content-Type": "application/json",
+             "Authorization": `Bearer ${token}`
+           },
+         });
          
-       if (!res.ok) {
-         const message =
-           typeof responseBody === "object"
-             ? responseBody?.message || responseBody?.error
-             : responseBody;
-         throw new Error(
-           message || `Dashboard stats fetch failed with status: ${res.status}`
-         );
+         const contentType = res.headers.get("content-type") || "";
+         const responseBody = contentType.includes("application/json")
+           ? await res.json()
+           : await res.text();
+           
+         if (!res.ok) {
+           const message =
+             typeof responseBody === "object"
+               ? responseBody?.message || responseBody?.error
+               : responseBody;
+           throw new Error(
+             message || `Dashboard stats fetch failed with status: ${res.status}`
+           );
+         }
+         targetData = typeof responseBody === "string" ? JSON.parse(responseBody) : responseBody;
        }
        
        if (!isMounted) return;
-       
-       const targetData = typeof responseBody === "string" ? JSON.parse(responseBody) : responseBody;
        
        setDashboardData({
          totalUsers: Number(targetData?.totalUsers || 0),

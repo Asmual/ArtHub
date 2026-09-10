@@ -9,20 +9,9 @@ import { FaChartPie, FaChartLine, FaSyncAlt } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import Loading from "@/app/loading";
+import { getAuthToken } from "@/lib/auth-utils";
 
 const COLORS = ["#df6742", "#1d9bf0", "#00ba7c", "#eab308", "#a855f7"];
-
-// Fetch JWT from backend using BetterAuth session email
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
 
 export default function AdminChartsPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();
@@ -42,22 +31,37 @@ export default function AdminChartsPage() {
     if (!user) return;
     try {
       setLoading(true);
-      const token = await getAuthToken(base, user.email);
+      let rawSales = null;
+      let rawCategories = null;
 
-      const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      };
+      // 1. Try local internal endpoints first
+      try {
+        const [localSales, localCategories] = await Promise.all([
+          fetch("/api/admin/analytics/sales-chart"),
+          fetch("/api/admin/analytics/categories"),
+        ]);
+        if (localSales.ok) rawSales = await localSales.json();
+        if (localCategories.ok) rawCategories = await localCategories.json();
+      } catch (localErr) {
+        console.warn("Local charts fetch skipped, trying external gateway:", localErr);
+      }
 
-      const [salesRes, categoriesRes] = await Promise.all([
-        fetch(`${base}/api/admin/analytics/sales-chart`, { method: "GET", headers }),
-        fetch(`${base}/api/admin/analytics/categories`, { method: "GET", headers }),
-      ]);
+      // 2. Fallback to external backend if needed
+      if (!rawSales || !rawCategories) {
+        const token = await getAuthToken(user.email);
+        const headers = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        };
 
-      if (!salesRes.ok || !categoriesRes.ok) throw new Error("Failed to fetch chart data.");
+        const [salesRes, categoriesRes] = await Promise.all([
+          fetch(`${base}/api/admin/analytics/sales-chart`, { method: "GET", headers }),
+          fetch(`${base}/api/admin/analytics/categories`, { method: "GET", headers }),
+        ]);
 
-      const rawSales = await salesRes.json();
-      const rawCategories = await categoriesRes.json();
+        if (salesRes.ok) rawSales = await salesRes.json();
+        if (categoriesRes.ok) rawCategories = await categoriesRes.json();
+      }
 
       setSalesData(
         Array.isArray(rawSales)

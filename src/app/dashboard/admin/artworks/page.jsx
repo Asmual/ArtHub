@@ -2,23 +2,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldAlert, Trash2, Eye, Loader2, X } from "lucide-react";
+import { ShieldAlert, Trash2, Eye, Loader2, X, Plus, Minus } from "lucide-react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Loading from "@/app/loading";
-
-// Fetch JWT from backend using BetterAuth session email
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 export default function AdminArtworksPage() {
   const router = useRouter();
@@ -31,32 +20,47 @@ export default function AdminArtworksPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();
   const user = session?.user;
 
-  const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-
   // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const fetchAllArtworks = useCallback(async () => {
     try {
       setLoading(true);
-      const token = await getAuthToken(base, user.email);
+      let data = null;
 
-      const res = await fetch(`${base}/api/admin/artworks`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      // 1. Try local Next.js internal API first
+      try {
+        const localRes = await fetch("/api/admin/artworks");
+        if (localRes.ok) {
+          data = await localRes.json();
+        }
+      } catch (localErr) {
+        console.warn("Local artworks route skipped, trying external gateway:", localErr);
+      }
 
-      if (!res.ok) throw new Error("Failed to fetch artworks.");
-      const data = await res.json();
-      setArtworks(Array.isArray(data) ? data : data.artworks || data.data || []);
+      // 2. Fallback to external backend if needed
+      if (!data) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+
+        const res = await fetch(`${base}/api/admin/artworks`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch artworks.");
+        data = await res.json();
+      }
+
+      setArtworks(Array.isArray(data) ? data : data?.artworks || data?.data || []);
     } catch (err) {
       console.error("Fetch artworks error:", err);
       toast.error("Failed to load artworks.");
     } finally {
       setLoading(false);
     }
-  }, [base, user?.email]);
+  }, [user?.email]);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -75,24 +79,111 @@ export default function AdminArtworksPage() {
     const loadingToast = toast.loading("Deleting artwork...");
 
     try {
-      const token = await getAuthToken(base, user.email);
+      let deleted = false;
 
-      const res = await fetch(`${base}/api/admin/artworks/${targetArtworkId}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` },
-      });
+      // 1. Try local API first
+      try {
+        const localRes = await fetch(`/api/admin/artworks/${targetArtworkId}`, {
+          method: "DELETE",
+        });
+        if (localRes.ok) {
+          deleted = true;
+        }
+      } catch (localErr) {
+        console.warn("Local delete skipped, trying external gateway:", localErr);
+      }
 
-      if (!res.ok) throw new Error("Delete failed.");
+      // 2. Fallback to external backend
+      if (!deleted) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+
+        const res = await fetch(`${base}/api/admin/artworks/${targetArtworkId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Could not delete artwork from server registry.");
+      }
 
       toast.success("Artwork deleted successfully.", { id: loadingToast });
       setArtworks((prev) => prev.filter((art) => (art._id || art.id) !== targetArtworkId));
       setIsDeleteModalOpen(false);
       setTargetArtworkId(null);
     } catch (err) {
-      console.error("Delete error:", err);
+      console.error("Delete artwork error:", err);
       toast.error("Failed to delete artwork.", { id: loadingToast });
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleQuantityChange = async (id, delta) => {
+    const currentArtwork = artworks.find(item => (item._id || item.id) === id);
+    if (!currentArtwork || !user?.email) return;
+
+    const currentQty = typeof currentArtwork.quantity === "number" ? currentArtwork.quantity : 10;
+    const newQuantity = Math.max(0, currentQty + delta);
+    const isSold = newQuantity === 0;
+
+    try {
+      let updated = false;
+
+      // 1. Try local API first
+      try {
+        const localRes = await fetch(`/api/admin/artworks/${id}/stock`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quantity: newQuantity }),
+        });
+        if (localRes.ok) {
+          updated = true;
+        }
+      } catch (localErr) {
+        console.warn("Local stock update skipped, trying external gateway:", localErr);
+      }
+
+      // 2. Fallback to external backend
+      if (!updated) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+        const res = await fetch(`${base}/api/admin/artworks/${id}/stock`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            quantity: newQuantity,
+          }),
+        });
+
+        if (!res.ok) {
+          await fetch(`${base}/api/artworks/${id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              ...currentArtwork,
+              quantity: newQuantity,
+              isSold,
+            }),
+          });
+        }
+      }
+
+      setArtworks((prev) =>
+        prev.map((item) => (item._id || item.id) === id ? { ...item, quantity: newQuantity, isSold } : item)
+      );
+      toast.success(`Stock updated to ${newQuantity}`);
+    } catch (err) {
+      console.error("Admin update quantity error:", err);
+      toast.error("Failed to update stock quantity.");
     }
   };
 
@@ -150,14 +241,39 @@ export default function AdminArtworksPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 ml-auto sm:ml-0 shrink-0">
-                    <span className="text-sm font-black text-emerald-400">${art.price}</span>
+                  <div className="flex items-center gap-3 ml-auto sm:ml-0 shrink-0">
+                    <span className="text-sm font-black text-[#df6742]">${art.price}</span>
+
+                    {/* Stock Increment / Decrement */}
+                    <div className="flex items-center gap-1.5 bg-[var(--background)] px-2 py-1 rounded-xl border border-[var(--border-line)]">
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(currentId, -1)}
+                        disabled={(typeof art.quantity === "number" ? art.quantity : 10) <= 0}
+                        className="p-1 rounded hover:bg-red-500/20 text-[var(--text-muted)] hover:text-red-400 transition-colors disabled:opacity-30 cursor-pointer"
+                        title="Decrease Stock"
+                      >
+                        <Minus size={12} />
+                      </button>
+                      <span className="font-bold text-xs min-w-5 text-center text-[var(--text-main)]">
+                        {typeof art.quantity === "number" ? art.quantity : 10}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(currentId, 1)}
+                        className="p-1 rounded hover:bg-emerald-500/20 text-[var(--text-muted)] hover:text-emerald-400 transition-colors cursor-pointer"
+                        title="Increase Stock"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+
                     <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded border tracking-wider ${
-                      art.isSold
+                      art.isSold || (typeof art.quantity === "number" && art.quantity <= 0)
                         ? "bg-red-500/10 text-red-400 border-red-500/15"
                         : "bg-emerald-500/10 text-emerald-400 border-emerald-500/15"
                     }`}>
-                      {art.isSold ? "Sold" : "Available"}
+                      {art.isSold || (typeof art.quantity === "number" && art.quantity <= 0) ? "Sold Out" : "Available"}
                     </span>
                   </div>
 

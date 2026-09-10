@@ -5,18 +5,7 @@ import { FaChartBar, FaUsers, FaPalette, FaDollarSign, FaChartLine, FaChartPie }
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import Loading from "@/app/loading";
-
-// Fetch JWT from backend using BetterAuth session email
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 const CATEGORY_COLORS = ["bg-[#df6742]", "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"];
 
@@ -39,24 +28,37 @@ export default function AnalyticsPage() {
   const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
-      const token = await getAuthToken(base, user.email);
+      let analyticsData = null;
+      let rawCategories = null;
 
-      const headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      };
-
-      const [analyticsRes, categoriesRes] = await Promise.all([
-        fetch(`${base}/api/admin/analytics`, { method: "GET", headers }),
-        fetch(`${base}/api/admin/analytics/categories`, { method: "GET", headers }),
-      ]);
-
-      if (!analyticsRes.ok || !categoriesRes.ok) {
-        throw new Error("Failed to fetch analytics data.");
+      // 1. Try local internal endpoints first
+      try {
+        const [localAnalytics, localCategories] = await Promise.all([
+          fetch("/api/admin/analytics"),
+          fetch("/api/admin/analytics/categories"),
+        ]);
+        if (localAnalytics.ok) analyticsData = await localAnalytics.json();
+        if (localCategories.ok) rawCategories = await localCategories.json();
+      } catch (localErr) {
+        console.warn("Local analytics skipped, trying external gateway:", localErr);
       }
 
-      const analyticsData = await analyticsRes.json();
-      const rawCategories = await categoriesRes.json();
+      // 2. Fallback to external backend if needed
+      if (!analyticsData || !rawCategories) {
+        const token = await getAuthToken(user.email);
+        const headers = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        };
+
+        const [analyticsRes, categoriesRes] = await Promise.all([
+          fetch(`${base}/api/admin/analytics`, { method: "GET", headers }),
+          fetch(`${base}/api/admin/analytics/categories`, { method: "GET", headers }),
+        ]);
+
+        if (analyticsRes.ok) analyticsData = await analyticsRes.json();
+        if (categoriesRes.ok) rawCategories = await categoriesRes.json();
+      }
 
       setMetrics({
         totalUsers: analyticsData.totalUsers || 0,

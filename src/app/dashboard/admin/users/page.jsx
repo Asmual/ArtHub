@@ -6,6 +6,7 @@ import { Users, Mail, Calendar, Search, ShieldCheck, UserCheck, X, Loader2 } fro
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import Loading from "@/app/loading";
+import { getAuthToken } from "@/lib/auth-utils";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -27,18 +28,6 @@ const getRoleBadge = (role) => {
   }
 };
 
-// Fetch a short-lived JWT from backend using BetterAuth session email
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
-
 export default function AdminUsersDashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,32 +40,47 @@ export default function AdminUsersDashboard() {
   const { data: session, isPending: authLoading } = authClient.useSession();
   const user = session?.user;
 
-  const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-
   // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const fetchAllUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const token = await getAuthToken(base, user.email);
+      let userData = null;
 
-      const res = await fetch(`${base}/api/admin/users`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      // 1. Try local Next.js internal API first
+      try {
+        const localRes = await fetch("/api/admin/users");
+        if (localRes.ok) {
+          userData = await localRes.json();
+        }
+      } catch (localErr) {
+        console.warn("Local users route skipped, trying external gateway:", localErr);
+      }
 
-      if (!res.ok) throw new Error("Failed to load users.");
-      const data = await res.json();
-      setUsers(Array.isArray(data) ? data : data.users || data.data || []);
+      // 2. Fallback to external backend if needed
+      if (!userData) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+
+        const res = await fetch(`${base}/api/admin/users`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to load users.");
+        userData = await res.json();
+      }
+
+      setUsers(Array.isArray(userData) ? userData : userData?.users || userData?.data || []);
     } catch (err) {
       console.error("Fetch users error:", err);
       toast.error("Could not load users.");
     } finally {
       setLoading(false);
     }
-  }, [base, user?.email]);
+  }, [user?.email]);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -98,18 +102,38 @@ export default function AdminUsersDashboard() {
     const loadingToast = toast.loading(`Updating role to ${selectedNewRole}...`);
 
     try {
-      const token = await getAuthToken(base, user.email);
+      let updated = false;
 
-      const res = await fetch(`${base}/api/admin/users/${userId}/role`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ role: selectedNewRole }),
-      });
+      // 1. Try local API first
+      try {
+        const localRes = await fetch(`/api/admin/users/${userId}/role`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: selectedNewRole }),
+        });
+        if (localRes.ok) {
+          updated = true;
+        }
+      } catch (localErr) {
+        console.warn("Local role update skipped, trying external gateway:", localErr);
+      }
 
-      if (!res.ok) throw new Error("Role update rejected by server.");
+      // 2. Fallback to external backend
+      if (!updated) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+
+        const res = await fetch(`${base}/api/admin/users/${userId}/role`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ role: selectedNewRole }),
+        });
+
+        if (!res.ok) throw new Error("Role update rejected by server.");
+      }
 
       toast.success(`${targetUser.name || "User"} role updated to ${selectedNewRole}`, { id: loadingToast });
 

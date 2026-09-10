@@ -5,18 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { FaExchangeAlt, FaSearch, FaCreditCard, FaCheckCircle, FaExclamationTriangle, FaDownload } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-
-// Fetch JWT from backend using BetterAuth session email
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 export default function AdminTransactionsPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();
@@ -27,34 +16,49 @@ export default function AdminTransactionsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [transactions, setTransactions] = useState([]);
 
-  const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-
   // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const fetchTransactions = useCallback(async () => {
     if (!user?.email) return;
     try {
       setLoading(true);
-      const token = await getAuthToken(base, user.email);
+      let list = null;
 
-      const res = await fetch(`${base}/api/payment/all-transactions`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      // 1. Try local API first
+      try {
+        const localRes = await fetch("/api/payment/all-transactions");
+        if (localRes.ok) {
+          list = await localRes.json();
+        }
+      } catch (localErr) {
+        console.warn("Local transactions route skipped, trying external gateway:", localErr);
+      }
 
-      if (!res.ok) throw new Error("Failed to fetch transactions.");
-      const data = await res.json();
-      const list = Array.isArray(data) ? data : (data?.data || data?.transactions || []);
-      setTransactions(list);
+      // 2. Fallback to external backend if needed
+      if (!list) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+
+        const res = await fetch(`${base}/api/payment/all-transactions`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch transactions.");
+        const data = await res.json();
+        list = Array.isArray(data) ? data : (data?.data || data?.transactions || []);
+      }
+
+      setTransactions(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("Transaction fetch error:", err);
       toast.error("Could not load transaction history.");
     } finally {
       setLoading(false);
     }
-  }, [base, user?.email]);
+  }, [user?.email]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

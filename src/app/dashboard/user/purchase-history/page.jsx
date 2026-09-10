@@ -5,18 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { Calendar, ShoppingCart, ArrowLeft, ExternalLink, ImageOff } from "lucide-react";
 import Link from "next/link";
 import Loading from "@/app/loading";
-
-// Helper to retrieve JWT token for authenticated requests
-const getAuthToken = async (base, email) => {
-  const res = await fetch(`${base}/api/users/generate-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error("Authentication token generation failed.");
-  const { token } = await res.json();
-  return token;
-};
+import { getAuthToken } from "@/lib/auth-utils";
 
 export default function PurchaseHistoryPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();
@@ -31,28 +20,41 @@ export default function PurchaseHistoryPage() {
 
     const fetchOrderHistory = async () => {
       try {
-        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-        const token = await getAuthToken(base, user.email);
+        let list = null;
 
-        const response = await fetch(`${base}/api/payment/my-orders`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          setOrders([]);
-          setLoading(false);
-          return;
+        // 1. Try local API first
+        try {
+          const localRes = await fetch(`/api/payment/my-orders?email=${encodeURIComponent(user.email)}`);
+          if (localRes.ok) {
+            const localData = await localRes.json();
+            list = Array.isArray(localData) ? localData : (localData?.data || localData?.orders || []);
+          }
+        } catch (localErr) {
+          console.warn("Local my-orders fetch skipped, trying external gateway:", localErr);
         }
 
-        const data = await response.json();
-        const list = Array.isArray(data) ? data : (data?.data || data?.orders || []);
-        setOrders(list);
-      } catch (error) {
-        console.error("[PAYMENT ERROR] Purchase history fetch error:", error);
+        // 2. Fallback to external backend if needed
+        if (!list) {
+          const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+          const token = await getAuthToken(user.email);
+
+          const response = await fetch(`${base}/api/payment/my-orders`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            list = Array.isArray(data) ? data : (data?.data || data?.orders || []);
+          }
+        }
+
+        setOrders(Array.isArray(list) ? list : []);
+      } catch (err) {
+        console.error("Purchase history fetch error:", err);
         setOrders([]);
       } finally {
         setLoading(false);
