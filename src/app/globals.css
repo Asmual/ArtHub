@@ -105,3 +105,29 @@ body {
   background-color: var(--brand) !important;
   border-radius: 9999px !important;
 }
+
+/* ============================================
+   LENIS SMOOTH SCROLLING
+   Provides inertial, buttery-smooth scrolling
+   across all viewports and devices.
+   ============================================ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}

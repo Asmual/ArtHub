@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import WishlistDrawer from "@/components/cart/WishlistDrawer";
+import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,21 +36,23 @@ export default function RootLayout({ children }) {
       >
         <ThemeProvider>
           <CartProvider>
-            <Toaster
-              position="top-center"
-              reverseOrder={false}
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "14px",
-                },
-              }}
-            />
+            <SmoothScrollProvider>
+              <Toaster
+                position="top-center"
+                reverseOrder={false}
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: "14px",
+                  },
+                }}
+              />
 
-            {children}
-            <CartDrawer />
-            <WishlistDrawer />
+              {children}
+              <CartDrawer />
+              <WishlistDrawer />
+            </SmoothScrollProvider>
           </CartProvider>
         </ThemeProvider>
       </body>
