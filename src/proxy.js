@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-// Middleware to safeguard dashboard routes
-export async function middleware(request) {
+// Proxy to safeguard dashboard routes (replaces deprecated middleware in Next.js 16)
+export async function proxy(request) {
   const { pathname } = request.nextUrl;
   const isDashboardRoute = pathname.startsWith("/dashboard");
 
@@ -19,6 +19,10 @@ export async function middleware(request) {
 
   return NextResponse.next();
 }
+
+// Backward compatibility exports
+export const middleware = proxy;
+export default proxy;
 
 // Route matching configuration
 export const config = {
