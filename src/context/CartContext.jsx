@@ -61,10 +61,11 @@ export function CartProvider({ children }) {
     );
 
     if (existingIndex > -1) {
-      toast("Artwork is already in your cart!", { icon: "🎨" });
+      toast("Artwork is already in your cart.");
       setIsCartOpen(true);
       return;
     }
+
 
     const itemToAdd = {
       _id: artId,

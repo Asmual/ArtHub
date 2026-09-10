@@ -209,7 +209,7 @@ export default function AddArtPage() {
         }
       }
 
-      toast.success("Artwork published and saved to MongoDB!");
+      toast.success("Artwork published successfully.");
       // Refresh quota stats
       if (user?.email) {
         fetch(`/api/subscription?email=${encodeURIComponent(user.email)}`)
@@ -226,10 +226,11 @@ export default function AddArtPage() {
       }
     } catch (err) {
       console.error("Publish artwork error:", err);
-      toast.error(err?.message || "Failed to upload artwork to cloud database.");
+      toast.error(err?.message || "Failed to publish artwork.");
     } finally {
       setLoading(false);
     }
+
   };
 
   const isFormValid = imageUrl && formData.title && formData.price && formData.description;

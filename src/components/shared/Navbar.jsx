@@ -12,8 +12,9 @@ import ThemeToggle from "@/components/shared/ThemeToggle";
 import {
   ChevronDown, Search, LayoutDashboard, ShoppingBag, ImageIcon,
   User, Palette, PlusSquare, TrendingUp, Users, Shield, CreditCard,
-  BarChart2, LogOut, X, Menu, Eye, Heart,
+  BarChart2, LogOut, X, Menu, Eye, Heart, Crown,
 } from "lucide-react";
+
 import { useCart } from "@/context/CartContext";
 
 /* ============================================================
@@ -50,12 +51,14 @@ const getDashboardLinks = (role) => {
     return [
       ...common,
       { href: "/dashboard/admin/users", label: "Manage Users", icon: Users },
+      { href: "/dashboard/admin/subscriptions", label: "Artist Subscriptions", icon: Crown },
       { href: "/dashboard/admin/artworks", label: "Manage All Artworks", icon: Shield },
       { href: "/dashboard/admin/transactions", label: "View All Transactions", icon: CreditCard },
       { href: "/dashboard/admin/charts", label: "Charts & Analytics", icon: BarChart2 },
       { href: "/dashboard/admin/profile", label: "Profile Management", icon: User },
     ];
   }
+
   return [];
 };
 
@@ -357,9 +360,10 @@ const Navbar = () => {
 
   return (
     <nav
-      className="bg-background text-foreground shadow-lg sticky top-0 z-50 h-16 flex items-center border-b border-border-line"
+      className="bg-background/85 backdrop-blur-md backdrop-saturate-150 text-foreground shadow-md sticky top-0 z-50 h-16 flex items-center border-b border-border-line transition-colors"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center h-16 gap-4">
 

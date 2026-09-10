@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
-  Zap,
   Sparkles,
   Crown,
   ShieldCheck,
@@ -13,6 +12,7 @@ import {
   Clock,
   Award,
 } from "lucide-react";
+
 import { useSession } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 
@@ -95,9 +95,6 @@ export default function PricingSection({ isFullPage = false }) {
 
   const [billingCycle, setBillingCycle] = useState("monthly"); // "monthly" | "yearly"
   const [currentSub, setCurrentSub] = useState(null);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isUpgrading, setIsUpgrading] = useState(false);
 
   // Fetch subscription info if user is authenticated
   useEffect(() => {
@@ -114,62 +111,17 @@ export default function PricingSection({ isFullPage = false }) {
 
   const handleSelectPlan = (tier) => {
     if (!user) {
-      toast("Please log in to upgrade your artist plan.", { icon: "🔒" });
-      router.push(`/login?redirect=/pricing`);
+      toast("Please log in to choose an artist plan.");
+      router.push(`/login?redirect=/pricing/checkout?plan=${tier.id}&interval=${billingCycle}`);
       return;
     }
 
     if (currentSub?.plan === tier.id) {
-      toast.success(`You are already actively enjoying the ${tier.name} tier!`);
+      toast("You are currently subscribed to this plan.");
       return;
     }
 
-    setSelectedPlan(tier);
-    setIsModalOpen(true);
-  };
-
-  const handleConfirmUpgrade = async () => {
-    if (!selectedPlan || !user?.email) return;
-
-    try {
-      setIsUpgrading(true);
-      const res = await fetch("/api/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: user.email,
-          plan: selectedPlan.id,
-          interval: billingCycle,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to process plan upgrade.");
-      }
-
-      toast.success(
-        `🎉 Congratulations! You are now upgraded to ${selectedPlan.name} ($${
-          billingCycle === "yearly" ? selectedPlan.yearlyPrice : selectedPlan.monthlyPrice
-        }/mo). Your upload limit is now ${selectedPlan.artLimit}!`,
-        { duration: 5000 }
-      );
-
-      // Refresh local subscription state
-      setCurrentSub((prev) => ({
-        ...prev,
-        plan: selectedPlan.id,
-        artworkLimit: selectedPlan.id === "ultimate" ? "Unlimited" : selectedPlan.id === "pro" ? 60 : 20,
-        canUploadMore: true,
-      }));
-
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Upgrade error:", err);
-      toast.error(err.message || "Something went wrong upgrading your plan.");
-    } finally {
-      setIsUpgrading(false);
-    }
+    router.push(`/pricing/checkout?plan=${tier.id}&interval=${billingCycle}`);
   };
 
   return (
@@ -371,86 +323,7 @@ export default function PricingSection({ isFullPage = false }) {
           </span>
         </div>
       </div>
-
-      {/* Interactive Plan Confirmation Modal */}
-      {isModalOpen && selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-surface border border-border-line rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand)]">
-                  Confirm Plan Upgrade
-                </span>
-                <h3 className="text-lg font-bold text-foreground mt-0.5">
-                  Activate {selectedPlan.name}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-foreground/40 hover:text-foreground hover:bg-[var(--hover-bg)]"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-4 rounded-xl bg-[var(--hover-bg)] border border-border-line space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Selected Plan:</span>
-                <span className="font-bold text-foreground">{selectedPlan.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Billing Interval:</span>
-                <span className="font-semibold capitalize text-foreground">{billingCycle}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Artwork Capacity:</span>
-                <span className="font-bold text-[var(--brand)]">{selectedPlan.artLimit}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Platform Fee:</span>
-                <span className="font-bold text-emerald-500">{selectedPlan.commission}</span>
-              </div>
-              <div className="border-t border-border-line pt-2 flex justify-between text-sm">
-                <span className="font-bold text-foreground">Total Due Today:</span>
-                <span className="font-extrabold text-foreground">
-                  ${billingCycle === "yearly" ? selectedPlan.yearlyPrice * 12 : selectedPlan.monthlyPrice} USD
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-foreground/60 leading-relaxed">
-              By upgrading, your artwork upload limit will immediately increase to {selectedPlan.artLimit}. You can add more artworks right away from your Artist Dashboard.
-            </p>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                disabled={isUpgrading}
-                className="flex-1 py-2.5 rounded-xl border border-border-line text-xs font-semibold text-foreground/70 hover:bg-[var(--hover-bg)] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmUpgrade}
-                disabled={isUpgrading}
-                className="flex-1 py-2.5 rounded-xl bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white text-xs font-bold transition-all shadow-md shadow-[var(--brand)]/30 flex items-center justify-center gap-2"
-              >
-                {isUpgrading ? (
-                  <span>Activating...</span>
-                ) : (
-                  <>
-                    <span>Confirm & Upgrade</span>
-                    <Zap size={14} />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
+

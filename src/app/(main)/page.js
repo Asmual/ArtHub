@@ -16,12 +16,13 @@ export default function Home() {
         <TopArtists />
       </SmoothSection>
       <SmoothSection>
-        <CategorySection />
+        <PricingSection />
       </SmoothSection>
       <SmoothSection>
-        <PricingSection />
+        <CategorySection />
       </SmoothSection>
     </main>
   );
 }
+
 

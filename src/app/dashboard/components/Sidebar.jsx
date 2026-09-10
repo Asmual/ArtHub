@@ -17,7 +17,9 @@ import {
   Shield,
   CreditCard,
   BarChart2,
+  Crown,
 } from "lucide-react";
+
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -87,8 +89,10 @@ export default function Sidebar() {
             <SidebarLink href="/dashboard/admin" label="Overview" icon={LayoutDashboard} />
             
             <SidebarLink href="/dashboard/admin/users" label="Manage Users" icon={Users} />
+            <SidebarLink href="/dashboard/admin/subscriptions" label="Artist Subscriptions" icon={Crown} />
             {/* Updated label to Manage All Artworks */}
             <SidebarLink href="/dashboard/admin/artworks" label="Manage All Artworks" icon={Shield} />
+
             {/* Updated label to All Transactions */}
             <SidebarLink href="/dashboard/admin/transactions" label="All Transactions" icon={CreditCard} />
             <SidebarLink href="/dashboard/admin/analytics" label="Analytics Overview" icon={TrendingUp} />
