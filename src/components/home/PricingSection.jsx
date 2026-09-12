@@ -11,6 +11,9 @@ import {
   ArrowRight,
   Clock,
   Award,
+  AlertCircle,
+  X,
+  Loader2,
 } from "lucide-react";
 
 import { useSession } from "@/lib/auth-client";
@@ -95,6 +98,9 @@ export default function PricingSection({ isFullPage = false }) {
 
   const [billingCycle, setBillingCycle] = useState("monthly"); // "monthly" | "yearly"
   const [currentSub, setCurrentSub] = useState(null);
+  const [showBuyerModal, setShowBuyerModal] = useState(false);
+  const [selectedTierForUpgrade, setSelectedTierForUpgrade] = useState(null);
+  const [isUpgradingRole, setIsUpgradingRole] = useState(false);
 
   // Fetch subscription info if user is authenticated
   useEffect(() => {
@@ -111,8 +117,16 @@ export default function PricingSection({ isFullPage = false }) {
 
   const handleSelectPlan = (tier) => {
     if (!user) {
-      toast("Please log in to choose an artist plan.");
-      router.push(`/login?redirect=/pricing/checkout?plan=${tier.id}&interval=${billingCycle}`);
+      toast("Please sign in or create an artist account to continue.");
+      router.push(`/register?role=artist&redirect=/pricing/checkout?plan=${tier.id}&interval=${billingCycle}`);
+      return;
+    }
+
+    // Role Guard: Check if the user is a buyer / collector
+    const userRole = (user.role || "").toLowerCase();
+    if (userRole !== "artist" && userRole !== "admin") {
+      setSelectedTierForUpgrade(tier);
+      setShowBuyerModal(true);
       return;
     }
 
@@ -122,6 +136,35 @@ export default function PricingSection({ isFullPage = false }) {
     }
 
     router.push(`/pricing/checkout?plan=${tier.id}&interval=${billingCycle}`);
+  };
+
+  const handleUpgradeAccount = async () => {
+    if (!user?.email) return;
+    try {
+      setIsUpgradingRole(true);
+      const res = await fetch("/api/users/upgrade-to-artist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to upgrade account.");
+      }
+
+      toast.success("Welcome, Creator! Your profile has been upgraded to Artist.");
+      setShowBuyerModal(false);
+
+      const targetPlan = selectedTierForUpgrade?.id || "basic";
+      router.push(`/pricing/checkout?plan=${targetPlan}&interval=${billingCycle}`);
+      router.refresh();
+    } catch (err) {
+      console.error("Account upgrade error:", err);
+      toast.error(err.message || "Failed to upgrade account to Artist.");
+    } finally {
+      setIsUpgradingRole(false);
+    }
   };
 
   return (
@@ -323,6 +366,112 @@ export default function PricingSection({ isFullPage = false }) {
           </span>
         </div>
       </div>
+
+      {/* Buyer Role Alert & Upgrade Modal */}
+      {showBuyerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-md bg-surface border border-border-line rounded-2xl p-6 sm:p-7 shadow-2xl space-y-5 text-foreground">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowBuyerModal(false)}
+              className="absolute top-4 right-4 text-foreground/50 hover:text-foreground transition-colors p-1 rounded-lg hover:bg-[var(--hover-bg)]"
+              aria-label="Close modal"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Header with Icon */}
+            <div className="flex items-start gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--brand)]/15 border border-[var(--brand)]/30 flex items-center justify-center text-[var(--brand)] shrink-0">
+                <Palette size={24} />
+              </div>
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[10px] font-bold uppercase tracking-wider">
+                  <AlertCircle size={11} />
+                  <span>Artist Account Required</span>
+                </div>
+                <h3 className="text-lg font-bold text-foreground tracking-tight">
+                  Creator Membership Notice
+                </h3>
+              </div>
+            </div>
+
+            {/* Explanatory Description */}
+            <div className="space-y-2.5 text-xs text-foreground/75 leading-relaxed bg-[var(--hover-bg)] p-3.5 rounded-xl border border-border-line">
+              <p>
+                You are currently signed in with a <strong className="text-foreground">Collector (Buyer)</strong> account.
+              </p>
+              <p>
+                ArtHub subscription packages are specifically designed for <strong className="text-[var(--brand)]">Artists</strong> to upload artworks, expand gallery exhibition limits, and minimize marketplace sales commission.
+              </p>
+              <p className="text-emerald-500 font-medium">
+                As an art collector, you can already explore and purchase original pieces with zero subscription fees!
+              </p>
+            </div>
+
+            {/* Plan Selected Summary */}
+            {selectedTierForUpgrade && (
+              <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-surface border border-border-strong text-xs">
+                <div>
+                  <span className="text-[10px] text-foreground/50 uppercase font-semibold block">Selected Plan</span>
+                  <span className="font-bold text-foreground">{selectedTierForUpgrade.name}</span>
+                </div>
+                <span className="font-extrabold text-[var(--brand)]">
+                  ${billingCycle === "yearly" ? selectedTierForUpgrade.yearlyPrice : selectedTierForUpgrade.monthlyPrice}/mo
+                </span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-2.5 pt-2">
+              {/* Option 1: Instant 1-Click Upgrade to Artist */}
+              <button
+                type="button"
+                onClick={handleUpgradeAccount}
+                disabled={isUpgradingRole}
+                className="w-full py-3 px-4 rounded-xl bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-md shadow-[var(--brand)]/25 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isUpgradingRole ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Upgrading Profile to Artist...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Upgrade Account to Artist &amp; Continue</span>
+                    <ArrowRight size={14} />
+                  </>
+                )}
+              </button>
+
+              {/* Option 2: Register New Artist Account */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBuyerModal(false);
+                  router.push(`/register?role=artist&redirect=/pricing/checkout?plan=${selectedTierForUpgrade?.id || "basic"}&interval=${billingCycle}`);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-surface hover:bg-[var(--hover-bg)] text-foreground border border-border-strong text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Register a Dedicated Artist Account</span>
+              </button>
+
+              {/* Option 3: Continue Browsing Art */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBuyerModal(false);
+                  router.push("/browse");
+                }}
+                className="w-full py-2 px-4 rounded-xl text-foreground/60 hover:text-foreground text-xs font-medium transition-colors"
+              >
+                Continue Browsing Artworks as Collector
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

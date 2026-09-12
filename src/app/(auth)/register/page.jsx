@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import NextLink from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   FaGoogle,
   FaRegEye,
@@ -15,8 +15,12 @@ import {
 import { signUp, signIn } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 
-const RegisterPage = () => {
+const RegisterForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get("role")?.toLowerCase();
+  const redirectParam = searchParams.get("redirect") || "/";
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +29,7 @@ const RegisterPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "buyer",
+    role: roleParam === "artist" ? "artist" : "buyer",
   });
 
   // Dynamically track field inputs
@@ -45,7 +49,7 @@ const RegisterPage = () => {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: redirectParam.startsWith("/") ? redirectParam : "/",
       });
     } catch (err) {
       setLoading(false);
@@ -73,7 +77,7 @@ const RegisterPage = () => {
           password: formData.password,
           name: formData.name,
           role: formData.role, // Direct property transmission for accurate backend assignment
-          callbackURL: "/",
+          callbackURL: redirectParam.startsWith("/") ? redirectParam : "/",
         },
         {
           onRequest: () => setLoading(true),
@@ -84,9 +88,10 @@ const RegisterPage = () => {
             });
 
             setTimeout(() => {
-              router.push("/");
+              const destination = redirectParam.startsWith("/") ? redirectParam : "/";
+              router.push(destination);
               router.refresh();
-            }, 2000);
+            }, 1500);
           },
           onError: (ctx) => {
             setLoading(false);
@@ -326,4 +331,16 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[calc(100vh-64px)] w-full flex items-center justify-center bg-[#243239] text-white text-xs">
+          Loading registration...
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
+  );
+}

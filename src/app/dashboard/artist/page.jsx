@@ -11,11 +11,54 @@ import {
   ArrowRight,
   Loader2,
   TrendingUp,
-  ImageOff
+  ImageOff,
+  Crown,
+  Sparkles,
+  Zap,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+
+const TIER_CONFIGS = {
+  free: {
+    title: "Free Creator Starter",
+    badgeText: "Free Starter Tier",
+    badgeClass: "bg-slate-500/15 border border-slate-500/30 text-slate-300",
+    cardClass: "bg-[var(--surface)] border-[var(--border-line)]",
+    icon: Palette,
+    commission: "15% Platform Fee",
+    description: "You are on the free starter tier with up to 5 artwork uploads. Upgrade anytime to unlock higher quotas and reduce platform commission.",
+  },
+  basic: {
+    title: "Basic Artist Plan",
+    badgeText: "Basic Artist",
+    badgeClass: "bg-blue-500/15 border border-blue-500/30 text-blue-400",
+    cardClass: "bg-[var(--surface)] border-blue-500/30 shadow-blue-500/5",
+    icon: Palette,
+    commission: "10% Platform Fee",
+    description: "Up to 20 artwork uploads included with 1080p display, direct inquiries, and reduced 10% commission fees.",
+  },
+  pro: {
+    title: "Pro Artist Plan",
+    badgeText: "Verified Pro Artist",
+    badgeClass: "bg-[#df6742]/15 border border-[#df6742]/30 text-[#df6742]",
+    cardClass: "bg-[var(--surface)] border-[#df6742]/40 shadow-[#df6742]/10",
+    icon: Sparkles,
+    commission: "5% Platform Fee",
+    description: "Up to 60 artworks, ultra-low 5% commission, verified blue badge, and priority gallery placement.",
+  },
+  ultimate: {
+    title: "Ultimate Studio Plan",
+    badgeText: "VIP Master Studio",
+    badgeClass: "bg-amber-500/15 border border-amber-500/30 text-amber-400",
+    cardClass: "bg-[var(--surface)] border-amber-500/40 shadow-amber-500/10",
+    icon: Crown,
+    commission: "0% Commission (Keep 100%)",
+    description: "Unlimited artwork capacity, zero platform commission, 4K display, and dedicated curator support.",
+  },
+};
 
 export default function ArtistDashboard() {
   const router = useRouter();
@@ -24,6 +67,7 @@ export default function ArtistDashboard() {
 
   const [stats, setStats] = useState({ totalArts: 0, totalEarnings: 0 });
   const [recentArtworks, setRecentArtworks] = useState([]);
+  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Strictly bind routing access permissions to registered artists only
@@ -106,6 +150,20 @@ export default function ArtistDashboard() {
     fetchArtistData();
   }, [user]);
 
+  // Fetch verified subscription metrics for the artist
+  useEffect(() => {
+    if (!user?.email || user.role !== "artist") return;
+
+    fetch(`/api/subscription?email=${encodeURIComponent(user.email)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setSubscription(data);
+        }
+      })
+      .catch((err) => console.error("Failed to load artist subscription:", err));
+  }, [user?.email, user?.role]);
+
   if (authLoading || (!user || user.role !== "artist")) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center gap-2 text-[var(--text-main)]">
@@ -114,6 +172,17 @@ export default function ArtistDashboard() {
       </div>
     );
   }
+
+  const currentPlanKey = (subscription?.plan || "free").toLowerCase();
+  const tierConfig = TIER_CONFIGS[currentPlanKey] || TIER_CONFIGS.free;
+  const TierIcon = tierConfig.icon;
+  const isUnlimited = subscription?.limitNumber === Infinity || currentPlanKey === "ultimate";
+  const quotaLimit = isUnlimited ? Infinity : (subscription?.limitNumber || 5);
+  const currentCount = subscription?.artworkCount !== undefined ? subscription.artworkCount : stats.totalArts;
+  const remainingSlots = isUnlimited ? "Unlimited" : Math.max(0, quotaLimit - currentCount);
+  const quotaPercentage = isUnlimited
+    ? 100
+    : Math.min(100, Math.round((currentCount / quotaLimit) * 100));
 
   return (
     <div className="space-y-6 w-full text-[var(--text-main)] p-2 sm:p-4">
@@ -172,7 +241,111 @@ export default function ArtistDashboard() {
 
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      {/* 3. Highlighted Active Subscription Membership Showcase Card */}
+      <div className={`p-5 sm:p-6 rounded-2xl border transition-all relative overflow-hidden shadow-lg ${tierConfig.cardClass}`}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${tierConfig.badgeClass}`}>
+                <TierIcon size={12} />
+                <span>{tierConfig.badgeText}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Active Status</span>
+              </span>
+              {subscription?.subscription?.interval && subscription?.subscription?.interval !== "free" && (
+                <span className="text-[10px] text-[var(--text-muted)] font-medium capitalize bg-[var(--hover-bg)] px-2.5 py-1 rounded-md border border-[var(--border-line)]">
+                  Billed {subscription.subscription.interval}
+                </span>
+              )}
+            </div>
+
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-[var(--text-main)] tracking-tight">
+                {tierConfig.title}
+              </h2>
+              <p className="text-xs text-[var(--text-muted)] mt-1 max-w-xl leading-relaxed">
+                {tierConfig.description}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#df6742] hover:bg-[#c55332] text-white text-xs font-bold transition-all shadow-md active:scale-[0.98]"
+            >
+              <Zap size={14} />
+              <span>{currentPlanKey === "ultimate" ? "Explore All Tiers" : "Upgrade Membership"}</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+        </div>
+
+        {/* Quota Progress Bar & Commission Breakdown */}
+        <div className="mt-5 pt-4 border-t border-[var(--border-line)]/80 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+          {/* Progress Bar (Col 8) */}
+          <div className="md:col-span-8 space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-bold text-[var(--text-main)] flex items-center gap-1.5">
+                <Palette size={13} className="text-[#df6742]" />
+                <span>Artwork Upload Allowance</span>
+              </span>
+              <span className="font-mono text-[11px] text-[var(--text-muted)]">
+                {isUnlimited ? (
+                  <strong className="text-amber-400 font-bold">{currentCount} Artworks (Unlimited Slots)</strong>
+                ) : (
+                  <span>
+                    <strong className="text-[var(--text-main)]">{currentCount}</strong> / {quotaLimit} Artworks
+                    <span className="text-emerald-500 font-semibold ml-1">
+                      ({remainingSlots} remaining)
+                    </span>
+                  </span>
+                )}
+              </span>
+            </div>
+
+            {/* Visual Progress Bar */}
+            <div className="w-full h-2.5 rounded-full bg-[var(--hover-bg)] overflow-hidden border border-[var(--border-line)]">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  isUnlimited
+                    ? "w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"
+                    : quotaPercentage >= 100
+                    ? "bg-red-500"
+                    : quotaPercentage >= 80
+                    ? "bg-amber-500"
+                    : "bg-gradient-to-r from-[#df6742] to-orange-400"
+                }`}
+                style={{ width: `${quotaPercentage}%` }}
+              />
+            </div>
+
+            {/* Quota full warning */}
+            {!isUnlimited && subscription?.canUploadMore === false && (
+              <div className="flex items-center gap-1.5 text-[11px] text-red-400 font-semibold pt-0.5">
+                <AlertTriangle size={13} className="shrink-0" />
+                <span>Upload limit reached! Upgrade your subscription tier to publish more artworks.</span>
+              </div>
+            )}
+          </div>
+
+          {/* Commission & Platform Fee Pill (Col 4) */}
+          <div className="md:col-span-4 flex items-center md:justify-end gap-3 text-xs">
+            <div className="p-2.5 px-3 rounded-xl bg-[var(--hover-bg)] border border-[var(--border-line)] text-right w-full sm:w-auto">
+              <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] block">
+                Platform Commission
+              </span>
+              <span className="text-sm font-black text-emerald-400">
+                {tierConfig.commission}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
        
         <div className="lg:col-span-1 bg-[var(--surface)] p-5 rounded-xl border border-[var(--border-line)] space-y-4 h-fit">
           <div>

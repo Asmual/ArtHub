@@ -15,6 +15,8 @@ import {
   Lock,
   User,
   CheckCircle2,
+  AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 import NextLink from "next/link";
 import toast from "react-hot-toast";
@@ -93,9 +95,45 @@ function PurchaseContent() {
   const [interval, setInterval] = useState(intervalParam === "yearly" ? "yearly" : "monthly");
   const [subInfo, setSubInfo] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isUpgradingRole, setIsUpgradingRole] = useState(false);
+  const [userRoleOverride, setUserRoleOverride] = useState(null);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+
+  const effectiveRole = (userRoleOverride || user?.role || "").toLowerCase();
+  const isArtistOrAdmin = effectiveRole === "artist" || effectiveRole === "admin";
+
+  const handleUpgradeToArtist = async () => {
+    if (!user?.email) {
+      toast("Please log in or register to upgrade your profile.");
+      router.push(`/login?redirect=/pricing/checkout?plan=${plan.id}&interval=${interval}`);
+      return;
+    }
+
+    try {
+      setIsUpgradingRole(true);
+      const res = await fetch("/api/users/upgrade-to-artist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to upgrade account.");
+      }
+
+      setUserRoleOverride("artist");
+      toast.success("Account successfully upgraded to Artist! You may now complete checkout.");
+      router.refresh();
+    } catch (err) {
+      console.error("Upgrade error:", err);
+      toast.error(err.message || "Could not upgrade account to Artist.");
+    } finally {
+      setIsUpgradingRole(false);
+    }
+  };
 
   const plan = PLAN_DATA[planParam] || PLAN_DATA.basic;
   const price = interval === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
@@ -147,7 +185,7 @@ function PurchaseContent() {
       }
 
       if (data.url) {
-        window.location.href = data.url;
+        window.location.assign(data.url);
       } else {
         throw new Error("Stripe checkout session URL was not received.");
       }
@@ -265,11 +303,11 @@ function PurchaseContent() {
             </div>
           </div>
 
-          {/* Buyer Account Confirmation */}
+          {/* Account Status Confirmation */}
           <div className="p-5 rounded-2xl bg-surface border border-border-line shadow-sm space-y-2">
             <span className="text-[10px] uppercase font-bold tracking-wider text-foreground/50 flex items-center gap-1.5">
               <User size={13} className="text-[var(--brand)]" />
-              <span>Artist / Buyer Account</span>
+              <span>ArtHub Account Status</span>
             </span>
             <div className="flex items-center justify-between">
               <div>
@@ -280,9 +318,16 @@ function PurchaseContent() {
                   {user?.email || "No active session detected"}
                 </p>
               </div>
-              <span className="text-[11px] font-semibold text-emerald-500 flex items-center gap-1">
-                <CheckCircle2 size={14} /> Active Account
-              </span>
+              <div className="text-right">
+                <span
+                  className={`text-[11px] font-semibold flex items-center gap-1 justify-end ${
+                    isArtistOrAdmin ? "text-emerald-500" : "text-amber-500"
+                  }`}
+                >
+                  {isArtistOrAdmin ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+                  <span>{isArtistOrAdmin ? "Artist Account" : "Buyer Account"}</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -349,25 +394,82 @@ function PurchaseContent() {
               <span>Direct 256-bit encrypted checkout via Stripe.</span>
             </div>
 
+            {/* Buyer Account Role Guard Banner & Upgrade CTA */}
+            {!isArtistOrAdmin && (
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                  <div className="space-y-1 text-xs">
+                    <p className="font-bold text-foreground">Artist Profile Required</p>
+                    <p className="text-foreground/70 leading-relaxed text-[11px]">
+                      You are signed in as a <strong className="text-foreground">Collector (Buyer)</strong>. Artist subscription packages are reserved for creators to publish artwork and reduce sales commissions.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleUpgradeToArtist}
+                  disabled={isUpgradingRole}
+                  className="w-full py-2.5 px-3 rounded-lg bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isUpgradingRole ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Upgrading to Artist...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Upgrade Account to Artist Profile</span>
+                      <ArrowRight size={14} />
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-center justify-between pt-1 text-[11px] text-foreground/60">
+                  <NextLink
+                    href={`/register?role=artist&redirect=/pricing/checkout?plan=${plan.id}&interval=${interval}`}
+                    className="hover:text-foreground underline"
+                  >
+                    Register New Artist
+                  </NextLink>
+                  <NextLink href="/browse" className="hover:text-foreground underline">
+                    Browse Art
+                  </NextLink>
+                </div>
+              </div>
+            )}
+
             {/* Checkout Action Button */}
-            <button
-              type="button"
-              onClick={handleProceedToStripe}
-              disabled={isProcessing}
-              className="w-full py-3.5 px-4 rounded-xl bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md shadow-[var(--brand)]/20 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>Redirecting to Stripe...</span>
-                </>
-              ) : (
-                <>
-                  <span>Pay with Stripe (${totalBilled.toFixed(2)})</span>
-                  <ShieldCheck size={16} />
-                </>
-              )}
-            </button>
+            {isArtistOrAdmin ? (
+              <button
+                type="button"
+                onClick={handleProceedToStripe}
+                disabled={isProcessing}
+                className="w-full py-3.5 px-4 rounded-xl bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-md shadow-[var(--brand)]/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Redirecting to Stripe...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Pay with Stripe (${totalBilled.toFixed(2)})</span>
+                    <ShieldCheck size={16} />
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full py-3.5 px-4 rounded-xl bg-surface border border-border-strong opacity-60 text-foreground/50 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed"
+              >
+                <Lock size={15} />
+                <span>Artist Account Required to Pay</span>
+              </button>
+            )}
 
             <p className="text-[10px] text-foreground/50 text-center leading-relaxed">
               By confirming, your subscription will activate instantly upon payment completion. You can cancel or switch tiers at any time.

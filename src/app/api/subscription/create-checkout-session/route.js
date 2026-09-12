@@ -56,6 +56,22 @@ export async function POST(req) {
       );
     }
 
+    // Role check: Only Artists (and Admins) may purchase artist subscription packages
+    const db = await getDB();
+    const user = (await db.collection("user").findOne({ email })) ||
+                 (await db.collection("users").findOne({ email }));
+
+    if (user && user.role !== "artist" && user.role !== "admin") {
+      return NextResponse.json(
+        {
+          error: true,
+          requiresArtistUpgrade: true,
+          message: "Subscription packages are exclusively for Artist accounts. Please upgrade your account to an Artist profile before purchasing.",
+        },
+        { status: 403 }
+      );
+    }
+
     const { plan, interval = "monthly", name = "", phone = "" } = body;
     const normalizedPlan = (plan || "").toLowerCase();
     const config = PLAN_CONFIGS[normalizedPlan];

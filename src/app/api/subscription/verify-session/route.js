@@ -77,6 +77,7 @@ export async function POST(req) {
       { email: artistEmail },
       {
         $set: {
+          role: "artist",
           plan: plan.toLowerCase(),
           subscription: subscriptionRecord,
           updatedAt: now,
@@ -88,6 +89,7 @@ export async function POST(req) {
       { email: artistEmail },
       {
         $set: {
+          role: "artist",
           plan: plan.toLowerCase(),
           subscription: subscriptionRecord,
           updatedAt: now,
