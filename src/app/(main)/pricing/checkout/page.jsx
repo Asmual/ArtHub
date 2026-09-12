@@ -13,10 +13,11 @@ import {
   Palette,
   Loader2,
   Lock,
+  User,
+  CheckCircle2,
 } from "lucide-react";
 import NextLink from "next/link";
 import toast from "react-hot-toast";
-import DemoCardWidget from "@/components/checkout/DemoCardWidget";
 
 const PLAN_DATA = {
   basic: {
@@ -264,15 +265,37 @@ function PurchaseContent() {
             </div>
           </div>
 
-          {/* Interactive Demo Test Card & Customer Details */}
-          <DemoCardWidget
-            customerName={effectiveName}
-            setCustomerName={setCustomerName}
-            customerEmail={effectiveEmail}
-            setCustomerEmail={setCustomerEmail}
-            customerPhone={customerPhone}
-            setCustomerPhone={setCustomerPhone}
-          />
+          {/* Buyer Account Confirmation */}
+          <div className="p-5 rounded-2xl bg-surface border border-border-line shadow-sm space-y-2">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-foreground/50 flex items-center gap-1.5">
+              <User size={13} className="text-[var(--brand)]" />
+              <span>Artist / Buyer Account</span>
+            </span>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-foreground">
+                  {user?.name || "Creator Profile"}
+                </p>
+                <p className="text-xs text-foreground/60">
+                  {user?.email || "No active session detected"}
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-500 flex items-center gap-1">
+                <CheckCircle2 size={14} /> Active Account
+              </span>
+            </div>
+          </div>
+
+          {/* Membership Guarantees */}
+          <div className="p-5 rounded-2xl bg-surface border border-border-line shadow-sm space-y-2.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/50 flex items-center gap-1.5">
+              <Sparkles size={13} className="text-[var(--brand)]" />
+              <span>Instant Artist Activation</span>
+            </h4>
+            <p className="text-xs text-foreground/70 leading-relaxed">
+              Your tier upgrade and artwork upload allowance will activate automatically the moment payment is verified via Stripe.
+            </p>
+          </div>
         </div>
 
         {/* Right Column: Checkout Invoice & Stripe Button */}

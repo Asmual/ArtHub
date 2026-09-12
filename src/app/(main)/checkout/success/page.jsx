@@ -26,22 +26,42 @@ function SuccessContent() {
     const verifyTransaction = async () => {
       try {
         syncExecuted.current = true;
-        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-        const backendToken = await getAuthToken(base, session.user.email);
+        let result = null;
 
-        const res = await fetch(`${base}/api/payment/verify-payment-sync`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${backendToken}`,
-          },
-          body: JSON.stringify({ sessionId }),
-        });
+        // 1. Try local Next.js payment verification route first
+        try {
+          const localRes = await fetch("/api/payment/verify-payment-sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId }),
+          });
+          const localData = await localRes.json();
+          if (localRes.ok && localData?.success) {
+            result = localData;
+          }
+        } catch (localErr) {
+          console.warn("[PAYMENT SYNC] Local verification notice, trying backend fallback:", localErr?.message);
+        }
 
-        const result = await res.json();
+        // 2. Fallback to Express backend if needed
+        if (!result) {
+          const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+          const backendToken = await getAuthToken(base, session.user.email).catch(() => "");
+          const headers = { "Content-Type": "application/json" };
+          if (backendToken) {
+            headers.Authorization = `Bearer ${backendToken}`;
+          }
 
-        if (!res.ok) {
-          throw new Error(result.message || "Failed to verify payment status.");
+          const res = await fetch(`${base}/api/payment/verify-payment-sync`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ sessionId }),
+          });
+
+          result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.message || "Failed to verify payment status.");
+          }
         }
 
         if (result.data) {

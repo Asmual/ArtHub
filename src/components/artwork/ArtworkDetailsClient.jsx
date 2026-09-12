@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import ReviewSection from "./ReviewSection";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { getAuthToken } from "@/lib/auth-utils";
 
 export default function ArtworkDetailsClient({ artwork }) {
+  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -55,61 +56,17 @@ export default function ArtworkDetailsClient({ artwork }) {
     }
   };
 
-  // Initiate Stripe checkout redirection
-  const handleStripeCheckout = async () => {
+  // Navigate to clean order checkout page
+  const handleStripeCheckout = () => {
     if (!user) {
       toast.error("Please login to purchase this artwork!");
+      router.push(`/login?redirect=/browse/${artwork?._id}`);
       return;
     }
 
-    setIsRedirecting(true);
-
-    try {
-      const base = (
-        process.env.NEXT_PUBLIC_API_URL ||
-        "https://arthub-server-z4w8.onrender.com"
-      ).replace(/\/$/, "");
-
-      const targetToken = await getAuthToken(base, user.email);
-
-      const payload = {
-        artworkId: artwork?._id,
-        price: Number(artwork.price),
-      };
-
-      const response = await fetch(
-        `${base}/api/payment/create-checkout-session`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${targetToken}`,
-          },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            data.error ||
-            "Failed to initiate payment redirection.",
-        );
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("Stripe secure gateway url missing from response.");
-      }
-    } catch (err) {
-      console.error("[PAYMENT ERROR] Checkout redirection error:", err);
-      toast.error(err.message || "An unexpected network fault occurred.");
-    } finally {
-      setIsRedirecting(false);
-    }
+    const titleParam = encodeURIComponent(artwork?.title || "Artwork");
+    const priceParam = Number(artwork?.price || 0);
+    router.push(`/checkout?id=${artwork?._id}&title=${titleParam}&price=${priceParam}`);
   };
 
   // Determine button display text based on status
