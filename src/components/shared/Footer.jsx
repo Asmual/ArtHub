@@ -14,7 +14,7 @@ const Footer = () => {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Main Footer Content Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-2 sm:px-4 lg:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Column 1: Brand Info & Socials */}
           <div className="space-y-4">

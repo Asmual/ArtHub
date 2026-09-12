@@ -132,7 +132,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto space-y-8">
         
         {/* Top Header Toolbar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-neutral-500/40 pb-6">
@@ -327,7 +327,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
 
             {/* Artworks Dynamic Responsive Grid */}
             {displayedArtworks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
                 {displayedArtworks.map((artwork) => (
                   <Artcard key={artwork._id.toString()} artwork={artwork} />
                 ))}

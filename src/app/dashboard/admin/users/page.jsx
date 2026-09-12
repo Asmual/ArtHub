@@ -163,7 +163,7 @@ export default function AdminUsersDashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] p-4 sm:p-8 relative" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)] shadow-xl">

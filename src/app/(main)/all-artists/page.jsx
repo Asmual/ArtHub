@@ -78,7 +78,7 @@ export default function ExploreArtistsPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] pb-10" style={{ fontFamily: "'Montserrat', sans-serif" }}>
      
       <div className="border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#243239] py-4 sm:py-5 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-2 sm:px-4 lg:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
          
           <div className="text-center sm:text-left space-y-1">
             <div className="inline-flex items-center gap-1.5 bg-orange-50 dark:bg-[#df6742]/10 border border-[#df6742]/25 text-[#df6742] px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-[1.5px] uppercase">
@@ -108,7 +108,7 @@ export default function ExploreArtistsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-2 sm:px-4 lg:px-6 py-5">
         {error ? (
           <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-[#243239] rounded-2xl border border-slate-200 dark:border-white/5">
             <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center mb-3">

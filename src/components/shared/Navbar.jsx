@@ -364,7 +364,7 @@ const Navbar = () => {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-2 sm:px-4 lg:px-6 w-full">
         <div className="flex items-center h-16 gap-4">
 
           {/* BRAND LOGO */}

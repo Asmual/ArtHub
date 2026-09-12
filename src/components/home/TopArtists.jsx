@@ -106,8 +106,8 @@ const TopArtists = () => {
   }, []);
 
   return (
-    <section className="bg-white dark:bg-[#2f3f48] py-16 px-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="max-w-7xl mx-auto">
+    <section className="bg-white dark:bg-[#2f3f48] py-16 px-4 sm:px-6" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-[#df6742]/12 border border-[#df6742]/28 text-[#df6742] px-4 py-1.5 rounded-full text-[11px] font-bold tracking-[1.2px] mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[#df6742]" />
@@ -124,7 +124,7 @@ const TopArtists = () => {
         {error && <p className="text-center text-slate-500 dark:text-white/35 text-sm py-10">{error}</p>}
 
         {!error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 gap-6 lg:gap-8">
             {loading
               ? [0, 1, 2, 3].map((i) => <SkeletonCard key={i} />)
               : artists.map((artist, i) => {

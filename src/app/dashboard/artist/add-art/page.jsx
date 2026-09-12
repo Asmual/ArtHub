@@ -238,7 +238,7 @@ export default function AddArtPage() {
 
   return (
     <div className="min-h-screen bg-background p-6 sm:p-10 text-foreground" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="max-w-4xl mx-auto bg-surface border border-border-line rounded-2xl p-6 sm:p-8 shadow-xl">
+      <div className="w-full lg:w-[92%] 2xl:w-[85%] mx-auto bg-surface border border-border-line rounded-2xl p-6 sm:p-8 shadow-xl">
        
         {/* Header Block */}
         <div className="mb-6 border-b border-border-line pb-6">

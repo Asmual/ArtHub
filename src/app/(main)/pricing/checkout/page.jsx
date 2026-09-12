@@ -170,7 +170,7 @@ function PurchaseContent() {
 
   return (
     <div
-      className="max-w-5xl mx-auto py-8 sm:py-12 px-4 sm:px-6 w-full"
+      className="w-[96%] sm:w-[94%] lg:w-[90%] 2xl:w-[85%] mx-auto py-8 sm:py-12 px-2 sm:px-4 lg:px-6"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
       {/* Return to Pricing Link */}

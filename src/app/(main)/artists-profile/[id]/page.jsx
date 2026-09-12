@@ -224,7 +224,7 @@ export default function ArtistProfilePage() {
       className="min-h-screen bg-slate-50 dark:bg-[#1e262b] pb-24 w-full text-slate-800 dark:text-white transition-colors"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-2 sm:px-4 lg:px-6 pt-8 sm:pt-10">
         
         {/* Top Back Navigation Link */}
         <div className="mb-6">
@@ -400,7 +400,7 @@ export default function ArtistProfilePage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6 lg:gap-8">
               {displayedArtworks.map((artwork) => (
                 <Artcard
                   key={artwork._id?.$oid || artwork._id?.toString() || artwork.id}

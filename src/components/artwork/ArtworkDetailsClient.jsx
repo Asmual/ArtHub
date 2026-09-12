@@ -125,7 +125,7 @@ export default function ArtworkDetailsClient({ artwork }) {
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8 text-slate-800 dark:text-white">
-      <div className="max-w-5xl mx-auto space-y-12">
+      <div className="w-[96%] sm:w-[94%] lg:w-[90%] 2xl:w-[85%] mx-auto space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-neutral-500/30 bg-slate-100 dark:bg-neutral-900/40">
             {artwork.image && (

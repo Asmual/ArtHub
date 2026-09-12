@@ -99,7 +99,7 @@ function CheckoutContent() {
       className="min-h-screen bg-[var(--background)] text-[var(--text-main)] py-8 sm:py-12 px-4 sm:px-6"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-5xl mx-auto">
+      <div className="w-[96%] sm:w-[94%] lg:w-[90%] 2xl:w-[85%] mx-auto">
         {/* Top Back Navigation */}
         <div className="mb-6">
           <Link

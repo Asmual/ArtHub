@@ -147,7 +147,7 @@ const Hero = ({ currentUser }) => {
 
       {/* Floating Content Layer Layered Securely Over Sliders */}
       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-        <div className="max-w-4xl mx-auto px-4 text-center text-white space-y-6 pt-0 sm:pt-7.5">
+        <div className="w-[95%] sm:w-[90%] md:w-[85%] lg:w-[80%] 2xl:w-[70%] mx-auto px-4 text-center text-white space-y-6 pt-0 sm:pt-7.5">
           {/* Badge */}
           <AnimatePresence mode="wait">
             <motion.div

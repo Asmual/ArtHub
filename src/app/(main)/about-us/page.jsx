@@ -117,7 +117,7 @@ export default function AboutUsPage() {
       <section className="relative pt-6 pb-8 sm:pt-8 sm:pb-10 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#243239] overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#df6742_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto relative z-10 space-y-6">
+        <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto relative z-10 space-y-6">
           {/* Header Title & Tagline Area */}
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-1.5 bg-orange-50 dark:bg-[#df6742]/10 border border-[#df6742]/30 text-[#df6742] px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase shadow-xs">
@@ -177,7 +177,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* 2. MISSION & VISION DUAL PILLARS (COMPACT) */}
-      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto">
         <div className="text-center max-w-xl mx-auto mb-6 space-y-1">
           <h2 className="text-[11px] font-extrabold uppercase tracking-wider text-[#df6742]">Purpose &amp; Aspiration</h2>
           <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Our Guiding Light</p>
@@ -232,7 +232,7 @@ export default function AboutUsPage() {
 
       {/* 3. STORY SECTION (COMPACT) */}
       <section className="py-8 sm:py-12 bg-white dark:bg-[#243239] border-t border-b border-slate-200 dark:border-white/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-3">
               <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#df6742] uppercase tracking-wider">
@@ -291,7 +291,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* 4. CORE VALUES (COMPACT) */}
-      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto">
         <div className="text-center max-w-xl mx-auto mb-6 space-y-1">
           <h2 className="text-[11px] font-extrabold uppercase tracking-wider text-[#df6742]">Guiding Principles</h2>
           <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Our Core Commitments</p>
@@ -315,7 +315,7 @@ export default function AboutUsPage() {
 
       {/* 5. HOW IT WORKS (COMPACT) */}
       <section className="py-8 sm:py-12 bg-slate-100/60 dark:bg-[#243239]/50 border-t border-b border-slate-200 dark:border-white/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-xl mx-auto mb-6 space-y-1">
             <h2 className="text-[11px] font-extrabold uppercase tracking-wider text-[#df6742]">The ArtHub Process</h2>
             <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">How ArtHub Works</p>
@@ -337,7 +337,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* 6. CALL TO ACTION (COMPACT) */}
-      <section className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto my-4">
+      <section className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8 w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto my-4">
         <div className="bg-gradient-to-r from-[#df6742] via-[#c55332] to-[#243239] rounded-2xl p-6 sm:p-8 text-center text-white shadow-lg relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.2),transparent_60%)] pointer-events-none" />
           <div className="relative z-10 space-y-3 max-w-xl mx-auto">

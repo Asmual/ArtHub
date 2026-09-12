@@ -116,7 +116,7 @@ export default function AllArtists({ artists = [], loading = false }) {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
           {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : filteredArtists.length === 0 ? (
@@ -124,7 +124,7 @@ export default function AllArtists({ artists = [], loading = false }) {
           <p className="text-slate-500 dark:text-white/40 text-xs">No artists found matching your criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 lg:gap-6">
           {filteredArtists.map((artist, i) => {
             const artistRating = artist.rating ? Number(artist.rating).toFixed(1) : "5.0";
             const gradient = AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length];

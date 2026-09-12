@@ -116,7 +116,7 @@ export default function ArtistDashboard() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto text-[var(--text-main)] p-4">
+    <div className="space-y-6 w-full text-[var(--text-main)] p-2 sm:p-4">
    
       <div className="bg-[var(--surface)] p-6 sm:p-8 rounded-2xl border border-[var(--border-line)] relative overflow-hidden shadow-xl">
         <div className="absolute -right-12 -top-12 w-48 h-48 bg-[#df6742]/10 rounded-full blur-3xl pointer-events-none"></div>

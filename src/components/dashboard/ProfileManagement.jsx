@@ -286,7 +286,7 @@ export default function ProfileManagement({ role: explicitRole }) {
   const RoleIcon = roleConfig.icon;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+    <div className="w-full space-y-8 pb-12">
       {/* Profile Identity Card (No cover banner) */}
       <div className="rounded-2xl shadow-sm border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#1e293b] p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-6">

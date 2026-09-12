@@ -135,7 +135,7 @@ export default function PricingSection({ isFullPage = false }) {
       {/* Background Decorative Ambient Blur (Contained to prevent overflow) */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 sm:w-[600px] h-64 bg-[var(--brand)]/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      <div className="max-w-7xl mx-auto w-full space-y-8">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto w-full space-y-8">
         {/* Compact Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--brand)]/10 border border-[var(--brand)]/25 text-[var(--brand)] text-[11px] font-bold tracking-wider uppercase">
@@ -186,7 +186,7 @@ export default function PricingSection({ isFullPage = false }) {
         </div>
 
         {/* 3 Pricing Cards Grid (Responsive, compact, no viewport clipping) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 items-stretch max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 2xl:gap-8 items-stretch w-full mx-auto">
           {PRICING_TIERS.map((tier) => {
             const price = billingCycle === "yearly" ? tier.yearlyPrice : tier.monthlyPrice;
             const isCurrentPlan = currentSub?.plan === tier.id;

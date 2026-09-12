@@ -81,8 +81,8 @@ const FeaturedArtworks = () => {
   }, []);
 
   return (
-    <section className="bg-slate-50 dark:bg-[#2a3942] py-20 px-6 border-t border-slate-200 dark:border-white/5">
-      <div className="max-w-7xl mx-auto">
+    <section className="bg-slate-50 dark:bg-[#2a3942] py-20 px-4 sm:px-6 border-t border-slate-200 dark:border-white/5">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto">
        
         <div className="flex flex-col items-center text-center mb-16 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-[#243239]/10 border border-[#df6742]/30 text-[#df6742] px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider mb-4">
@@ -122,7 +122,7 @@ const FeaturedArtworks = () => {
         )}
 
         {!error && (loading || artworks.length > 0) && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-4 gap-6 lg:gap-8">
             {loading
               ? Array.from({ length: 8 }).map((_, i) => <ArtworkSkeleton key={i} />)
               : artworks.slice(0, 8).map((artwork) => (

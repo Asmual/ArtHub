@@ -266,7 +266,7 @@ export default function ManageArtworksPage() {
 
   return (
     <div className="min-h-screen bg-(--background) p-6 sm:p-10 text-(--text-main)" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
           <div>

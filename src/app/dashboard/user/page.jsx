@@ -110,7 +110,7 @@ export default function UserDashboardLanding() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto text-slate-800 dark:text-white">
+    <div className="space-y-6 w-full text-slate-800 dark:text-white">
       {paymentVerified && (
         <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />

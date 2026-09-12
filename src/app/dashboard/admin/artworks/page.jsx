@@ -190,7 +190,7 @@ export default function AdminArtworksPage() {
   if (authLoading || loading) return <Loading />;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-2 relative" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="space-y-6 w-full p-2 relative" style={{ fontFamily: "'Montserrat', sans-serif" }}>
 
       {/* Header */}
       <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)] flex items-center justify-between shadow-lg">

@@ -45,7 +45,7 @@ export default function CategorySection() {
       className="bg-white dark:bg-[#2a3942] py-20 px-4 sm:px-6 lg:px-8 border-t border-b border-slate-200 dark:border-white/10 transition-colors"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto space-y-12">
+      <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto space-y-12">
         
         {/* Section Header */}
         <div className="flex flex-col items-center text-center max-w-2xl mx-auto">

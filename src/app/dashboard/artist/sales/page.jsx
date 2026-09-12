@@ -99,7 +99,7 @@ export default function SalesPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="w-full space-y-8">
        
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
