@@ -165,23 +165,24 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
         {/* Core Layout Content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
           
-          {/* Left Panel: Filters Sidebar - Sticky on Desktop */}
-          <aside className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto bg-slate-50 dark:bg-[#2f3f48] border border-slate-200 dark:border-neutral-500/40 rounded-2xl p-6 space-y-6 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-neutral-500/40 pb-3">
-              <h2 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+          {/* Left Panel: Filters Sidebar - Sticky on Desktop with safe height & scroll */}
+          <aside className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-7.5rem)] overflow-y-auto bg-slate-50 dark:bg-[#2f3f48] border border-slate-200 dark:border-neutral-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-neutral-500/40 pb-2.5">
+              <h2 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">
                 Filters
               </h2>
               <button
+                type="button"
                 onClick={handleReset}
-                className="text-xs font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-500 transition-all"
+                className="text-xs font-semibold text-red-500 dark:text-red-400 hover:text-red-600 transition-colors cursor-pointer"
               >
                 Reset
               </button>
             </div>
 
             {/* Search Filter */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
                 Search Title / Artist
               </label>
               <div className="relative">
@@ -193,11 +194,11 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#df6742]"
+                  className="w-full text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:border-[#df6742]"
                 />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
                   <svg
-                    className="h-4 w-4 text-slate-400 dark:text-neutral-400"
+                    className="h-3.5 w-3.5 text-slate-400 dark:text-neutral-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -214,8 +215,8 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
             </div>
 
             {/* Category Select Filter */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
                 Category
               </label>
               <select
@@ -224,7 +225,7 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
                   setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full text-sm text-slate-800 dark:text-white bg-white dark:bg-[#2f3f48] border border-slate-300 dark:border-neutral-500/40 rounded-lg px-3 py-2 focus:outline-none focus:border-[#df6742] cursor-pointer"
+                className="w-full text-xs text-slate-800 dark:text-white bg-white dark:bg-[#243239] border border-slate-300 dark:border-neutral-500/40 rounded-xl px-3 py-2 focus:outline-none focus:border-[#df6742] cursor-pointer"
               >
                 <option value="All">All Categories</option>
                 <option value="Painting">Painting</option>
@@ -234,65 +235,62 @@ export default function BrowseArtworksClient({ initialArtworks = [] }) {
               </select>
             </div>
 
-            {/* Availability Radio Filter */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
+            {/* Availability Filter (Segmented Buttons for Compactness) */}
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
                 Availability
               </label>
-              <div className="flex flex-col gap-2.5">
-                {["All Items", "Available", "Sold Out"].map((status) => (
-                  <label
-                    key={status}
-                    className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-white/90 cursor-pointer font-medium"
-                  >
-                    <input
-                      type="radio"
-                      name="availability"
-                      checked={
-                        availability ===
-                        (status === "All Items" ? "All" : status)
-                      }
-                      onChange={() => {
-                        setAvailability(
-                          status === "All Items" ? "All" : status,
-                        );
+              <div className="grid grid-cols-3 gap-1 bg-slate-200/60 dark:bg-black/20 p-1 rounded-xl text-xs font-semibold">
+                {["All", "Available", "Sold Out"].map((status) => {
+                  const isSelected = availability === status;
+                  return (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => {
+                        setAvailability(status);
                         setCurrentPage(1);
                       }}
-                      className="accent-[#df6742] h-4 w-4"
-                    />
-                    {status}
-                  </label>
-                ))}
+                      className={`py-1.5 text-[11px] font-bold rounded-lg transition-all text-center cursor-pointer ${
+                        isSelected
+                          ? "bg-[#df6742] text-white shadow-xs"
+                          : "text-slate-600 dark:text-white/70 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {status === "All" ? "All" : status}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Price Filter Form */}
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wide mb-2">
-                Price Range
+            {/* Price Filter Form with Ample Bottom Clearance */}
+            <div className="space-y-1.5 pt-1 pb-3">
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-neutral-300 uppercase tracking-wider">
+                Price Range (USD)
               </label>
-              <form onSubmit={handleApplyPrice} className="space-y-2">
+              <form onSubmit={handleApplyPrice} className="space-y-2.5">
                 <div className="flex gap-2">
                   <input
                     type="number"
-                    placeholder="Min"
+                    placeholder="Min $"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-1/2 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#df6742]"
+                    className="w-1/2 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#df6742]"
                   />
                   <input
                     type="number"
-                    placeholder="Max"
+                    placeholder="Max $"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-1/2 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#df6742]"
+                    className="w-1/2 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-neutral-400 bg-transparent border border-slate-300 dark:border-neutral-500/40 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-[#df6742]"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-[#df6742] hover:bg-[#c55332] text-white font-semibold text-xs py-2 rounded-lg transition-all"
+                  className="w-full bg-[#df6742] hover:bg-[#c55332] active:scale-[0.98] text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-all shadow-sm shadow-[#df6742]/20 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  Apply Price
+                  <span>Apply Price</span>
                 </button>
               </form>
             </div>
