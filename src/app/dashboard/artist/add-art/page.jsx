@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import NextLink from "next/link";
-import { FaCloudUploadAlt, FaPaintBrush, FaDollarSign, FaTags, FaSpinner, FaTrashAlt, FaCrown } from "react-icons/fa";
+import { FaCloudUploadAlt, FaPaintBrush, FaDollarSign, FaTags, FaSpinner, FaTrashAlt, FaCrown, FaMagic } from "react-icons/fa";
+import { Sparkles, Wand2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -113,12 +114,92 @@ export default function AddArtPage() {
     }
   };
 
+  const [analyzingWithAi, setAnalyzingWithAi] = useState(false);
+  const [aiGeneratedData, setAiGeneratedData] = useState(null);
+
+  /**
+   * Handle AI Vision analysis to auto-fill artwork metadata
+   */
+  const handleAutoFillWithAi = async () => {
+    if (!imageUrl) {
+      toast.error("Please wait for your artwork image to finish uploading before analyzing with AI.");
+      return;
+    }
+
+    try {
+      setAnalyzingWithAi(true);
+      toast("Gemini AI is analyzing your artwork's palette, mood, and style...");
+
+      let aiResult = null;
+
+      // 1. Try local Next.js AI route first
+      try {
+        const res = await fetch("/api/ai/describe-artwork", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl }),
+        });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.success) {
+            aiResult = resData.data;
+          }
+        }
+      } catch (localErr) {
+        console.warn("Local AI route skipped, trying external gateway:", localErr);
+      }
+
+      // 2. Fallback to external Express backend if needed
+      if (!aiResult) {
+        const serverBase = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const res = await fetch(`${serverBase}/api/ai/describe-artwork`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl }),
+        });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.success) {
+            aiResult = resData.data;
+          }
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || "Failed to analyze artwork with AI.");
+        }
+      }
+
+      if (aiResult) {
+        const validCategories = ["Painting", "Digital Art", "Sculpture", "Sketch", "Photography"];
+        const matchedCategory = validCategories.includes(aiResult.category)
+          ? aiResult.category
+          : "Painting";
+
+        setFormData((prev) => ({
+          ...prev,
+          title: aiResult.title || prev.title,
+          description: aiResult.description || prev.description,
+          category: matchedCategory,
+          price: aiResult.suggestedPrice ? String(aiResult.suggestedPrice) : prev.price,
+        }));
+
+        setAiGeneratedData(aiResult);
+        toast.success("Artwork details auto-filled with Gemini 3.6 AI!");
+      }
+    } catch (err) {
+      console.error("AI Auto-fill error:", err);
+      toast.error(err.message || "Could not analyze artwork with AI.");
+    } finally {
+      setAnalyzingWithAi(false);
+    }
+  };
+
   /**
    * Handle removing the selected image
    */
   const handleRemoveImage = () => {
     setImagePreview(null);
     setImageUrl("");
+    setAiGeneratedData(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -164,6 +245,9 @@ export default function AddArtPage() {
         isSold: false,
         createdAt: new Date().toISOString().split('T')[0],
         description: formData.description,
+        tags: aiGeneratedData?.tags || [],
+        dominantColors: aiGeneratedData?.dominantColors || [],
+        aiEnhanced: !!aiGeneratedData,
       };
 
       let saved = false;
@@ -398,6 +482,94 @@ export default function AddArtPage() {
                 )}
               </label>
             </div>
+
+            {/* AI Studio Assistant Auto-Fill Action Banner */}
+            {imageUrl && (
+              <div className="mt-2 p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-[#df6742]/10 via-amber-500/10 to-transparent border border-[#df6742]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#df6742]/20 border border-[#df6742]/30 flex items-center justify-center text-[#df6742] shrink-0">
+                    <Sparkles size={18} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <span>AI Studio Assistant</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#df6742] text-white font-semibold">Gemini 3.6 Vision</span>
+                    </h4>
+                    <p className="text-[11px] text-text-muted mt-0.5">
+                      Let Gemini AI analyze your canvas colors, brushwork, and theme to auto-generate title, story, and tags.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAutoFillWithAi}
+                  disabled={analyzingWithAi || uploadingImage}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#df6742] to-amber-600 hover:from-[#c55332] hover:to-amber-700 disabled:opacity-60 text-white text-xs font-bold transition-all shadow-md shadow-[#df6742]/20 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                >
+                  {analyzingWithAi ? (
+                    <>
+                      <FaSpinner className="animate-spin text-sm" />
+                      <span>Analyzing Canvas...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 size={14} />
+                      <span>✨ Auto-Fill with AI</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* AI Generated Visual Insights Panel */}
+            {aiGeneratedData && (
+              <div className="mt-2 p-4 rounded-xl bg-[var(--hover-bg)] border border-border-line space-y-3 animate-fadeIn">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-line pb-2.5">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                    <Sparkles size={13} className="text-[#df6742]" />
+                    <span>Gemini AI Visual Insights</span>
+                  </span>
+                  {aiGeneratedData.suggestedPrice && (
+                    <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                      Suggested Value: ${aiGeneratedData.suggestedPrice}
+                    </span>
+                  )}
+                </div>
+
+                {/* Dominant Palette Swatches */}
+                {aiGeneratedData.dominantColors && aiGeneratedData.dominantColors.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="text-[11px] font-semibold text-text-muted">Detected Palette:</span>
+                    <div className="flex items-center gap-1.5">
+                      {aiGeneratedData.dominantColors.map((hex, idx) => (
+                        <div
+                          key={idx}
+                          className="w-5 h-5 rounded-full border border-white/20 shadow-xs cursor-help"
+                          style={{ backgroundColor: hex }}
+                          title={`Color: ${hex}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Detected Tags */}
+                {aiGeneratedData.tags && aiGeneratedData.tags.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <span className="text-[11px] font-semibold text-text-muted mr-1">Generated Tags:</span>
+                    {aiGeneratedData.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 rounded-md bg-[#df6742]/10 border border-[#df6742]/20 text-[#df6742] text-[10px] font-semibold"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Bottom Field: Description */}
