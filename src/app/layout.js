@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import WishlistDrawer from "@/components/cart/WishlistDrawer";
 import SmoothScrollProvider from "@/components/shared/SmoothScrollProvider";
+import AiArtAdvisor from "@/components/ai/AiArtAdvisor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
               {children}
               <CartDrawer />
               <WishlistDrawer />
+              <AiArtAdvisor />
             </SmoothScrollProvider>
           </CartProvider>
         </ThemeProvider>
