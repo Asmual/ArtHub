@@ -30,16 +30,28 @@ function CheckoutContent() {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Validate parameters and redirect if invalid
+  // Validate parameters, check admin restrictions, and redirect if invalid
   useEffect(() => {
-    if (!authLoading && (!artworkId || orderPrice <= 0)) {
-      toast.error("Invalid checkout parameters.");
-      router.push("/browse");
+    if (!authLoading) {
+      if (user?.role === "admin") {
+        toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+        router.push("/browse");
+        return;
+      }
+      if (!artworkId || orderPrice <= 0) {
+        toast.error("Invalid checkout parameters.");
+        router.push("/browse");
+      }
     }
-  }, [artworkId, orderPrice, authLoading, router]);
+  }, [artworkId, orderPrice, authLoading, router, user]);
 
   // Handle Stripe checkout session creation
   const handleCheckout = async () => {
+    if (user?.role === "admin") {
+      toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
+
     const finalEmail = user?.email?.trim();
     if (!finalEmail) {
       toast.error("Please login to proceed with checkout.");
@@ -100,6 +112,12 @@ function CheckoutContent() {
       }
 
       if (checkoutUrl) {
+        try {
+          sessionStorage.setItem("arthub_pending_checkout_art_id", artworkId);
+          localStorage.setItem("arthub_pending_checkout_art_id", artworkId);
+        } catch (e) {
+          console.warn("Storage sync error for pending artwork:", e);
+        }
         window.location.href = checkoutUrl;
       } else {
         throw new Error("Unable to establish Stripe payment gateway session.");

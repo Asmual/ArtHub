@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { useCart } from "@/context/CartContext";
 import { CheckCircle, ArrowRight, Palette, ShoppingBag, Home } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -15,6 +16,7 @@ function SuccessContent() {
   const router = useRouter();
   const sessionId = searchParams.get("session_id");
   const { data: session, isPending: authLoading } = authClient.useSession();
+  const { removeFromCart, removePurchasedItem } = useCart();
 
   const [syncing, setSyncing] = useState(true);
   const [orderDetails, setOrderDetails] = useState(null);
@@ -65,9 +67,48 @@ function SuccessContent() {
           }
         }
 
+        let purchasedId = null;
         if (result.data) {
           setOrderDetails(result.data);
+          purchasedId = result.data.artworkId?.toString() || result.data.artwork?._id?.toString();
         }
+
+        // Clean purchased artwork from cart so it no longer shows and cart resets to 0
+        const fallbackPendingId = typeof window !== "undefined"
+          ? (sessionStorage.getItem("arthub_pending_checkout_art_id") || localStorage.getItem("arthub_pending_checkout_art_id"))
+          : null;
+        const targetRemoveId = purchasedId || fallbackPendingId;
+
+        if (targetRemoveId) {
+          if (typeof removePurchasedItem === "function") {
+            removePurchasedItem(targetRemoveId);
+          } else if (typeof removeFromCart === "function") {
+            removeFromCart(targetRemoveId);
+          }
+
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("arthub_artwork_purchased", {
+                detail: { artworkId: targetRemoveId },
+              })
+            );
+            try {
+              const savedCart = localStorage.getItem("arthub_cart");
+              if (savedCart) {
+                const parsed = JSON.parse(savedCart);
+                const filtered = parsed.filter(
+                  (item) => item._id?.toString() !== targetRemoveId.toString()
+                );
+                localStorage.setItem("arthub_cart", JSON.stringify(filtered));
+              }
+              sessionStorage.removeItem("arthub_pending_checkout_art_id");
+              localStorage.removeItem("arthub_pending_checkout_art_id");
+            } catch (storageErr) {
+              console.warn("Storage cleanup notice:", storageErr);
+            }
+          }
+        }
+
         toast.success("Payment verified! Your artwork is secured.");
       } catch (err) {
         console.error("[PAYMENT ERROR] Sync error:", err);
@@ -78,7 +119,7 @@ function SuccessContent() {
     };
 
     verifyTransaction();
-  }, [sessionId, session, authLoading]);
+  }, [sessionId, session, authLoading, removeFromCart, removePurchasedItem]);
 
   // Loading state
   if (authLoading || syncing) {

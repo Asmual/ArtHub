@@ -87,13 +87,40 @@ export function CartProvider({ children }) {
     toast.success("Added to cart!");
   };
 
-  // Remove an item from cart
+  // Remove an item from cart (user initiated)
   const removeFromCart = (artworkId) => {
     if (!artworkId) return;
     const targetId = artworkId.toString();
     setCartItems((prev) => prev.filter((item) => item._id.toString() !== targetId));
     toast.success("Removed from cart");
   };
+
+  // Remove purchased item silently without toast
+  const removePurchasedItem = (artworkId) => {
+    if (!artworkId) return;
+    const targetId = artworkId.toString();
+    setCartItems((prev) => {
+      const updated = prev.filter((item) => item._id.toString() !== targetId);
+      try {
+        localStorage.setItem("arthub_cart", JSON.stringify(updated));
+      } catch (e) {
+        console.warn("Storage sync error on purchase removal:", e);
+      }
+      return updated;
+    });
+  };
+
+  // Global listener for purchase completion events across components
+  useEffect(() => {
+    const onPurchased = (e) => {
+      const artId = e?.detail?.artworkId;
+      if (artId) {
+        removePurchasedItem(artId);
+      }
+    };
+    window.addEventListener("arthub_artwork_purchased", onPurchased);
+    return () => window.removeEventListener("arthub_artwork_purchased", onPurchased);
+  }, []);
 
   // Clear all items from cart
   const clearCart = () => {
@@ -150,6 +177,7 @@ export function CartProvider({ children }) {
         wishlistItems,
         addToCart,
         removeFromCart,
+        removePurchasedItem,
         clearCart,
         isInCart,
         cartCount,

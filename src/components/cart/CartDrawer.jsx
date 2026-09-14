@@ -3,12 +3,17 @@
 
 import React, { useEffect } from "react";
 import { useCart } from "@/context/CartContext";
+import { authClient } from "@/lib/auth-client";
+import toast from "react-hot-toast";
 import { X, Trash2, ShoppingBag, ArrowRight, Palette, ShieldCheck } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function CartDrawer() {
   const { cartItems, removeFromCart, clearCart, cartTotal, isCartOpen, setIsCartOpen } = useCart();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const isAdmin = user?.role === "admin";
   const router = useRouter();
 
   // Prevent background scrolling when drawer is open
@@ -26,6 +31,10 @@ export default function CartDrawer() {
   if (!isCartOpen) return null;
 
   const handleCheckoutSingle = (item) => {
+    if (isAdmin) {
+      toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
     setIsCartOpen(false);
     router.push(
       `/checkout?id=${item._id}&title=${encodeURIComponent(item.title)}&price=${item.price}`
@@ -34,6 +43,10 @@ export default function CartDrawer() {
 
   const handleCheckoutAll = () => {
     if (cartItems.length === 0) return;
+    if (isAdmin) {
+      toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
     const firstItem = cartItems[0];
     setIsCartOpen(false);
     router.push(

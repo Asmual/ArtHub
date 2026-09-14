@@ -5,11 +5,16 @@ import React from "react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import { authClient } from "@/lib/auth-client";
+import toast from "react-hot-toast";
 import { Heart, ShoppingBag, Check, ArrowRight, Eye } from "lucide-react";
 
 export default function Artcard({ artwork }) {
   const router = useRouter();
   const { addToCart, isInCart, toggleWishlist, isInWishlist, setIsCartOpen } = useCart();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const isAdmin = user?.role === "admin";
 
   if (!artwork) return null;
 
@@ -30,6 +35,10 @@ export default function Artcard({ artwork }) {
     if (isSold) {
       return;
     }
+    if (isAdmin) {
+      toast.error("Admins cannot purchase artworks.");
+      return;
+    }
     addToCart(artwork);
   };
 
@@ -37,6 +46,11 @@ export default function Artcard({ artwork }) {
     e.preventDefault();
     e.stopPropagation();
     if (isSold) return;
+
+    if (isAdmin) {
+      toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
 
     // Add to cart and trigger instant cart checkout drawer
     addToCart(artwork);

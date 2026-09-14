@@ -43,6 +43,19 @@ export async function POST(req) {
     }
 
     const db = await getDB();
+
+    // Check user role: Admins are not permitted to purchase artworks
+    let userDoc = await db.collection("user").findOne({ email: userEmail.toLowerCase() });
+    if (!userDoc) {
+      userDoc = await db.collection("users").findOne({ email: userEmail.toLowerCase() });
+    }
+    if (userDoc?.role === "admin") {
+      return NextResponse.json(
+        { success: false, message: "Admins are not permitted to purchase artworks." },
+        { status: 403 }
+      );
+    }
+
     const artworkCollection = db.collection("artworks");
     const artwork = await artworkCollection.findOne({ _id: new ObjectId(artworkId) });
 

@@ -72,6 +72,11 @@ export default function ArtworkDetailsClient({ artwork }) {
       return;
     }
 
+    if (isAdmin) {
+      toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
+
     const titleParam = encodeURIComponent(artwork?.title || "Artwork");
     const priceParam = Number(artwork?.price || 0);
     router.push(`/checkout?id=${artwork?._id}&title=${titleParam}&price=${priceParam}`);

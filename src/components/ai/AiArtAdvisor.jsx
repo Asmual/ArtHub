@@ -3,6 +3,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import toast from "react-hot-toast";
 import AppSpinner from "@/components/shared/AppSpinner";
 import {
   Sparkles,
@@ -27,10 +30,24 @@ const STARTER_PROMPTS = [
 ];
 
 export default function AiArtAdvisor() {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const isAdmin = user?.role === "admin";
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleAdvisorBuyNow = (art) => {
+    if (isAdmin) {
+      toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
+    setIsOpen(false);
+    router.push(`/checkout?id=${art.id}&title=${encodeURIComponent(art.title || "Artwork")}&price=${art.price || 0}`);
+  };
 
   const [messages, setMessages] = useState([
     {
@@ -343,13 +360,14 @@ export default function AiArtAdvisor() {
                                         <span>View Piece</span>
                                         <ExternalLink size={10} />
                                       </Link>
-                                      <Link
-                                        href={`/checkout?artId=${art.id}`}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#df6742] hover:bg-[#c55332] text-white text-[10px] font-semibold transition-colors"
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAdvisorBuyNow(art)}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#df6742] hover:bg-[#c55332] text-white text-[10px] font-semibold transition-colors cursor-pointer"
                                       >
                                         <ShoppingBag size={10} />
                                         <span>Buy Now</span>
-                                      </Link>
+                                      </button>
                                     </>
                                   )}
                                 </div>
