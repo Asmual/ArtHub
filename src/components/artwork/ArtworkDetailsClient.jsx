@@ -219,6 +219,8 @@ export default function ArtworkDetailsClient({ artwork }) {
               hasPaid={hasPaid}
               isAdmin={isAdmin}
               isArtist={isArtist}
+              isArtworkOwner={isOwner}
+              artworkOwnerEmail={artwork?.artistEmail || artwork?.userEmail}
             />
           )}
         </div>
