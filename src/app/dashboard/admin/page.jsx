@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import AdminDashboardOverview from "@/components/dashboard-overview/AdminDashboardOverview";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 
 export default function AdminDashboardPage() {
  const router = useRouter();
@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
  }, [authLoading, user, router]);
 
  if (authLoading) {
-   return <Loading />;
+   return <DashboardContentLoader text="Verifying administrative access..." />;
  }
 
  if (!user || user.role !== "admin") {
@@ -30,7 +30,7 @@ export default function AdminDashboardPage() {
  }
 
  return (
-   <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] p-4 md:p-6">
+   <div className="w-full text-[var(--text-main)] p-2 md:p-4">
      <AdminDashboardOverview session={session} />
    </div>
  );

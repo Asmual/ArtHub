@@ -7,7 +7,7 @@ import Link from "next/link";
 import { FaTrashAlt, FaEdit, FaThLarge, FaSpinner, FaUpload, FaEye, FaPlus, FaMinus } from "react-icons/fa";
 import { authClient } from "@/lib/auth-client";
 import toast from "react-hot-toast";
-import BrandLoader from "@/components/shared/BrandLoader";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 
 export default function ManageArtworksPage() {
@@ -374,7 +374,7 @@ export default function ManageArtworksPage() {
   };
 
   if (authLoading || loading) {
-    return <BrandLoader text="Synchronizing creative vault inventory..." />;
+    return <DashboardContentLoader text="Synchronizing creative vault inventory..." />;
   }
 
   return (

@@ -23,7 +23,7 @@ import {
   Sparkles,
   ShieldAlert,
 } from "lucide-react";
-import BrandLoader from "@/components/shared/BrandLoader";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 
 const ART_SPECIALTIES = [
@@ -241,11 +241,7 @@ export default function ProfileManagement({ role: explicitRole }) {
   };
 
   if (authLoading || initialLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[450px]">
-        <BrandLoader />
-      </div>
-    );
+    return <DashboardContentLoader text="Loading profile configuration..." />;
   }
 
   // Role metadata configurations

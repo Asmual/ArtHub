@@ -8,7 +8,7 @@ import {
 import { FaChartPie, FaChartLine, FaSyncAlt } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 
 const COLORS = ["#df6742", "#1d9bf0", "#00ba7c", "#eab308", "#a855f7"];
@@ -99,7 +99,9 @@ export default function AdminChartsPage() {
     toast.success("Charts refreshed successfully.");
   };
 
-  if (!mounted || authLoading) return <Loading />;
+  if (!mounted || authLoading) {
+    return <DashboardContentLoader text="Initializing visual charts..." />;
+  }
 
   return (
     <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
@@ -127,7 +129,7 @@ export default function AdminChartsPage() {
 
         {loading ? (
           <div className="h-96 flex items-center justify-center">
-            <Loading />
+            <DashboardContentLoader text="Refreshing visual charts..." />
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

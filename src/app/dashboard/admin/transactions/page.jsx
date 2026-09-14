@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { FaExchangeAlt, FaSearch, FaCreditCard, FaCheckCircle, FaExclamationTriangle, FaDownload } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import AppSpinner from "@/components/shared/AppSpinner";
 
 export default function AdminTransactionsPage() {
@@ -80,11 +81,7 @@ export default function AdminTransactionsPage() {
     .reduce((acc, curr) => acc + (Number(curr.price) || Number(curr.amount) || 0), 0);
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <AppSpinner size="small" />
-      </div>
-    );
+    return <DashboardContentLoader text="Loading transaction records..." />;
   }
 
   return (

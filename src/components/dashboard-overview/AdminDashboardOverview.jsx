@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import AppSpinner from "@/components/shared/AppSpinner";
 
 const initialDashboardData = {
@@ -178,14 +179,9 @@ export default function AdminDashboardOverview({ session: initialSession }) {
    [dashboardData]
  );
 
- if (authLoading || loading) {
-   return (
-      <div className="flex items-center justify-center min-h-[60vh] flex-col gap-3 text-[var(--text-muted)]">
-        <AppSpinner size="small" />
-        <p className="text-xs text-[var(--text-muted)]">Loading dashboard intelligence metrics...</p>
-      </div>
-   );
- }
+  if (authLoading || loading) {
+    return <DashboardContentLoader text="Loading dashboard intelligence metrics..." />;
+  }
 
  if (!user || user.role !== "admin") {
    return null;

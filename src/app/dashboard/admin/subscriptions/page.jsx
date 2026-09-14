@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import AppSpinner from "@/components/shared/AppSpinner";
 
 
@@ -103,7 +103,9 @@ export default function AdminSubscriptionsPage() {
     }
   };
 
-  if (authLoading) return <Loading />;
+  if (authLoading) {
+    return <DashboardContentLoader text="Loading subscription accounts..." />;
+  }
 
   // Filter subscriptions
   const filtered = subscriptions.filter((sub) => {

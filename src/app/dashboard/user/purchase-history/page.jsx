@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Calendar, ShoppingCart, ArrowLeft, ExternalLink, ImageOff } from "lucide-react";
 import Link from "next/link";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 
 export default function PurchaseHistoryPage() {
@@ -65,12 +65,7 @@ export default function PurchaseHistoryPage() {
   }, [user?.email]);
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-2 text-slate-800 dark:text-white">
-        <Loading />
-        <p className="text-xs text-slate-500 dark:text-white/40">Loading purchase records...</p>
-      </div>
-    );
+    return <DashboardContentLoader text="Loading purchase records..." />;
   }
 
   return (

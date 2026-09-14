@@ -6,7 +6,7 @@ import { ShieldAlert, Trash2, Eye, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 import AppSpinner from "@/components/shared/AppSpinner";
 
@@ -122,7 +122,9 @@ export default function AdminArtworksPage() {
     }
   };
 
-  if (authLoading || loading) return <Loading />;
+  if (authLoading || loading) {
+    return <DashboardContentLoader text="Loading marketplace artworks..." />;
+  }
 
   return (
     <div className="space-y-6 w-full p-2 relative" style={{ fontFamily: "'Montserrat', sans-serif" }}>

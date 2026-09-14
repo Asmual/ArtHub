@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { FaDollarSign, FaShoppingBag, FaChartLine, FaRegClock } from "react-icons/fa";
 import { authClient } from "@/lib/auth-client";
 import { backendFetch } from "@/lib/api-client";
-import BrandLoader from "@/components/shared/BrandLoader";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import toast from "react-hot-toast";
 
 export default function SalesPage() {
@@ -94,7 +94,7 @@ export default function SalesPage() {
   };
 
   if (authLoading || loading) {
-    return <BrandLoader fullScreen text="Compiling analytical ledger statistics..." />;
+    return <DashboardContentLoader text="Compiling analytical ledger statistics..." />;
   }
 
   return (

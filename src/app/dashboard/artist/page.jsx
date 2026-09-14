@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import AppSpinner from "@/components/shared/AppSpinner";
 
 const TIER_CONFIGS = {
@@ -165,12 +166,7 @@ export default function ArtistDashboard() {
   }, [user?.email, user?.role]);
 
   if (authLoading || (!user || user.role !== "artist")) {
-    return (
-      <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center gap-2 text-[var(--text-main)]">
-        <AppSpinner size="small" />
-        <p className="text-xs text-[var(--text-muted)]">Securing studio session...</p>
-      </div>
-    );
+    return <DashboardContentLoader text="Securing studio session..." />;
   }
 
   const currentPlanKey = (subscription?.plan || "free").toLowerCase();

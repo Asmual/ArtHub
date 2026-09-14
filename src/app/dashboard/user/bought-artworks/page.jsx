@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Palette, ExternalLink, ArrowLeft, ImageOff } from "lucide-react";
 import Link from "next/link";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 
 export default function BoughtArtworksPage() {
@@ -65,12 +65,7 @@ export default function BoughtArtworksPage() {
   }, [user?.email]);
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-2 text-slate-800 dark:text-white">
-        <Loading />
-        <p className="text-xs text-slate-500 dark:text-white/40">Loading your art collection...</p>
-      </div>
-    );
+    return <DashboardContentLoader text="Loading your art collection..." />;
   }
 
   return (

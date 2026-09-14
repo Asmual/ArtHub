@@ -5,7 +5,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Users, Mail, Calendar, Search, ShieldCheck, UserCheck, X, Trash2, Ban, ShieldAlert, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 import AppSpinner from "@/components/shared/AppSpinner";
 
@@ -279,7 +279,9 @@ export default function AdminUsersDashboard() {
     );
   });
 
-  if (authLoading || loading) return <Loading />;
+  if (authLoading || loading) {
+    return <DashboardContentLoader text="Loading user directory..." />;
+  }
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--text-main)] p-4 sm:p-8 relative" style={{ fontFamily: "'Montserrat', sans-serif" }}>

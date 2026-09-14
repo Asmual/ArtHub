@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FaChartBar, FaUsers, FaPalette, FaDollarSign, FaChartLine, FaChartPie } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
-import Loading from "@/app/loading";
+import DashboardContentLoader from "@/components/dashboard/DashboardContentLoader";
 import { getAuthToken } from "@/lib/auth-utils";
 
 const CATEGORY_COLORS = ["bg-[#df6742]", "bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"];
@@ -92,7 +92,9 @@ export default function AnalyticsPage() {
     fetchAnalytics();
   }, [authLoading, user, fetchAnalytics]);
 
-  if (authLoading || loading) return <Loading />;
+  if (authLoading || loading) {
+    return <DashboardContentLoader text="Compiling platform analytics..." />;
+  }
 
   return (
     <div className="min-h-screen bg-[var(--background)] p-6 sm:p-10 text-[var(--text-main)]" style={{ fontFamily: "'Montserrat', sans-serif" }}>
