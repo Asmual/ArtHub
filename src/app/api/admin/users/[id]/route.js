@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/api-guard";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(req, { params }) {
   try {
+    const authCheck = await requireAdmin(req);
+    if (authCheck.error) {
+      return authCheck.response;
+    }
+
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
     const { isBlocked, role, status } = body;
@@ -55,6 +61,11 @@ export async function PATCH(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
+    const authCheck = await requireAdmin(req);
+    if (authCheck.error) {
+      return authCheck.response;
+    }
+
     const { id } = await params;
     const db = await getDB();
 
