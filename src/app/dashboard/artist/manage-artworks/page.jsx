@@ -123,36 +123,81 @@ export default function ManageArtworksPage() {
 
   const handleQuantityChange = async (id, delta) => {
     if (!user?.email) return;
-    const currentArtwork = artworks.find(item => item._id === id);
+    const currentArtwork = artworks.find((item) => item._id === id);
     if (!currentArtwork) return;
 
-    const currentQty = typeof currentArtwork.quantity === "number" ? currentArtwork.quantity : 10;
+    const currentQty =
+      typeof currentArtwork.quantity === "number"
+        ? currentArtwork.quantity
+        : currentArtwork.isSold
+        ? 0
+        : 10;
     const newQuantity = Math.max(0, currentQty + delta);
     const isSold = newQuantity === 0;
+    const status = isSold ? "sold" : "available";
+
+    // Optimistic UI update for instantaneous responsiveness
+    setArtworks((prev) =>
+      prev.map((item) =>
+        item._id === id ? { ...item, quantity: newQuantity, isSold, status } : item
+      )
+    );
 
     try {
-      const token = await getAuthToken(base, user.email);
-      const res = await fetch(`${base}/api/artworks/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...currentArtwork,
-          quantity: newQuantity,
-          isSold: isSold
-        }),
-      });
+      let saved = false;
 
-      if (!res.ok) throw new Error("Failed to update stock quantity.");
+      // 1. Try local Next.js internal API first
+      try {
+        const localRes = await fetch(`/api/artworks/${id}/stock`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quantity: newQuantity, delta }),
+        });
+        if (localRes.ok) {
+          saved = true;
+        }
+      } catch (localErr) {
+        console.warn("Local stock route skipped, trying external gateway:", localErr?.message);
+      }
 
-      setArtworks((prev) =>
-        prev.map((item) => (item._id === id ? { ...item, quantity: newQuantity, isSold } : item))
-      );
-      toast.success(`Stock updated to ${newQuantity}`);
+      // 2. Fallback to external backend if needed
+      if (!saved) {
+        const token = await getAuthToken(base, user.email);
+        const res = await fetch(`${base}/api/artworks/${id}/stock`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ quantity: newQuantity, delta }),
+        });
+
+        if (!res.ok) {
+          // Fallback to PUT
+          const putRes = await fetch(`${base}/api/artworks/${id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              ...currentArtwork,
+              quantity: newQuantity,
+              isSold,
+              status,
+            }),
+          });
+          if (!putRes.ok) throw new Error("Failed to update stock quantity on server.");
+        }
+      }
+
+      toast.success(`Stock updated to ${newQuantity} (${isSold ? "Sold Out" : "Available"})`);
     } catch (err) {
       console.error("Update quantity error:", err);
+      // Revert optimistic update
+      setArtworks((prev) =>
+        prev.map((item) => (item._id === id ? currentArtwork : item))
+      );
       toast.error("Could not update product stock quantity.");
     }
   };
@@ -160,30 +205,67 @@ export default function ManageArtworksPage() {
   const handleStatusChange = async (id, newStatus) => {
     if (!user?.email) return;
     const isSold = newStatus === "sold";
-    const currentArtwork = artworks.find(item => item._id === id);
+    const currentArtwork = artworks.find((item) => item._id === id);
+    if (!currentArtwork) return;
+
+    const currentQty = typeof currentArtwork.quantity === "number" ? currentArtwork.quantity : 1;
+    const newQuantity = isSold ? 0 : currentQty > 0 ? currentQty : 1;
+    const status = isSold ? "sold" : "available";
+
+    // Optimistic UI update
+    setArtworks((prev) =>
+      prev.map((item) =>
+        item._id === id ? { ...item, quantity: newQuantity, isSold, status } : item
+      )
+    );
 
     try {
-      const token = await getAuthToken(base, user.email);
-      const res = await fetch(`${base}/api/artworks/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          ...currentArtwork,
-          isSold: isSold
-        }),
-      });
+      let saved = false;
 
-      if (!res.ok) throw new Error("Failed to update status.");
+      // 1. Try local Next.js internal API first
+      try {
+        const localRes = await fetch(`/api/artworks/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...currentArtwork,
+            quantity: newQuantity,
+            isSold,
+            status,
+          }),
+        });
+        if (localRes.ok) saved = true;
+      } catch (localErr) {
+        console.warn("Local status route skipped, trying external gateway:", localErr?.message);
+      }
 
-      setArtworks((prev) =>
-        prev.map((item) => (item._id === id ? { ...item, isSold } : item))
-      );
-      toast.success("Artwork status updated successfully.");
+      // 2. Fallback to external backend if needed
+      if (!saved) {
+        const token = await getAuthToken(base, user.email);
+        const res = await fetch(`${base}/api/artworks/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...currentArtwork,
+            quantity: newQuantity,
+            isSold,
+            status,
+          }),
+        });
+
+        if (!res.ok) throw new Error("Failed to update status on server.");
+      }
+
+      toast.success(isSold ? "Marked as Sold Out." : `Marked as Available (${newQuantity} in stock).`);
     } catch (err) {
       console.error("Update status error:", err);
+      // Revert optimistic update
+      setArtworks((prev) =>
+        prev.map((item) => (item._id === id ? currentArtwork : item))
+      );
       toast.error("Could not update product status.");
     }
   };
@@ -219,35 +301,66 @@ export default function ManageArtworksPage() {
 
     try {
       setSubmitting(true);
-      const token = await getAuthToken(base, user.email);
+      const parsedQty = Math.max(0, parseInt(editArtwork.quantity ?? 1, 10));
+      const resolvedQty = isNaN(parsedQty) ? 0 : parsedQty;
+      const isSold = resolvedQty === 0;
+      const status = isSold ? "sold" : "available";
 
-      const res = await fetch(`${base}/api/artworks/${editArtwork._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: editArtwork.title,
-          category: editArtwork.category,
-          price: Number(editArtwork.price),
-          quantity: Number(editArtwork.quantity ?? 1),
-          image: editArtwork.image,
-          description: editArtwork.description,
-          isSold: Number(editArtwork.quantity) === 0 ? true : editArtwork.isSold
-        }),
-      });
+      const payload = {
+        title: editArtwork.title,
+        category: editArtwork.category,
+        price: Number(editArtwork.price),
+        quantity: resolvedQty,
+        image: editArtwork.image,
+        description: editArtwork.description,
+        isSold,
+        status,
+      };
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to save artwork update.");
+      let updatedData = null;
+
+      // 1. Try local Next.js internal API first
+      try {
+        const localRes = await fetch(`/api/artworks/${editArtwork._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (localRes.ok) {
+          const resJson = await localRes.json();
+          updatedData = resJson.artwork || resJson.data || resJson;
+        }
+      } catch (localErr) {
+        console.warn("Local edit route skipped, trying external gateway:", localErr?.message);
       }
 
-      const updatedData = await res.json();
-      const finalDoc = updatedData.data || updatedData;
+      // 2. Fallback to external backend if needed
+      if (!updatedData) {
+        const token = await getAuthToken(base, user.email);
+        const res = await fetch(`${base}/api/artworks/${editArtwork._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to save artwork update.");
+        }
+
+        const resJson = await res.json();
+        updatedData = resJson.data || resJson.artwork || resJson;
+      }
 
       setArtworks((prev) =>
-        prev.map((item) => (item._id === editArtwork._id ? { ...item, ...finalDoc } : item))
+        prev.map((item) =>
+          item._id === editArtwork._id
+            ? { ...item, ...payload, ...(updatedData || {}) }
+            : item
+        )
       );
 
       toast.success("Artwork details saved gracefully.");
@@ -295,7 +408,8 @@ export default function ManageArtworksPage() {
               </thead>
               <tbody className="divide-y divide-(--border-line) text-sm">
                 {artworks.map((art) => {
-                  const stockQty = typeof art.quantity === "number" ? art.quantity : 10;
+                  const stockQty = typeof art.quantity === "number" ? art.quantity : (art.isSold ? 0 : 10);
+                  const isSold = Boolean(art.isSold === true || art.status === "sold" || stockQty === 0);
                   return (
                     <tr key={art._id} className="hover:bg-(--hover-bg) transition-colors duration-150">
 
@@ -314,20 +428,20 @@ export default function ManageArtworksPage() {
                             type="button"
                             onClick={() => handleQuantityChange(art._id, -1)}
                             disabled={stockQty <= 0}
-                            className="p-1.5 bg-(--background) hover:bg-red-500/20 text-(--text-muted) hover:text-red-400 rounded-lg border border-(--border-line) disabled:opacity-40 transition-colors"
+                            className="p-1.5 bg-(--background) hover:bg-red-500/20 text-(--text-muted) hover:text-red-400 rounded-lg border border-(--border-line) disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                             title="Decrease Stock"
                           >
                             <FaMinus className="text-[10px]" />
                           </button>
                           
-                          <span className="font-bold text-xs px-2 min-w-6 text-center text-(--text-main)">
+                          <span className={`font-bold text-xs px-2 min-w-6 text-center ${isSold ? "text-red-500 font-black" : "text-(--text-main)"}`}>
                             {stockQty}
                           </span>
 
                           <button
                             type="button"
                             onClick={() => handleQuantityChange(art._id, 1)}
-                            className="p-1.5 bg-(--background) hover:bg-emerald-500/20 text-(--text-muted) hover:text-emerald-400 rounded-lg border border-(--border-line) transition-colors"
+                            className="p-1.5 bg-(--background) hover:bg-emerald-500/20 text-(--text-muted) hover:text-emerald-400 rounded-lg border border-(--border-line) transition-colors cursor-pointer"
                             title="Increase Stock"
                           >
                             <FaPlus className="text-[10px]" />
@@ -337,12 +451,12 @@ export default function ManageArtworksPage() {
 
                       <td className="p-4">
                         <select
-                          value={art.isSold || stockQty === 0 ? "sold" : "available"}
+                          value={isSold ? "sold" : "available"}
                           onChange={(e) => handleStatusChange(art._id, e.target.value)}
-                          className={`text-[11px] font-bold px-2 py-1 rounded-md uppercase border cursor-pointer outline-none transition-all ${
-                            art.isSold || stockQty === 0
-                              ? "bg-red-500/10 text-red-400 border-red-500/20"
-                              : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-md uppercase border cursor-pointer outline-none transition-all ${
+                            isSold
+                              ? "bg-red-500/10 text-red-500 border-red-500/30"
+                              : "bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
                           }`}
                         >
                           <option value="available" className="bg-surface text-foreground">Available</option>

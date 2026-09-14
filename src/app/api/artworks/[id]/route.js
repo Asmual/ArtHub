@@ -63,6 +63,17 @@ export async function PUT(req, { params }) {
 
     if (typeof updateDoc.quantity === "number") {
       updateDoc.isSold = updateDoc.quantity === 0;
+      updateDoc.status = updateDoc.isSold ? "sold" : "available";
+    } else if (typeof updateDoc.isSold === "boolean") {
+      if (updateDoc.isSold) {
+        updateDoc.quantity = 0;
+        updateDoc.status = "sold";
+      } else {
+        updateDoc.status = "available";
+        if (existing.quantity === 0 || !existing.quantity) {
+          updateDoc.quantity = 1;
+        }
+      }
     }
 
     const result = await db.collection("artworks").findOneAndUpdate(

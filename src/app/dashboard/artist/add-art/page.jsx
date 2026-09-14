@@ -51,6 +51,7 @@ export default function AddArtPage() {
     title: "",
     category: "Painting",
     price: "",
+    quantity: "1",
     description: "",
   });
 
@@ -234,15 +235,20 @@ export default function AddArtPage() {
     try {
       setLoading(true);
 
+      const qty = Math.max(1, Number(formData.quantity || 1));
       const payload = {
         title: formData.title,
         price: Number(formData.price),
+        quantity: qty,
         image: imageUrl,
         artistName: user.name || "Unknown Artist",
         artistEmail: user.email,
+        userId: user.id || null,
+        artistId: user.id || null,
         artistImage: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Artist'}`,
         category: formData.category,
         isSold: false,
+        status: "available",
         createdAt: new Date().toISOString().split('T')[0],
         description: formData.description,
         tags: aiGeneratedData?.tags || [],
@@ -374,8 +380,8 @@ export default function AddArtPage() {
         {/* Input Form Fields */}
         <form onSubmit={handleSubmit} className="space-y-6">
          
-          {/* Top Row: Title, Category, Price */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Top Row: Title, Category, Price, Stock Quantity */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
            
             {/* Title Field */}
             <div className="flex flex-col gap-2">
@@ -416,6 +422,16 @@ export default function AddArtPage() {
                 />
                 <FaDollarSign className="absolute left-3.5 top-4 text-xs text-text-subtle" />
               </div>
+            </div>
+
+            {/* Stock Quantity Field */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-text-muted">Stock Quantity</label>
+              <input
+                type="number" name="quantity" required min="1" value={formData.quantity} onChange={handleChange}
+                placeholder="1"
+                className="w-full bg-background border border-border-line text-foreground rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#df6742] transition-all duration-200 font-semibold"
+              />
             </div>
           </div>
 

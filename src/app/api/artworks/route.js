@@ -109,11 +109,13 @@ export async function POST(req) {
       }
     }
 
-    const qty = typeof body.quantity === "number" ? body.quantity : 10;
+    const qty = typeof body.quantity === "number" ? body.quantity : 1;
+    const isSold = qty === 0;
     const doc = {
       ...body,
       quantity: qty,
-      isSold: qty === 0,
+      isSold,
+      status: isSold ? "sold" : "available",
       createdAt: new Date(),
       updatedAt: new Date(),
     };

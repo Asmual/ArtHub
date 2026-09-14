@@ -25,7 +25,7 @@ export async function PATCH(req, { params }) {
     if (typeof quantity === "number") {
       newQuantity = Math.max(0, quantity);
     } else if (typeof delta === "number") {
-      const currentQty = typeof existing.quantity === "number" ? existing.quantity : 10;
+      const currentQty = typeof existing.quantity === "number" ? existing.quantity : (existing.isSold ? 0 : 10);
       newQuantity = Math.max(0, currentQty + delta);
     } else {
       return NextResponse.json(
@@ -35,10 +35,11 @@ export async function PATCH(req, { params }) {
     }
 
     const isSold = newQuantity === 0;
+    const status = isSold ? "sold" : "available";
 
     const result = await db.collection("artworks").findOneAndUpdate(
       { _id: existing._id },
-      { $set: { quantity: newQuantity, isSold, updatedAt: new Date() } },
+      { $set: { quantity: newQuantity, isSold, status, updatedAt: new Date() } },
       { returnDocument: "after" }
     );
 
