@@ -163,23 +163,23 @@ export default function AiArtAdvisor() {
     <>
       {/* Floating Action Button (FAB) */}
       {!isOpen && (
-        <div className="fixed bottom-5 right-5 z-40 flex items-center gap-2.5">
+        <div className="fixed bottom-5 right-5 z-40 flex items-center gap-2">
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#df6742] via-orange-500 to-amber-500 hover:from-[#c55332] hover:to-amber-600 text-white font-bold text-xs shadow-xl shadow-[#df6742]/30 active:scale-95 transition-all cursor-pointer"
-            aria-label="Open AI Art Advisor"
+            className="group relative flex items-center gap-2 px-3.5 py-2 rounded-full bg-gradient-to-r from-[#df6742] via-orange-500 to-amber-500 hover:from-[#c55332] hover:to-amber-600 text-white font-bold text-xs shadow-lg shadow-[#df6742]/25 active:scale-95 transition-all cursor-pointer"
+            aria-label="Open AI Advisor"
           >
             {/* Glowing Ambient Halo */}
-            <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#df6742] to-amber-500 opacity-40 blur-sm group-hover:opacity-75 transition-opacity -z-10" />
+            <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#df6742] to-amber-500 opacity-30 blur-xs group-hover:opacity-60 transition-opacity -z-10" />
 
-            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <Sparkles size={13} className="text-white animate-spin-slow" />
+            <div className="w-4.5 h-4.5 rounded-full bg-white/20 flex items-center justify-center">
+              <Sparkles size={12} className="text-white animate-spin-slow" />
             </div>
 
-            <span className="tracking-wide">AI Art Advisor</span>
+            <span className="tracking-wide text-xs">AI Advisor</span>
 
-            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
           </button>
         </div>
       )}
@@ -202,9 +202,9 @@ export default function AiArtAdvisor() {
               </div>
               <div className="min-w-0">
                 <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5 truncate">
-                  <span>ArtHub AI Curator</span>
+                  <span>AI Advisor</span>
                   <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 shrink-0">
-                    Gemini 3.6
+                    Gemini 3.7
                   </span>
                 </h3>
                 <p className="text-[10px] text-text-muted truncate">
