@@ -15,13 +15,25 @@ export async function GET() {
       ])
       .toArray();
 
-    const serialized = artworks.map((art) => ({
-      ...art,
-      _id: art._id.toString(),
-      createdAt: art.createdAt
-        ? new Date(art.createdAt).toISOString()
-        : new Date().toISOString(),
-    }));
+    const serialized = artworks.map((art) => {
+      const isSold = Boolean(
+        art.isSold === true ||
+        art.status === "sold" ||
+        art.status === "out_of_stock" ||
+        (typeof art.quantity === "number" && art.quantity <= 0)
+      );
+      const stock = typeof art.quantity === "number" ? art.quantity : (isSold ? 0 : 1);
+      return {
+        ...art,
+        _id: art._id.toString(),
+        quantity: stock,
+        isSold,
+        status: isSold ? "sold" : (art.status || "available"),
+        createdAt: art.createdAt
+          ? new Date(art.createdAt).toISOString()
+          : new Date().toISOString(),
+      };
+    });
 
     return NextResponse.json(serialized);
   } catch (err) {

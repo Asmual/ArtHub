@@ -107,16 +107,20 @@ export async function POST(req) {
 
     // Decrement artwork quantity and mark as sold if zero
     if (artworkDoc) {
-      const currentQty = typeof artworkDoc.quantity === "number" ? artworkDoc.quantity : 1;
+      const currentQty = typeof artworkDoc.quantity === "number" ? artworkDoc.quantity : (artworkDoc.isSold ? 0 : 1);
       const newQty = Math.max(0, currentQty - 1);
+      const isNowSold = newQty === 0;
       await artworkCollection.updateOne(
         { _id: artworkDoc._id },
         {
           $set: {
             quantity: newQty,
-            isSold: newQty === 0,
+            isSold: isNowSold,
+            status: isNowSold ? "sold" : (artworkDoc.status || "available"),
             soldAt: new Date(),
             buyerEmail: finalBuyerEmail,
+            buyerId: resolvedBuyerId,
+            updatedAt: new Date(),
           },
         }
       );

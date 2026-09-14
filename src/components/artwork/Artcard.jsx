@@ -14,13 +14,22 @@ export default function Artcard({ artwork }) {
   if (!artwork) return null;
 
   const artId = artwork._id?.toString() || artwork.id;
-  const isSold = typeof artwork.quantity === "number" ? artwork.quantity <= 0 : false;
+  const isSold = Boolean(
+    artwork.isSold === true ||
+    artwork.status === "sold" ||
+    artwork.status === "out_of_stock" ||
+    (typeof artwork.quantity === "number" && artwork.quantity <= 0)
+  );
+  const stockQty = typeof artwork.quantity === "number" ? artwork.quantity : (isSold ? 0 : null);
   const inCart = isInCart(artId);
   const inWishlist = isInWishlist(artId);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isSold) {
+      return;
+    }
     addToCart(artwork);
   };
 
@@ -59,13 +68,14 @@ export default function Artcard({ artwork }) {
         <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 pointer-events-none">
           {/* Status Badge */}
           {isSold ? (
-            <span className="bg-red-600/90 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs border border-red-500/30">
+            <span className="bg-red-600/90 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs border border-red-500/30 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/80" />
               Sold Out
             </span>
           ) : (
             <span className="bg-emerald-600/90 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs border border-emerald-500/30 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              Available
+              Available {typeof stockQty === "number" && stockQty > 0 ? `(${stockQty})` : ""}
             </span>
           )}
 

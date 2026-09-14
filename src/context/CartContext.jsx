@@ -50,7 +50,13 @@ export function CartProvider({ children }) {
   // Add an artwork item to cart
   const addToCart = (artwork) => {
     if (!artwork || !artwork._id) return;
-    if (artwork.isSold) {
+    const isSold = Boolean(
+      artwork.isSold === true ||
+      artwork.status === "sold" ||
+      artwork.status === "out_of_stock" ||
+      (typeof artwork.quantity === "number" && artwork.quantity <= 0)
+    );
+    if (isSold) {
       toast.error("This artwork is already sold out.");
       return;
     }

@@ -19,12 +19,19 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: true, message: "Artwork not found" }, { status: 404 });
     }
 
-    const stock = typeof art.quantity === "number" ? art.quantity : 10;
+    const isSold = Boolean(
+      art.isSold === true ||
+      art.status === "sold" ||
+      art.status === "out_of_stock" ||
+      (typeof art.quantity === "number" && art.quantity <= 0)
+    );
+    const stock = typeof art.quantity === "number" ? art.quantity : (isSold ? 0 : 1);
     return NextResponse.json({
       ...art,
       _id: art._id?.toString(),
       quantity: stock,
-      isSold: stock === 0,
+      isSold,
+      status: isSold ? "sold" : (art.status || "available"),
     });
   } catch (err) {
     console.error("[ARTWORKS API ERROR] GET [id]:", err);

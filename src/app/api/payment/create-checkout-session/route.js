@@ -53,9 +53,16 @@ export async function POST(req) {
       );
     }
 
-    if (artwork.isSold) {
+    const isSoldOut = Boolean(
+      artwork.isSold === true ||
+      artwork.status === "sold" ||
+      artwork.status === "out_of_stock" ||
+      (typeof artwork.quantity === "number" && artwork.quantity <= 0)
+    );
+
+    if (isSoldOut) {
       return NextResponse.json(
-        { success: false, message: "This artwork has already been sold." },
+        { success: false, message: "This artwork is currently sold out / out of stock." },
         { status: 400 }
       );
     }

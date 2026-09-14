@@ -36,12 +36,19 @@ export async function GET(req) {
       .toArray();
 
     const normalized = artworks.map((art) => {
-      const stock = typeof art.quantity === "number" ? art.quantity : 10;
+      const isSold = Boolean(
+        art.isSold === true ||
+        art.status === "sold" ||
+        art.status === "out_of_stock" ||
+        (typeof art.quantity === "number" && art.quantity <= 0)
+      );
+      const stock = typeof art.quantity === "number" ? art.quantity : (isSold ? 0 : 1);
       return {
         ...art,
         _id: art._id?.toString(),
         quantity: stock,
-        isSold: stock === 0,
+        isSold,
+        status: isSold ? "sold" : (art.status || "available"),
       };
     });
 

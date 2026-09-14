@@ -115,6 +115,8 @@ export default async function BrowseArtworksPage({ searchParams }) {
             price: 1,
             category: 1,
             isSold: 1,
+            quantity: 1,
+            status: 1,
             artistName: 1,
             userId: 1,
             artistEmail: 1,
@@ -176,13 +178,23 @@ export default async function BrowseArtworksPage({ searchParams }) {
         (item.userEmail && artistNameMap.get(item.userEmail.toLowerCase())) ||
         "Unknown Artist";
 
+      const isSold = Boolean(
+        item.isSold === true ||
+        item.status === "sold" ||
+        item.status === "out_of_stock" ||
+        (typeof item.quantity === "number" && item.quantity <= 0)
+      );
+      const stock = typeof item.quantity === "number" ? item.quantity : (isSold ? 0 : 1);
+
       return {
         _id: item._id.toString(),
         title: item.title,
         image: item.image,
         price: item.price,
         category: item.category,
-        isSold: item.isSold,
+        quantity: stock,
+        isSold,
+        status: isSold ? "sold" : (item.status || "available"),
         artistName: resolvedArtistName,
         createdAt: item.createdAt
           ? new Date(item.createdAt).toISOString()

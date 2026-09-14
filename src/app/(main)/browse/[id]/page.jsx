@@ -28,6 +28,8 @@ export default async function ArtworkDetailsPage({ params }) {
           price: 1,
           category: 1,
           isSold: 1,
+          quantity: 1,
+          status: 1,
           buyerId: 1,
           buyerEmail: 1,
           artistEmail: 1,
@@ -68,10 +70,21 @@ export default async function ArtworkDetailsPage({ params }) {
         }
       }
 
+      const isSold = Boolean(
+        data.isSold === true ||
+        data.status === "sold" ||
+        data.status === "out_of_stock" ||
+        (typeof data.quantity === "number" && data.quantity <= 0)
+      );
+      const stock = typeof data.quantity === "number" ? data.quantity : (isSold ? 0 : 1);
+
       // Serialize MongoDB ObjectIds to strings before passing to client component
       artwork = {
         ...data,
         _id: data._id.toString(),
+        quantity: stock,
+        isSold,
+        status: isSold ? "sold" : (data.status || "available"),
         userId: data.userId ? data.userId.toString() : null,
         artistId: data.artistId ? data.artistId.toString() : null,
         buyerId: data.buyerId ? data.buyerId.toString() : null,

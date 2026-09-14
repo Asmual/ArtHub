@@ -34,8 +34,16 @@ export default function ArtworkDetailsClient({ artwork }) {
     );
   const isArtist = user?.role === "artist" || isOwner;
 
+  const isSold = Boolean(
+    artwork?.isSold === true ||
+    artwork?.status === "sold" ||
+    artwork?.status === "out_of_stock" ||
+    (typeof artwork?.quantity === "number" && artwork.quantity <= 0)
+  );
+  const stockQty = typeof artwork?.quantity === "number" ? artwork.quantity : (isSold ? 0 : null);
+
   const hasPaid =
-    Boolean(artwork?.isSold) &&
+    Boolean(isSold) &&
     Boolean(
       (artwork?.buyerId && (artwork.buyerId === user?.id || artwork.buyerId?.toString() === user?.id?.toString())) ||
       (artwork?.buyerEmail && user?.email && artwork.buyerEmail.toLowerCase() === user.email.toLowerCase())
@@ -72,13 +80,13 @@ export default function ArtworkDetailsClient({ artwork }) {
   // Determine button display text based on status
   const getButtonText = () => {
     if (isRedirecting) return "Connecting Gateway...";
-    if (artwork.isSold) return "Sold Out";
+    if (isSold) return "Sold Out";
     if (isAdmin) return "Admin View Only";
     if (isOwner) return "Your Artwork";
     return "Buy Now";
   };
 
-  const isBuyDisabled = Boolean(artwork.isSold || isRedirecting || isAdmin || isOwner);
+  const isBuyDisabled = Boolean(isSold || isRedirecting || isAdmin || isOwner);
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#2f3f48] py-12 px-4 sm:px-6 lg:px-8 text-slate-800 dark:text-white">
@@ -170,13 +178,13 @@ export default function ArtworkDetailsClient({ artwork }) {
                 <p className="text-xs text-slate-500 dark:text-neutral-400 uppercase font-semibold">
                   Availability
                 </p>
-                {artwork.isSold ? (
+                {isSold ? (
                   <span className="inline-block mt-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold px-2.5 py-1 rounded-md uppercase">
                     Sold Out
                   </span>
                 ) : (
                   <span className="inline-block mt-2 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-md uppercase">
-                    Available
+                    Available {typeof stockQty === "number" && stockQty > 0 ? `(${stockQty} in stock)` : ""}
                   </span>
                 )}
               </div>
