@@ -9,7 +9,6 @@ import {
   DollarSign,
   PlusCircle,
   ArrowRight,
-  Loader2,
   TrendingUp,
   ImageOff,
   Crown,
@@ -20,6 +19,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 const TIER_CONFIGS = {
   free: {
@@ -167,7 +167,7 @@ export default function ArtistDashboard() {
   if (authLoading || (!user || user.role !== "artist")) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center gap-2 text-[var(--text-main)]">
-        <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
+        <AppSpinner size="small" />
         <p className="text-xs text-[var(--text-muted)]">Securing studio session...</p>
       </div>
     );
@@ -219,7 +219,7 @@ export default function ArtistDashboard() {
           <div className="space-y-1">
             <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Total Artwork Creations</p>
             <h3 className="text-2xl font-black text-[var(--text-main)]">
-              {loading ? <Loader2 className="w-5 h-5 animate-spin text-neutral-500" /> : stats.totalArts}
+              {loading ? <AppSpinner size="small" /> : stats.totalArts}
             </h3>
           </div>
           <div className="p-3 bg-[#df6742]/10 rounded-xl border border-[#df6742]/20 group-hover:bg-[#df6742]/20 transition-all">
@@ -231,7 +231,7 @@ export default function ArtistDashboard() {
           <div className="space-y-1">
             <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Total Revenue Generated</p>
             <h3 className="text-2xl font-black text-emerald-400 flex items-center">
-              {loading ? <Loader2 className="w-5 h-5 animate-spin text-neutral-500" /> : `$${stats.totalEarnings.toFixed(2)}`}
+              {loading ? <AppSpinner size="small" /> : `$${stats.totalEarnings.toFixed(2)}`}
             </h3>
           </div>
           <div className="p-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 group-hover:bg-emerald-500/10 transition-all">
@@ -386,7 +386,7 @@ export default function ArtistDashboard() {
           <div className="space-y-2.5 pt-1">
             {loading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-[#df6742]" />
+                <AppSpinner size="small" />
               </div>
             ) : recentArtworks.length === 0 ? (
               <div className="text-center py-10 bg-[var(--hover-bg)] rounded-xl border border-[var(--border-line)]">

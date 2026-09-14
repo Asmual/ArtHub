@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { authClient } from "@/lib/auth-client";
 import { FaExchangeAlt, FaSearch, FaCreditCard, FaCheckCircle, FaExclamationTriangle, FaDownload } from "react-icons/fa";
-import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 export default function AdminTransactionsPage() {
   const { data: session, isPending: authLoading } = authClient.useSession();
@@ -82,7 +82,7 @@ export default function AdminTransactionsPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
+        <AppSpinner size="small" />
       </div>
     );
   }
@@ -147,7 +147,7 @@ export default function AdminTransactionsPage() {
           <div className="overflow-x-auto">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-[#df6742]" />
+                <AppSpinner size="small" />
                 <p className="text-xs text-[var(--text-muted)]">Loading transactions...</p>
               </div>
             ) : (

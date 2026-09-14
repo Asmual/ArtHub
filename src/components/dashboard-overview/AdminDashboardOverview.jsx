@@ -10,11 +10,11 @@ import {
  DollarSign,
  ArrowUpRight,
  Activity,
- Loader2,
  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 const initialDashboardData = {
  totalUsers: 0,
@@ -180,10 +180,10 @@ export default function AdminDashboardOverview({ session: initialSession }) {
 
  if (authLoading || loading) {
    return (
-     <div className="flex items-center justify-center min-h-[60vh] flex-col gap-3 text-[var(--text-muted)]">
-       <Loader2 className="w-8 h-8 animate-spin text-[#df6742]" />
-       <p className="text-xs text-[var(--text-muted)]">Loading dashboard intelligence metrics...</p>
-     </div>
+      <div className="flex items-center justify-center min-h-[60vh] flex-col gap-3 text-[var(--text-muted)]">
+        <AppSpinner size="small" />
+        <p className="text-xs text-[var(--text-muted)]">Loading dashboard intelligence metrics...</p>
+      </div>
    );
  }
 

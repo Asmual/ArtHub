@@ -2,11 +2,12 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { Users, Mail, Calendar, Search, ShieldCheck, UserCheck, X, Loader2 } from "lucide-react";
+import { Users, Mail, Calendar, Search, ShieldCheck, UserCheck, X, Trash2, Ban, ShieldAlert, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import Loading from "@/app/loading";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -32,10 +33,17 @@ export default function AdminUsersDashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Role mutation modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [targetUser, setTargetUser] = useState(null);
   const [selectedNewRole, setSelectedNewRole] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Delete user modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: session, isPending: authLoading } = authClient.useSession();
   const user = session?.user;
@@ -150,6 +158,118 @@ export default function AdminUsersDashboard() {
     }
   };
 
+  // Block / Unblock artist or user
+  const handleToggleBlock = async (u) => {
+    const userId = u._id || u.id;
+    const nextBlockedState = !u.isBlocked;
+    const actionText = nextBlockedState ? "Blocking" : "Unblocking";
+    const loadingToast = toast.loading(`${actionText} ${u.name || "user"}...`);
+
+    try {
+      let updated = false;
+
+      // 1. Try local Next.js API
+      try {
+        const localRes = await fetch(`/api/admin/users/${userId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isBlocked: nextBlockedState }),
+        });
+        if (localRes.ok) updated = true;
+      } catch (e) {
+        console.warn("Local block user fallback:", e.message);
+      }
+
+      // 2. Try external backend
+      if (!updated) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+
+        const res = await fetch(`${base}/api/admin/users/${userId}/status`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ isBlocked: nextBlockedState }),
+        });
+        if (res.ok) updated = true;
+        else throw new Error("Server rejected status change");
+      }
+
+      toast.success(
+        nextBlockedState
+          ? `${u.name || "User"} has been blocked.`
+          : `${u.name || "User"} is now active.`,
+        { id: loadingToast }
+      );
+
+      setUsers((prev) =>
+        prev.map((item) =>
+          (item._id || item.id) === userId
+            ? { ...item, isBlocked: nextBlockedState, status: nextBlockedState ? "blocked" : "active" }
+            : item
+        )
+      );
+    } catch (err) {
+      console.error("Toggle block error:", err);
+      toast.error("Failed to update user status.", { id: loadingToast });
+    }
+  };
+
+  // Delete user trigger
+  const triggerDeletePrompt = (u) => {
+    setUserToDelete(u);
+    setDeleteModalOpen(true);
+  };
+
+  // Execute delete user
+  const executeDeleteUser = async () => {
+    if (!userToDelete) return;
+    const userId = userToDelete._id || userToDelete.id;
+    setIsDeleting(true);
+    const loadingToast = toast.loading(`Deleting ${userToDelete.name || "user"}...`);
+
+    try {
+      let deleted = false;
+
+      // 1. Try local API first
+      try {
+        const localRes = await fetch(`/api/admin/users/${userId}`, {
+          method: "DELETE",
+        });
+        if (localRes.ok) deleted = true;
+      } catch (e) {
+        console.warn("Local delete user fallback:", e.message);
+      }
+
+      // 2. Try external backend
+      if (!deleted) {
+        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
+        const token = await getAuthToken(user.email);
+
+        const res = await fetch(`${base}/api/admin/users/${userId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) deleted = true;
+        else throw new Error("Server rejected user deletion");
+      }
+
+      toast.success("User removed successfully.", { id: loadingToast });
+      setUsers((prev) => prev.filter((item) => (item._id || item.id) !== userId));
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    } catch (err) {
+      console.error("Delete user error:", err);
+      toast.error("Failed to delete user.", { id: loadingToast });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     const q = searchTerm.toLowerCase();
     return (
@@ -172,8 +292,8 @@ export default function AdminUsersDashboard() {
               <Users size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-wide text-[var(--text-main)]">User Registry</h1>
-              <p className="text-xs text-[var(--text-muted)]">Manage and audit user roles within the ArtHub platform</p>
+              <h1 className="text-xl font-black tracking-wide text-[var(--text-main)]">User & Artist Registry</h1>
+              <p className="text-xs text-[var(--text-muted)]">Audit roles, manage artist permissions, block, or delete platform accounts</p>
             </div>
           </div>
           <div className="relative w-full sm:w-72">
@@ -198,43 +318,44 @@ export default function AdminUsersDashboard() {
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[var(--border-line)] text-[var(--text-muted)] text-[11px] font-bold uppercase tracking-wider bg-[var(--hover-bg)]">
-                    <th className="py-4 pl-6">User</th>
-                    <th className="py-4">Email</th>
+                  <tr className="border-b border-[var(--border-line)] bg-[var(--hover-bg)] text-[11px] uppercase tracking-wider text-[var(--text-subtle)]">
+                    <th className="py-4 pl-6">Profile</th>
                     <th className="py-4">Role</th>
-                    <th className="py-4">Tier</th>
+                    <th className="py-4">Status</th>
+                    <th className="py-4">Plan</th>
                     <th className="py-4">Joined</th>
-                    <th className="py-4 pr-6 text-right">Change Role</th>
+                    <th className="py-4 pr-6 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-line)] text-xs sm:text-sm">
-                  {filteredUsers.map((u, idx) => {
-                    const initials = u.name
-                      ? u.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()
-                      : "U";
-                    const avatar = u.profileImage || u.image;
+                <tbody className="divide-y divide-[var(--border-line)] text-xs">
+                  {filteredUsers.map((u) => {
+                    const currentId = u._id || u.id;
+                    const isBlocked = Boolean(u.isBlocked || u.status === "blocked");
 
                     return (
-                      <tr key={u._id || idx} className="hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-main)]">
+                      <tr key={currentId} className="hover:bg-[var(--hover-bg)] transition-colors">
                         <td className="py-4 pl-6">
                           <div className="flex items-center gap-3">
-                            {avatar ? (
-                              <img src={avatar} alt={u.name || "User"} className="w-9 h-9 rounded-full object-cover border border-[var(--border-line)]" />
+                            {u.image ? (
+                              <img
+                                src={u.image}
+                                alt={u.name || "User"}
+                                className="w-9 h-9 rounded-full object-cover border border-[var(--border-line)] shrink-0"
+                              />
                             ) : (
-                              <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#df6742] to-[#b34928] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                                {initials}
+                              <div className="w-9 h-9 rounded-full bg-[#df6742] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                                {(u.name || u.email || "U").charAt(0).toUpperCase()}
                               </div>
                             )}
                             <div className="min-w-0">
-                              <p className="font-bold text-[var(--text-main)] truncate max-w-40">{u.name || "Anonymous"}</p>
-                              <p className="text-[10px] text-[var(--text-subtle)] font-mono mt-0.5 truncate max-w-35">ID: {u._id || u.id}</p>
+                              <span className="font-bold text-[var(--text-main)] block truncate">
+                                {u.name || "Unnamed User"}
+                              </span>
+                              <div className="flex items-center gap-1.5 max-w-50 truncate text-[var(--text-subtle)]">
+                                <Mail size={11} className="shrink-0" />
+                                <span className="truncate">{u.email || "N/A"}</span>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-4 text-[var(--text-muted)]">
-                          <div className="flex items-center gap-1.5 max-w-50 truncate">
-                            <Mail size={13} className="text-[var(--text-subtle)] shrink-0" />
-                            <span className="truncate">{u.email || "N/A"}</span>
                           </div>
                         </td>
                         <td className="py-4">
@@ -243,7 +364,18 @@ export default function AdminUsersDashboard() {
                           </span>
                         </td>
                         <td className="py-4">
-                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 uppercase">
+                          {isBlocked ? (
+                            <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 uppercase inline-flex items-center gap-1">
+                              <Ban size={10} /> Blocked
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase inline-flex items-center gap-1">
+                              <CheckCircle size={10} /> Active
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4">
+                          <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 uppercase">
                             {u.subscriptionTier || "free"}
                           </span>
                         </td>
@@ -254,15 +386,42 @@ export default function AdminUsersDashboard() {
                           </div>
                         </td>
                         <td className="py-4 pr-6 text-right">
-                          <select
-                            value={u.role || "user"}
-                            onChange={(e) => handleRoleChangeTrigger(u, e.target.value)}
-                            className="bg-[var(--background)] border border-[var(--border-line)] text-[var(--text-main)] text-[11px] font-bold py-1.5 px-2.5 rounded-xl outline-none focus:border-[#df6742] cursor-pointer transition-colors"
-                          >
-                            <option value="user">User</option>
-                            <option value="artist">Artist</option>
-                            <option value="admin">Admin</option>
-                          </select>
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Role Selector */}
+                            <select
+                              value={u.role || "user"}
+                              onChange={(e) => handleRoleChangeTrigger(u, e.target.value)}
+                              className="bg-[var(--background)] border border-[var(--border-line)] text-[var(--text-main)] text-[11px] font-bold py-1 px-2 rounded-lg outline-none focus:border-[#df6742] cursor-pointer transition-colors"
+                            >
+                              <option value="user">User</option>
+                              <option value="artist">Artist</option>
+                              <option value="admin">Admin</option>
+                            </select>
+
+                            {/* Block / Unblock Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleBlock(u)}
+                              title={isBlocked ? "Unblock user" : "Block user"}
+                              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                                isBlocked
+                                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                                  : "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20"
+                              }`}
+                            >
+                              <Ban size={14} />
+                            </button>
+
+                            {/* Delete User Button */}
+                            <button
+                              type="button"
+                              onClick={() => triggerDeletePrompt(u)}
+                              title="Delete user"
+                              className="p-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -280,7 +439,7 @@ export default function AdminUsersDashboard() {
           <div className="bg-[var(--surface)] border border-[var(--border-line)] w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
             <button
               onClick={() => { if (!isUpdating) setIsModalOpen(false); }}
-              className="absolute top-4 right-4 text-[var(--text-subtle)] hover:text-[var(--text-main)] transition-colors"
+              className="absolute top-4 right-4 text-[var(--text-subtle)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
               disabled={isUpdating}
             >
               <X size={18} />
@@ -307,19 +466,73 @@ export default function AdminUsersDashboard() {
               <button
                 onClick={() => setIsModalOpen(false)}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-[var(--hover-bg)] border border-[var(--border-line)] hover:bg-[var(--border-line)] text-xs font-semibold rounded-xl text-[var(--text-main)] transition-all uppercase tracking-wider"
+                className="px-4 py-2 bg-[var(--hover-bg)] border border-[var(--border-line)] hover:bg-[var(--border-line)] text-xs font-semibold rounded-xl text-[var(--text-main)] transition-all uppercase tracking-wider cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRoleMutation}
                 disabled={isUpdating}
-                className="px-4 py-2 bg-[#df6742] hover:bg-[#b34928] text-xs font-semibold rounded-xl text-white shadow-lg transition-all uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-2 bg-[#df6742] hover:bg-[#b34928] text-xs font-semibold rounded-xl text-white shadow-lg transition-all uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
               >
                 {isUpdating ? (
-                  <><Loader2 size={14} className="animate-spin" /> Updating...</>
+                  <>
+                    <AppSpinner size="small" /> Updating...
+                  </>
                 ) : (
                   <><UserCheck size={14} /> Confirm</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {deleteModalOpen && userToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--surface)] border border-[var(--border-line)] w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
+            <button
+              onClick={() => { if (!isDeleting) setDeleteModalOpen(false); }}
+              className="absolute top-4 right-4 text-[var(--text-subtle)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
+              disabled={isDeleting}
+            >
+              <X size={18} />
+            </button>
+            <div className="flex items-center gap-3 text-red-400">
+              <div className="p-2 bg-red-500/10 rounded-lg border border-red-500/20">
+                <ShieldAlert size={20} />
+              </div>
+              <h3 className="text-lg font-bold text-[var(--text-main)] tracking-wide">Delete User Account</h3>
+            </div>
+            <div className="text-xs text-[var(--text-muted)] leading-relaxed space-y-2">
+              <p>
+                Are you sure you want to permanently delete:
+                <span className="text-[var(--text-main)] font-bold block mt-1 text-sm bg-[var(--hover-bg)] p-2 rounded-xl border border-[var(--border-line)]">
+                  {userToDelete.name || "User"} ({userToDelete.email})
+                </span>
+              </p>
+              <p className="text-red-400 font-medium">This action cannot be undone and will purge the profile.</p>
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-[var(--hover-bg)] border border-[var(--border-line)] hover:bg-[var(--border-line)] text-xs font-semibold rounded-xl text-[var(--text-main)] transition-all uppercase tracking-wider cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDeleteUser}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-xs font-semibold rounded-xl text-white shadow-lg transition-all uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <AppSpinner size="small" /> Deleting...
+                  </>
+                ) : (
+                  <><Trash2 size={14} /> Delete Profile</>
                 )}
               </button>
             </div>

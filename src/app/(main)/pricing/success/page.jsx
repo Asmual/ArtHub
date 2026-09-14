@@ -3,9 +3,10 @@
 import React, { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { CheckCircle2, Loader2, ArrowRight, Palette, LayoutDashboard, Sparkles } from "lucide-react";
+import { CheckCircle2, ArrowRight, Palette, LayoutDashboard, Sparkles } from "lucide-react";
 import NextLink from "next/link";
 import toast from "react-hot-toast";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -50,7 +51,7 @@ function SuccessContent() {
   if (authLoading || verifying) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-10 h-10 animate-spin text-[var(--brand)]" />
+        <AppSpinner size="small" />
         <h2 className="text-base font-bold text-foreground">Verifying Payment...</h2>
         <p className="text-xs text-foreground/60">Confirming your subscription with the secure payment ledger...</p>
       </div>
@@ -134,7 +135,7 @@ export default function PricingSuccessPage() {
     <Suspense
       fallback={
         <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--brand)]" />
+          <AppSpinner size="small" />
           <p className="text-xs text-foreground/60">Loading verification details...</p>
         </div>
       }

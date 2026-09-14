@@ -13,11 +13,11 @@ import {
   Award,
   AlertCircle,
   X,
-  Loader2,
 } from "lucide-react";
 
 import { useSession } from "@/lib/auth-client";
 import toast from "react-hot-toast";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 
 const PRICING_TIERS = [
@@ -434,7 +434,7 @@ export default function PricingSection({ isFullPage = false }) {
               >
                 {isUpgradingRole ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <AppSpinner size="small" />
                     <span>Upgrading Profile to Artist...</span>
                   </>
                 ) : (

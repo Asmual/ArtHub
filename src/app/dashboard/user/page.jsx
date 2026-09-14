@@ -10,7 +10,6 @@ import {
   ShoppingBag,
   ShieldCheck,
   ArrowRight,
-  Loader2,
   CreditCard,
   Clock,
   CheckCircle,
@@ -22,6 +21,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 export default function UserDashboardLanding() {
   const { data: session, isPending: authLoading } = authClient.useSession();
@@ -132,7 +132,7 @@ export default function UserDashboardLanding() {
   if (authLoading) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-2 text-slate-800 dark:text-white">
-        <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
+        <AppSpinner size="small" />
         <p className="text-xs text-slate-500 dark:text-white/40">Loading your dashboard...</p>
       </div>
     );
@@ -194,7 +194,7 @@ export default function UserDashboardLanding() {
             </p>
             <h3 className="text-xl font-black text-slate-800 dark:text-white">
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#df6742]" />
+                <AppSpinner size="small" />
               ) : (
                 recentOrders.length
               )}
@@ -329,7 +329,7 @@ export default function UserDashboardLanding() {
             <div className="space-y-2.5">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-8 gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#df6742]" />
+                  <AppSpinner size="small" />
                   <p className="text-xs text-slate-400 dark:text-white/40">Loading purchases...</p>
                 </div>
               ) : recentOrders.length === 0 ? (

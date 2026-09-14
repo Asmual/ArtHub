@@ -10,7 +10,6 @@ import {
   UserX,
   Sparkles,
   Palette,
-  Loader2,
   DollarSign,
   Users,
   CheckCircle2,
@@ -18,6 +17,7 @@ import {
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
 import Loading from "@/app/loading";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 
 const PLAN_BADGES = {
@@ -257,7 +257,9 @@ export default function AdminSubscriptionsPage() {
               {loading ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-foreground/50">
-                    <Loader2 size={24} className="animate-spin mx-auto mb-2 text-[var(--brand)]" />
+                    <div className="mb-2 flex justify-center">
+                      <AppSpinner size="small" />
+                    </div>
                     Loading subscriber records...
                   </td>
                 </tr>
@@ -485,7 +487,7 @@ export default function AdminSubscriptionsPage() {
                 disabled={actionLoading}
                 className="flex-1 py-2.5 rounded-xl bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
               >
-                {actionLoading ? <Loader2 size={14} className="animate-spin" /> : "Confirm Action"}
+                {actionLoading ? <AppSpinner size="small" /> : "Confirm Action"}
               </button>
             </div>
           </div>

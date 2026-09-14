@@ -47,16 +47,17 @@ export async function POST(req) {
       if (match) ext = match[0].toLowerCase();
     }
 
+    const folder = (formData.get("folder") || "profiles").replace(/[^a-zA-Z0-9_-]/g, "");
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const fileName = `profile-${uniqueSuffix}${ext}`;
+    const fileName = `${folder}-${uniqueSuffix}${ext}`;
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "profiles");
+    const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
     await mkdir(uploadDir, { recursive: true });
 
     const filePath = path.join(uploadDir, fileName);
     await writeFile(filePath, buffer);
 
-    const publicUrl = `/uploads/profiles/${fileName}`;
+    const publicUrl = `/uploads/${folder}/${fileName}`;
 
     return NextResponse.json({
       success: true,

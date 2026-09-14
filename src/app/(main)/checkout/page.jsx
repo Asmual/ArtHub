@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import {
-  Loader2,
   ShieldCheck,
   ArrowLeft,
   Lock,
@@ -16,6 +15,7 @@ import {
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -114,7 +114,7 @@ function CheckoutContent() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center gap-2 text-[var(--text-main)]">
-        <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
+        <AppSpinner size="small" />
         <p className="text-xs text-[var(--text-muted)]">Loading secure checkout...</p>
       </div>
     );
@@ -282,7 +282,7 @@ function CheckoutContent() {
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <AppSpinner size="small" />
                     <span>Connecting to Stripe...</span>
                   </>
                 ) : (
@@ -309,7 +309,7 @@ export default function CheckoutPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
+          <AppSpinner size="small" />
         </div>
       }
     >

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import ReviewSection from "./ReviewSection";
-import { Loader2 } from "lucide-react";
+import AppSpinner from "@/components/shared/AppSpinner";
 import toast from "react-hot-toast";
 
 export default function ArtworkDetailsClient({ artwork }) {
@@ -200,7 +200,7 @@ export default function ArtworkDetailsClient({ artwork }) {
                     : "bg-[#df6742] hover:bg-[#c5522f] text-white active:scale-[0.99]"
                 }`}
               >
-                {isRedirecting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isRedirecting && <AppSpinner size="small" />}
                 {getButtonText()}
               </button>
             </div>

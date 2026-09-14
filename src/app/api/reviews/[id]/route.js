@@ -134,6 +134,9 @@ export async function PUT(req, { params }) {
     if (body.rating !== undefined) {
       updatePayload.rating = Math.max(1, Math.min(5, Number(body.rating) || 5));
     }
+    if (Array.isArray(body.images)) {
+      updatePayload.images = body.images.filter((img) => typeof img === "string" && img.trim() !== "").slice(0, 3);
+    }
 
     await collection.updateOne({ _id: existingReview._id }, { $set: updatePayload });
 

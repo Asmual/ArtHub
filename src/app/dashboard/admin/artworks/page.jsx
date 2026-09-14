@@ -2,12 +2,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ShieldAlert, Trash2, Eye, Loader2, X, Plus, Minus } from "lucide-react";
+import { ShieldAlert, Trash2, Eye, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Loading from "@/app/loading";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 export default function AdminArtworksPage() {
   const router = useRouter();
@@ -121,72 +122,6 @@ export default function AdminArtworksPage() {
     }
   };
 
-  const handleQuantityChange = async (id, delta) => {
-    const currentArtwork = artworks.find(item => (item._id || item.id) === id);
-    if (!currentArtwork || !user?.email) return;
-
-    const currentQty = typeof currentArtwork.quantity === "number" ? currentArtwork.quantity : 10;
-    const newQuantity = Math.max(0, currentQty + delta);
-    const isSold = newQuantity === 0;
-
-    try {
-      let updated = false;
-
-      // 1. Try local API first
-      try {
-        const localRes = await fetch(`/api/admin/artworks/${id}/stock`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ quantity: newQuantity }),
-        });
-        if (localRes.ok) {
-          updated = true;
-        }
-      } catch (localErr) {
-        console.warn("Local stock update skipped, trying external gateway:", localErr);
-      }
-
-      // 2. Fallback to external backend
-      if (!updated) {
-        const base = (process.env.NEXT_PUBLIC_API_URL || "https://arthub-server-z4w8.onrender.com").replace(/\/$/, "");
-        const token = await getAuthToken(user.email);
-        const res = await fetch(`${base}/api/admin/artworks/${id}/stock`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            quantity: newQuantity,
-          }),
-        });
-
-        if (!res.ok) {
-          await fetch(`${base}/api/artworks/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              ...currentArtwork,
-              quantity: newQuantity,
-              isSold,
-            }),
-          });
-        }
-      }
-
-      setArtworks((prev) =>
-        prev.map((item) => (item._id || item.id) === id ? { ...item, quantity: newQuantity, isSold } : item)
-      );
-      toast.success(`Stock updated to ${newQuantity}`);
-    } catch (err) {
-      console.error("Admin update quantity error:", err);
-      toast.error("Failed to update stock quantity.");
-    }
-  };
-
   if (authLoading || loading) return <Loading />;
 
   return (
@@ -196,7 +131,9 @@ export default function AdminArtworksPage() {
       <div className="bg-[var(--surface)] p-6 rounded-2xl border border-[var(--border-line)] flex items-center justify-between shadow-lg">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-main)] tracking-wide">Manage All Artworks</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1">Review and remove listed artworks from the platform.</p>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
+            Review listed artworks and moderate the marketplace catalog. (Stock inventory is managed by artists)
+          </p>
         </div>
         <div className="bg-amber-500/10 text-amber-500 p-3 rounded-xl border border-amber-500/20">
           <ShieldAlert size={24} />
@@ -220,6 +157,9 @@ export default function AdminArtworksPage() {
           ) : (
             artworks.map((art) => {
               const currentId = art._id || art.id;
+              const stockVal = typeof art.quantity === "number" ? art.quantity : 0;
+              const isSoldOut = Boolean(art.isSold || stockVal <= 0);
+
               return (
                 <div key={currentId} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[var(--hover-bg)] transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
@@ -244,36 +184,20 @@ export default function AdminArtworksPage() {
                   <div className="flex items-center gap-3 ml-auto sm:ml-0 shrink-0">
                     <span className="text-sm font-black text-[#df6742]">${art.price}</span>
 
-                    {/* Stock Increment / Decrement */}
-                    <div className="flex items-center gap-1.5 bg-[var(--background)] px-2 py-1 rounded-xl border border-[var(--border-line)]">
-                      <button
-                        type="button"
-                        onClick={() => handleQuantityChange(currentId, -1)}
-                        disabled={(typeof art.quantity === "number" ? art.quantity : 10) <= 0}
-                        className="p-1 rounded hover:bg-red-500/20 text-[var(--text-muted)] hover:text-red-400 transition-colors disabled:opacity-30 cursor-pointer"
-                        title="Decrease Stock"
-                      >
-                        <Minus size={12} />
-                      </button>
-                      <span className="font-bold text-xs min-w-5 text-center text-[var(--text-main)]">
-                        {typeof art.quantity === "number" ? art.quantity : 10}
+                    {/* Read-Only Stock Indicator (Admin cannot modify stock; only artists can) */}
+                    <div className="flex items-center gap-1.5 bg-[var(--background)] px-2.5 py-1 rounded-xl border border-[var(--border-line)]" title="Artwork stock (Artist managed)">
+                      <span className="text-[11px] font-medium text-[var(--text-muted)]">Stock:</span>
+                      <span className="font-bold text-xs text-[var(--text-main)]">
+                        {stockVal}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handleQuantityChange(currentId, 1)}
-                        className="p-1 rounded hover:bg-emerald-500/20 text-[var(--text-muted)] hover:text-emerald-400 transition-colors cursor-pointer"
-                        title="Increase Stock"
-                      >
-                        <Plus size={12} />
-                      </button>
                     </div>
 
                     <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded border tracking-wider ${
-                      art.isSold || (typeof art.quantity === "number" && art.quantity <= 0)
+                      isSoldOut
                         ? "bg-red-500/10 text-red-400 border-red-500/15"
                         : "bg-emerald-500/10 text-emerald-400 border-emerald-500/15"
                     }`}>
-                      {art.isSold || (typeof art.quantity === "number" && art.quantity <= 0) ? "Sold Out" : "Available"}
+                      {isSoldOut ? "Sold Out" : "Available"}
                     </span>
                   </div>
 
@@ -281,14 +205,14 @@ export default function AdminArtworksPage() {
                     <button
                       onClick={() => router.push(`/browse/${currentId}`)}
                       title="View Artwork"
-                      className="p-2 rounded-lg bg-[var(--hover-bg)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-line)] transition-colors"
+                      className="p-2 rounded-lg bg-[var(--hover-bg)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--border-line)] transition-colors cursor-pointer"
                     >
                       <Eye size={16} />
                     </button>
                     <button
                       onClick={() => triggerDeletePrompt(currentId)}
                       title="Delete Artwork"
-                      className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
+                      className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -306,7 +230,7 @@ export default function AdminArtworksPage() {
           <div className="bg-[var(--surface)] border border-[var(--border-line)] w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
             <button
               onClick={() => { if (!isDeleting) setIsDeleteModalOpen(false); }}
-              className="absolute top-4 right-4 text-[var(--text-subtle)] hover:text-[var(--text-main)] transition-colors"
+              className="absolute top-4 right-4 text-[var(--text-subtle)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
               disabled={isDeleting}
             >
               <X size={18} />
@@ -324,17 +248,19 @@ export default function AdminArtworksPage() {
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
                 disabled={isDeleting}
-                className="px-4 py-2 bg-[var(--hover-bg)] border border-[var(--border-line)] hover:bg-[var(--border-line)] text-xs font-semibold rounded-xl text-[var(--text-main)] transition-all uppercase tracking-wider"
+                className="px-4 py-2 bg-[var(--hover-bg)] border border-[var(--border-line)] hover:bg-[var(--border-line)] text-xs font-semibold rounded-xl text-[var(--text-main)] transition-all uppercase tracking-wider cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-xs font-semibold rounded-xl text-white shadow-lg transition-all uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-xs font-semibold rounded-xl text-white shadow-lg transition-all uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
               >
                 {isDeleting ? (
-                  <><Loader2 size={14} className="animate-spin" /> Deleting...</>
+                  <>
+                    <AppSpinner size="small" /> Deleting...
+                  </>
                 ) : (
                   "Delete Artwork"
                 )}

@@ -3,11 +3,11 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import AppSpinner from "@/components/shared/AppSpinner";
 import {
   Sparkles,
   X,
   Send,
-  Loader2,
   Bot,
   User,
   ArrowRight,
@@ -381,7 +381,7 @@ export default function AiArtAdvisor() {
                 {/* Loading State */}
                 {loading && (
                   <div className="flex items-center gap-2 text-xs text-text-muted pl-8">
-                    <Loader2 size={14} className="animate-spin text-[#df6742]" />
+                    <AppSpinner size="small" />
                     <span>Curating recommendations from gallery...</span>
                   </div>
                 )}

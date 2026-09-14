@@ -3,10 +3,11 @@
 import React, { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { CheckCircle, Loader2, ArrowRight, Palette, ShoppingBag, Home } from "lucide-react";
+import { CheckCircle, ArrowRight, Palette, ShoppingBag, Home } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getAuthToken } from "@/lib/auth-utils";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 // Success content component wrapped in Suspense for Next.js searchParams compatibility
 function SuccessContent() {
@@ -83,7 +84,7 @@ function SuccessContent() {
   if (authLoading || syncing) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center gap-3 text-[var(--text-main)]">
-        <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
+        <AppSpinner size="small" />
         <h2 className="text-lg font-bold">Verifying Payment...</h2>
         <p className="text-xs text-[var(--text-muted)]">Confirming your transaction with the secure ledger...</p>
       </div>
@@ -176,7 +177,7 @@ export default function SuccessPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+          <AppSpinner size="small" />
         </div>
       }
     >

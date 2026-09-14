@@ -2,7 +2,8 @@
 
 import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { XCircle, ArrowLeft, ShoppingBag, Loader2 } from "lucide-react";
+import { XCircle, ArrowLeft, ShoppingBag } from "lucide-react";
+import AppSpinner from "@/components/shared/AppSpinner";
 import Link from "next/link";
 
 // Cancel content component wrapped in Suspense for Next.js searchParams compatibility
@@ -73,7 +74,7 @@ export default function CheckoutCancelPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-[#df6742] animate-spin" />
+          <AppSpinner size="small" />
         </div>
       }
     >

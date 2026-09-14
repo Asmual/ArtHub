@@ -11,7 +11,6 @@ import {
   Sparkles,
   Crown,
   Palette,
-  Loader2,
   Lock,
   User,
   CheckCircle2,
@@ -20,6 +19,7 @@ import {
 } from "lucide-react";
 import NextLink from "next/link";
 import toast from "react-hot-toast";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 const PLAN_DATA = {
   basic: {
@@ -199,7 +199,7 @@ function PurchaseContent() {
   if (authLoading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--brand)]" />
+        <AppSpinner size="small" />
         <p className="text-xs text-foreground/60">Loading secure purchase details...</p>
       </div>
     );
@@ -415,7 +415,7 @@ function PurchaseContent() {
                 >
                   {isUpgradingRole ? (
                     <>
-                      <Loader2 size={14} className="animate-spin" />
+                      <AppSpinner size="small" />
                       <span>Upgrading to Artist...</span>
                     </>
                   ) : (
@@ -450,7 +450,7 @@ function PurchaseContent() {
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" />
+                    <AppSpinner size="small" />
                     <span>Redirecting to Stripe...</span>
                   </>
                 ) : (
@@ -464,9 +464,9 @@ function PurchaseContent() {
               <button
                 type="button"
                 disabled
-                className="w-full py-3.5 px-4 rounded-xl bg-surface border border-border-strong opacity-60 text-foreground/50 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed"
+                className="w-full py-3.5 px-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border-line)] text-foreground/40 font-bold text-xs uppercase tracking-wider cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <Lock size={15} />
+                <Lock size={14} />
                 <span>Artist Account Required to Pay</span>
               </button>
             )}
@@ -486,7 +486,7 @@ export default function PurchasePage() {
     <Suspense
       fallback={
         <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--brand)]" />
+          <AppSpinner size="small" />
           <p className="text-xs text-foreground/60">Loading purchase summary...</p>
         </div>
       }

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { Loader2 } from "lucide-react";
+import AppSpinner from "@/components/shared/AppSpinner";
 
 // Dashboard root redirector based on user authentication and role
 export default function DashboardIndexPage() {
@@ -31,7 +31,7 @@ export default function DashboardIndexPage() {
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-[var(--text-main)]">
-      <Loader2 className="w-8 h-8 animate-spin text-[#df6742]" />
+      <AppSpinner size="small" />
       <p className="text-xs text-[var(--text-muted)]">Navigating to your dashboard...</p>
     </div>
   );
