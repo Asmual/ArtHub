@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/api-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +11,13 @@ const PLAN_LIMITS = {
   ultimate: Infinity,
 };
 
-export async function GET() {
+export async function GET(req) {
   try {
+    const authCheck = await requireAdmin(req);
+    if (authCheck.error) {
+      return authCheck.response;
+    }
+
     const db = await getDB();
 
     // Fetch all artists and users
