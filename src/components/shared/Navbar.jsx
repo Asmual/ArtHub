@@ -109,7 +109,7 @@ const AvatarImage = ({ user, hasValidImage, onImageError, size = "w-8 h-8", ring
   );
 
 const SearchSuggestions = ({ isSearching, searchResults, onClose }) => (
-  <div className="absolute top-full left-0 w-full mt-2 bg-surface border border-border-line rounded-2xl shadow-2xl overflow-hidden z-50 py-2">
+  <div className="absolute top-full left-0 w-full mt-2 bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] backdrop-blur-xl border border-white/10 dark:border-white/10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.25)] overflow-hidden z-50 py-2">
     {isSearching ? (
       <div className="p-4 flex items-center gap-2 text-sm text-foreground/50">
         <div className="w-4 h-4 border-2 border-[var(--brand)] border-t-transparent rounded-full animate-spin" />
@@ -168,9 +168,9 @@ const AvatarDropdown = ({
       : "Buyer";
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-64 bg-surface border border-border-line rounded-2xl shadow-xl z-50 overflow-hidden">
-      {/* Compact Header: Avatar + Name + Role Badge (No email, minimal height) */}
-      <div className="px-3.5 py-2.5 bg-surface border-b border-border-line flex items-center gap-3">
+    <div className="absolute right-0 top-full mt-2 w-64 bg-[color-mix(in_srgb,var(--surface)_90%,transparent)] backdrop-blur-xl border border-white/10 dark:border-white/10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.25)] z-50 overflow-hidden">
+      {/* Compact Header: Avatar + Name + Role Badge */}
+      <div className="px-3.5 py-2.5 bg-transparent border-b border-border-line flex items-center gap-3">
         <button
           onClick={onNavigateProfile}
           type="button"
@@ -219,7 +219,7 @@ const AvatarDropdown = ({
         </div>
       )}
 
-      <div className="p-1.5 bg-surface">
+      <div className="p-1.5 bg-transparent">
         <button
           type="button"
           onClick={onLogout}
@@ -248,6 +248,7 @@ const Navbar = () => {
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -257,6 +258,21 @@ const Navbar = () => {
   const avatarRef = useRef(null);
   const desktopSearchRef = useRef(null);
   const mobileSearchRef = useRef(null);
+
+  /* Scroll detection for dynamic glassmorphic elevation */
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 15) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   /* Reset image error when user updates */
   useEffect(() => {
@@ -360,10 +376,16 @@ const Navbar = () => {
 
   return (
     <nav
-      className="bg-background/85 backdrop-blur-md backdrop-saturate-150 text-foreground shadow-md sticky top-0 z-50 h-16 flex items-center border-b border-border-line transition-colors"
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      className={`sticky top-0 z-50 h-16 flex items-center transition-all duration-300 ${
+        isScrolled
+          ? "bg-[color-mix(in_srgb,var(--background)_80%,transparent)] backdrop-blur-xl backdrop-saturate-180 border-b border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.18)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.38)]"
+          : "bg-[color-mix(in_srgb,var(--background)_88%,transparent)] backdrop-blur-lg backdrop-saturate-150 border-b border-border-line shadow-xs"
+      } text-foreground`}
+      style={{
+        fontFamily: "'Montserrat', sans-serif",
+        WebkitBackdropFilter: isScrolled ? "blur(20px) saturate(180%)" : "blur(12px) saturate(150%)",
+      }}
     >
-
       <div className="w-[95%] sm:w-[94%] lg:w-[92%] 2xl:w-[90%] mx-auto px-2 sm:px-4 lg:px-6 w-full">
         <div className="flex items-center h-16 gap-4">
 
@@ -386,7 +408,7 @@ const Navbar = () => {
             <form onSubmit={handleSearchSubmit}>
               <div className={`flex items-center w-full border rounded-full px-3.5 py-1.5 gap-2 transition-all duration-200 ${
                 isSearchFocused
-                  ? "border-[var(--brand)]/60 bg-[var(--hover-bg)]"
+                  ? "border-[var(--brand)]/60 bg-[var(--hover-bg)] shadow-xs"
                   : "border-border-line bg-[var(--hover-bg)]/60 hover:border-[var(--border-strong)]"
               }`}>
                 <Search size={15} className={`shrink-0 ${isSearchFocused ? "text-[var(--brand)]" : "text-foreground/40"}`} />
@@ -399,7 +421,7 @@ const Navbar = () => {
                   className="bg-transparent text-foreground text-sm placeholder-foreground/35 outline-none w-full"
                 />
                 {searchQuery && (
-                  <button type="button" onClick={() => setSearchQuery("")} className="text-foreground/40 hover:text-foreground/70 shrink-0">
+                  <button type="button" onClick={() => setSearchQuery("")} className="text-foreground/40 hover:text-foreground/70 shrink-0 cursor-pointer">
                     <X size={13} />
                   </button>
                 )}
@@ -422,7 +444,6 @@ const Navbar = () => {
             <NavLink href="/about-us" active={isActive("/about-us")}>About Us</NavLink>
             <NavLink href="/pricing" active={isActive("/pricing")}>Pricing</NavLink>
           </div>
-
 
           {/* DESKTOP AUTH & UTILITIES SECTION */}
           <div className="hidden md:flex items-center ml-auto gap-3 shrink-0">
@@ -506,7 +527,7 @@ const Navbar = () => {
               type="button"
               onClick={() => setIsWishlistOpen(true)}
               aria-label="Wishlist"
-              className="relative p-2 rounded-xl text-foreground/75 hover:text-red-500 bg-[var(--hover-bg)] border border-border-line transition-colors"
+              className="relative p-2 rounded-xl text-foreground/75 hover:text-red-500 bg-[var(--hover-bg)] border border-border-line transition-colors cursor-pointer"
             >
               <Heart size={18} />
               {wishlistCount > 0 && (
@@ -519,7 +540,7 @@ const Navbar = () => {
               type="button"
               onClick={() => setIsCartOpen(true)}
               aria-label="Shopping Cart"
-              className="relative p-2 rounded-xl text-foreground/75 hover:text-[var(--brand)] bg-[var(--hover-bg)] border border-border-line transition-colors"
+              className="relative p-2 rounded-xl text-foreground/75 hover:text-[var(--brand)] bg-[var(--hover-bg)] border border-border-line transition-colors cursor-pointer"
             >
               <ShoppingBag size={18} />
               {cartCount > 0 && (
@@ -533,7 +554,7 @@ const Navbar = () => {
               type="button"
               onClick={() => setIsMobileSearchOpen((p) => !p)}
               aria-label="Toggle search"
-              className={`p-2 rounded-xl border transition-colors ${
+              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
                 isMobileSearchOpen
                   ? "text-[var(--brand)] bg-[var(--brand)]/10 border-[var(--brand)]/30"
                   : "text-foreground/80 bg-[var(--hover-bg)] border-border-line hover:bg-[var(--hover-bg)]"
@@ -545,7 +566,7 @@ const Navbar = () => {
               type="button"
               onClick={() => setIsMobileMenuOpen((p) => !p)}
               aria-label="Toggle menu"
-              className="p-2 rounded-xl bg-[var(--hover-bg)] border border-border-line text-foreground hover:text-[var(--brand)] transition-colors"
+              className="p-2 rounded-xl bg-[var(--hover-bg)] border border-border-line text-foreground hover:text-[var(--brand)] transition-colors cursor-pointer"
             >
               {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -558,7 +579,7 @@ const Navbar = () => {
       {isMobileSearchOpen && (
         <div
           ref={mobileSearchRef}
-          className="absolute top-16 left-0 w-full md:hidden bg-surface border-t border-border-line shadow-xl z-50 px-4 py-3"
+          className="absolute top-16 left-0 w-full md:hidden bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] backdrop-blur-2xl border-t border-white/10 shadow-xl z-50 px-4 py-3"
         >
           <form onSubmit={handleSearchSubmit}>
             <div className="flex items-center border border-border-line bg-[var(--hover-bg)] rounded-full px-4 py-2 gap-2 focus-within:border-[var(--brand)]/50 transition-colors">
@@ -572,7 +593,7 @@ const Navbar = () => {
                 className="bg-transparent text-foreground text-sm placeholder-foreground/35 outline-none w-full"
               />
               {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery("")} className="text-foreground/40 hover:text-foreground/70 shrink-0">
+                <button type="button" onClick={() => setSearchQuery("")} className="text-foreground/40 hover:text-foreground/70 shrink-0 cursor-pointer">
                   <X size={13} />
                 </button>
               )}
@@ -592,7 +613,7 @@ const Navbar = () => {
 
       {/* MOBILE DRAWER MENU */}
       {isMobileMenuOpen && (
-        <div className="absolute top-16 left-0 w-full md:hidden bg-surface border-t border-border-line shadow-xl z-50 max-h-[calc(100vh-64px)] overflow-y-auto">
+        <div className="absolute top-16 left-0 w-full md:hidden bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] backdrop-blur-2xl border-t border-white/10 shadow-2xl z-50 max-h-[calc(100vh-64px)] overflow-y-auto">
           <div className="flex flex-col items-center gap-2 px-6 pt-5 pb-6">
 
             <NextLink
@@ -645,7 +666,6 @@ const Navbar = () => {
               Pricing
             </NextLink>
 
-
             <div className="w-full max-w-sm grid grid-cols-2 gap-2 my-1">
               <button
                 type="button"
@@ -653,7 +673,7 @@ const Navbar = () => {
                   setIsMobileMenuOpen(false);
                   setIsWishlistOpen(true);
                 }}
-                className="flex items-center justify-center gap-2 py-2 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-red-500 transition-colors"
+                className="flex items-center justify-center gap-2 py-2 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-red-500 transition-colors cursor-pointer"
               >
                 <Heart size={15} className="text-red-500" />
                 Wishlist ({wishlistCount})
@@ -664,7 +684,7 @@ const Navbar = () => {
                   setIsMobileMenuOpen(false);
                   setIsCartOpen(true);
                 }}
-                className="flex items-center justify-center gap-2 py-2 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-[var(--brand)] transition-colors"
+                className="flex items-center justify-center gap-2 py-2 rounded-xl border border-border-line bg-[var(--hover-bg)] text-xs font-bold text-foreground/80 hover:text-[var(--brand)] transition-colors cursor-pointer"
               >
                 <ShoppingBag size={15} className="text-[var(--brand)]" />
                 Cart ({cartCount})
@@ -677,7 +697,7 @@ const Navbar = () => {
                 <button
                   type="button"
                   onClick={() => setIsMobileDashboardOpen((p) => !p)}
-                  className={`w-full flex justify-center items-center gap-2 py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all ${
+                  className={`w-full flex justify-center items-center gap-2 py-2.5 rounded-xl text-sm font-bold tracking-wide transition-all cursor-pointer ${
                     pathname.startsWith("/dashboard")
                       ? "text-[var(--brand)] bg-[var(--hover-bg)]"
                       : "text-foreground/80 hover:bg-[var(--hover-bg)]"
