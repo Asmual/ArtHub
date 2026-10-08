@@ -29,20 +29,26 @@ export default function Artcard({ artwork }) {
   const inCart = isInCart(artId);
   const inWishlist = isInWishlist(artId);
 
-  const handleAddToCart = (e) => {
+  const userEmail = user?.email?.toLowerCase().trim();
+  const artistEmail = (artwork.artistEmail || artwork.userEmail || artwork.email || "").toLowerCase().trim();
+  const isOwner = Boolean(userEmail && artistEmail && userEmail === artistEmail);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isSold) {
-      return;
-    }
+    if (isSold) return;
     if (isAdmin) {
       toast.error("Admins cannot purchase artworks.");
+      return;
+    }
+    if (isOwner) {
+      toast.error("Artists cannot purchase their own artwork.");
       return;
     }
     addToCart(artwork);
   };
 
-  const handleBuyNow = (e) => {
+  const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (isSold) return;
@@ -51,8 +57,11 @@ export default function Artcard({ artwork }) {
       toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
       return;
     }
+    if (isOwner) {
+      toast.error("Artists cannot purchase their own artwork.");
+      return;
+    }
 
-    // Add to cart and trigger instant cart checkout drawer
     addToCart(artwork);
     setIsCartOpen(true);
   };
@@ -188,7 +197,7 @@ export default function Artcard({ artwork }) {
             </NextLink>
           </div>
 
-          {/* Action Buttons: Add to Cart & Buy Now */}
+          {/* Action Buttons: Add to Cart & Buy Now / Role Context */}
           {isSold ? (
             <button
               disabled
@@ -196,6 +205,22 @@ export default function Artcard({ artwork }) {
             >
               Sold Out
             </button>
+          ) : isOwner ? (
+            <NextLink
+              href={`/browse/${artId}`}
+              className="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+            >
+              <Eye size={13} />
+              <span>Your Artwork</span>
+            </NextLink>
+          ) : isAdmin ? (
+            <NextLink
+              href={`/browse/${artId}`}
+              className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
+            >
+              <Eye size={13} />
+              <span>Admin View</span>
+            </NextLink>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {/* Add to Cart Button */}

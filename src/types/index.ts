@@ -124,6 +124,7 @@ export interface CartItem {
   price: number;
   image: string;
   artistName?: string;
+  artistEmail?: string;
   quantity?: number;
   category?: string;
   isSold?: boolean;

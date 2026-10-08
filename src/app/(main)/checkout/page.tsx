@@ -83,8 +83,13 @@ function CheckoutContent() {
         const localData = await localRes.json();
         if (localRes.ok && localData?.url) {
           checkoutUrl = localData.url;
+        } else if (!localRes.ok && (localRes.status === 400 || localRes.status === 403 || localRes.status === 404)) {
+          throw new Error(localData?.message || "Checkout request was rejected.");
         }
-      } catch (localErr) {
+      } catch (localErr: any) {
+        if (localErr?.message && (localErr.message.includes("cannot purchase") || localErr.message.includes("sold out") || localErr.message.includes("rejected") || localErr.message.includes("not found"))) {
+          throw localErr;
+        }
         console.warn("[CHECKOUT] Internal route notice, trying backend fallback:", localErr?.message);
       }
 
