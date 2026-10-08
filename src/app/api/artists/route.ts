@@ -1,0 +1,84 @@
+import { NextResponse } from "next/server";
+import { getDB } from "@/lib/mongodb";
+
+export const revalidate = 60;
+
+export async function GET() {
+  try {
+    const db = await getDB();
+    const artists = await db
+      .collection("user")
+      .find({ role: "artist" })
+      .project({ password: 0, hashedPassword: 0 })
+      .toArray();
+
+    const artworkCollection = db.collection("artworks");
+    const orderCollection = db.collection("orders");
+
+    // Fetch all orders once for efficient mapping
+    const allOrders = await orderCollection.find({}).toArray();
+
+    const artistsWithStats = await Promise.all(
+      artists.map(async (artist: any) => {
+        const artistStrId = artist._id.toString();
+        const cleanName = (artist.name || "").trim();
+
+        const artworkConditions: any[] = [
+          { userId: artistStrId },
+          { artistId: artistStrId },
+          { userId: artist._id },
+          { artistId: artist._id },
+        ];
+        if (artist.email) {
+          artworkConditions.push(
+            { artistEmail: artist.email },
+            { artistEmail: artist.email.toLowerCase() },
+            { userEmail: artist.email }
+          );
+        }
+        if (cleanName) {
+          artworkConditions.push({
+            artistName: { $regex: new RegExp(`^${cleanName}$`, "i") },
+          });
+        }
+
+        const artworks = await artworkCollection
+          .find({ $or: artworkConditions })
+          .toArray();
+
+        const artworkIdSet = new Set(artworks.map((a: any) => a._id.toString()));
+        const artworkTitleSet = new Set(artworks.map((a: any) => a.title).filter(Boolean));
+
+        const matchedOrders = allOrders.filter((ord: any) => {
+          if (ord.artistId && (ord.artistId === artistStrId || ord.artistId === artist._id)) return true;
+          if (artist.email && (ord.artistEmail?.toLowerCase() === artist.email.toLowerCase() || ord.artwork?.artistEmail?.toLowerCase() === artist.email.toLowerCase() || ord.artworkDetails?.artistEmail?.toLowerCase() === artist.email.toLowerCase())) return true;
+          if (cleanName && (ord.artworkDetails?.artistName?.toLowerCase() === cleanName.toLowerCase() || ord.artwork?.artistName?.toLowerCase() === cleanName.toLowerCase())) return true;
+          if (ord.artworkId && artworkIdSet.has(ord.artworkId.toString())) return true;
+          if (ord.artworkTitle && artworkTitleSet.has(ord.artworkTitle)) return true;
+          return false;
+        });
+
+        const totalSold = matchedOrders.length;
+        const totalEarnings = matchedOrders.reduce(
+          (sum, ord: any) => sum + (Number(ord.amount || ord.price) || 0),
+          0
+        );
+
+        return {
+          ...artist,
+          _id: artistStrId,
+          totalArtworks: artworks.length,
+          totalSold,
+          totalSales: totalSold,
+          totalEarnings,
+          totalRevenue: totalEarnings,
+        };
+      })
+    );
+
+    return NextResponse.json(artistsWithStats);
+  } catch (err: any) {
+    console.error("[API ROUTE ERROR] Artists list error:", err?.message);
+    return NextResponse.json([], { status: 500 });
+  }
+}
