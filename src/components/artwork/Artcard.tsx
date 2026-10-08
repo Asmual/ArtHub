@@ -36,13 +36,17 @@ export default function Artcard({ artwork }) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isSold) return;
-    if (isAdmin) {
-      toast.error("Admins cannot purchase artworks.");
+
+    if (isSold) {
+      toast.error("This artwork is sold out! Please explore other available artworks in our gallery.");
       return;
     }
-    if (isOwner) {
-      toast.error("Artists cannot purchase their own artwork.");
+    if (isAdmin) {
+      toast.error("You are logged in as an Admin. Admins cannot purchase artworks. Only regular users can purchase.");
+      return;
+    }
+    if (user?.role === "artist" || isOwner) {
+      toast.error(isOwner ? "Artists cannot purchase their own artwork." : "Artists cannot purchase artworks. Please switch to a collector account.");
       return;
     }
     addToCart(artwork);
@@ -51,19 +55,29 @@ export default function Artcard({ artwork }) {
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isSold) return;
 
+    if (isSold) {
+      toast.error("This artwork is sold out! Please explore other available artworks in our gallery.");
+      return;
+    }
     if (isAdmin) {
-      toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      toast.error("You are logged in as an Admin. Admins cannot purchase artworks. Only regular users can purchase.");
       return;
     }
-    if (isOwner) {
-      toast.error("Artists cannot purchase their own artwork.");
+    if (user?.role === "artist" || isOwner) {
+      toast.error(isOwner ? "Artists cannot purchase their own artwork." : "Artists cannot purchase artworks. Please switch to a collector account.");
       return;
     }
 
-    addToCart(artwork);
-    setIsCartOpen(true);
+    if (!user) {
+      toast.error("Please login to proceed with purchase.");
+      router.push(`/login?redirect=/browse/${artId}`);
+      return;
+    }
+
+    router.push(
+      `/checkout?id=${artId}&title=${encodeURIComponent(artwork.title)}&price=${Number(artwork.price || 0)}`
+    );
   };
 
   const handleToggleWishlist = (e) => {
@@ -197,66 +211,43 @@ export default function Artcard({ artwork }) {
             </NextLink>
           </div>
 
-          {/* Action Buttons: Add to Cart & Buy Now / Role Context */}
-          {isSold ? (
+          {/* Action Buttons: Add to Cart & Buy Now (Uniform for all users, role/sold-out checks enforced on click via toast) */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Add to Cart Button */}
             <button
-              disabled
-              className="w-full bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/30 text-xs font-bold py-2.5 rounded-xl cursor-not-allowed uppercase tracking-wider text-center"
+              type="button"
+              onClick={handleAddToCart}
+              className={`flex items-center justify-center gap-1.5 text-xs font-bold py-2 px-2.5 rounded-xl border transition-all cursor-pointer active:scale-95 ${
+                inCart
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                  : isSold
+                  ? "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-red-500/40"
+                  : "bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white"
+              }`}
             >
-              Sold Out
+              {inCart ? (
+                <>
+                  <Check size={13} className="text-emerald-500" />
+                  <span>In Cart</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag size={13} />
+                  <span>Add Cart</span>
+                </>
+              )}
             </button>
-          ) : isOwner ? (
-            <NextLink
-              href={`/browse/${artId}`}
-              className="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
-            >
-              <Eye size={13} />
-              <span>Your Artwork</span>
-            </NextLink>
-          ) : isAdmin ? (
-            <NextLink
-              href={`/browse/${artId}`}
-              className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
-            >
-              <Eye size={13} />
-              <span>Admin View</span>
-            </NextLink>
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              {/* Add to Cart Button */}
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                className={`flex items-center justify-center gap-1.5 text-xs font-bold py-2 px-2.5 rounded-xl border transition-all cursor-pointer active:scale-95 ${
-                  inCart
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                    : "bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white"
-                }`}
-              >
-                {inCart ? (
-                  <>
-                    <Check size={13} className="text-emerald-500" />
-                    <span>In Cart</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag size={13} />
-                    <span>Add Cart</span>
-                  </>
-                )}
-              </button>
 
-              {/* Buy Now Button */}
-              <button
-                type="button"
-                onClick={handleBuyNow}
-                className="bg-gradient-to-r from-[var(--brand)] to-[#b34928] hover:opacity-95 text-white text-xs font-bold py-2 px-2.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1"
-              >
-                <span>Buy Now</span>
-                <ArrowRight size={12} />
-              </button>
-            </div>
-          )}
+            {/* Buy Now Button */}
+            <button
+              type="button"
+              onClick={handleBuyNow}
+              className="bg-gradient-to-r from-[var(--brand)] to-[#b34928] hover:opacity-95 text-white text-xs font-bold py-2 px-2.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+            >
+              <span>Buy Now</span>
+              <ArrowRight size={12} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

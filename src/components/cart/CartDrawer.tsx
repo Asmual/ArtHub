@@ -36,8 +36,12 @@ export default function CartDrawer() {
       toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
       return;
     }
-    if (user?.email && item.artistEmail === user.email) {
-      toast.error("Artists cannot purchase their own artworks.");
+    if (user?.role === "artist") {
+      toast.error(
+        user?.email && item.artistEmail === user.email
+          ? "Artists cannot purchase their own artworks."
+          : "Artists cannot purchase artworks. Please switch to a collector account."
+      );
       return;
     }
     setIsCartOpen(false);
@@ -52,9 +56,13 @@ export default function CartDrawer() {
       toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
       return;
     }
-    const ownedItem = cartItems.find((it) => user?.email && it.artistEmail === user.email);
-    if (ownedItem) {
-      toast.error(`You cannot purchase your own artwork ("${ownedItem.title}"). Please remove it from your cart.`);
+    if (user?.role === "artist") {
+      const ownedItem = cartItems.find((it) => user?.email && it.artistEmail === user.email);
+      if (ownedItem) {
+        toast.error(`You cannot purchase your own artwork ("${ownedItem.title}"). Please remove it from your cart.`);
+      } else {
+        toast.error("Artists cannot purchase artworks. Please switch to a collector account.");
+      }
       return;
     }
     const firstItem = cartItems[0];

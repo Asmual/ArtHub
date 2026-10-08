@@ -53,6 +53,10 @@ export default function AiArtAdvisor() {
       toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
       return;
     }
+    if (user?.role === "artist") {
+      toast.error("Artists cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
     setIsOpen(false);
     router.push(`/checkout?id=${art.id}&title=${encodeURIComponent(art.title || "Artwork")}&price=${art.price || 0}`);
   };

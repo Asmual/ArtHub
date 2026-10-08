@@ -38,6 +38,11 @@ function CheckoutContent() {
         router.push("/browse");
         return;
       }
+      if (user?.role === "artist") {
+        toast.error("Artists cannot purchase artworks. Please switch to a collector account.");
+        router.push("/browse");
+        return;
+      }
       if (!artworkId || orderPrice <= 0) {
         toast.error("Invalid checkout parameters.");
         router.push("/browse");
@@ -49,6 +54,10 @@ function CheckoutContent() {
   const handleCheckout = async () => {
     if (user?.role === "admin") {
       toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
+    if (user?.role === "artist") {
+      toast.error("Artists cannot purchase artworks. Please switch to a collector account.");
       return;
     }
 
