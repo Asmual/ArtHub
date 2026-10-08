@@ -14,20 +14,16 @@ import {
   ShoppingBag,
   ShoppingCart,
   Heart,
-  Share2,
+  Star,
   CheckCircle2,
   ShieldCheck,
-  Truck,
-  RotateCcw,
   Maximize2,
   X,
   Palette,
   Check,
-  ChevronRight,
-  Layers,
-  Sparkles,
   ArrowRight,
   Info,
+  CreditCard,
 } from "lucide-react";
 
 interface ArtworkDetailsClientProps {
@@ -45,8 +41,9 @@ export default function ArtworkDetailsClient({
 
   const { addToCart, isInCart, toggleWishlist, isInWishlist } = useCart();
 
+  const [activeThumbnailIndex, setActiveThumbnailIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"description" | "specifications" | "shipping">("description");
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const artId = artwork?._id?.toString() || artwork?.id;
 
@@ -113,6 +110,13 @@ export default function ArtworkDetailsClient({
     }
   };
 
+  // Thumbnail views (matching the multi-angle gallery in the reference image)
+  const thumbnailViews = [
+    { label: "Full View", image: artwork?.image, fit: "object-contain sm:object-cover" },
+    { label: "Close-up", image: artwork?.image, fit: "object-cover scale-125" },
+    { label: "Perspective", image: artwork?.image, fit: "object-cover" },
+  ];
+
   // Action Handler: Add to Cart
   const handleAddToCart = () => {
     if (isSold) {
@@ -177,420 +181,408 @@ export default function ArtworkDetailsClient({
     router.push(`/checkout?id=${artId}&title=${titleParam}&price=${priceParam}`);
   };
 
-  // Handle Share link copy
-  const handleShare = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("Artwork link copied to clipboard!");
+  const scrollToReviews = () => {
+    const reviewsEl = document.getElementById("reviews-section");
+    if (reviewsEl) {
+      reviewsEl.scrollIntoView({ behavior: "smooth" });
     }
   };
 
+  const basePrice = Number(artwork?.price || 0);
+  const originalValuation = (basePrice * 1.35).toFixed(2);
+
   return (
     <main
-      className="min-h-screen bg-[#f8fafc] dark:bg-[#13191c] py-3 sm:py-5 px-3 sm:px-6 lg:px-8 text-slate-800 dark:text-slate-100"
+      className="min-h-screen bg-[#fcfcfc] dark:bg-[#13191c] py-5 px-4 sm:px-6 lg:px-8 text-slate-800 dark:text-slate-100"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-6xl mx-auto space-y-5 sm:space-y-6">
-        {/* Sleek Breadcrumb Navigation */}
-        <nav className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 overflow-x-auto whitespace-nowrap">
+      {/* Constrained, proportional container width (Not overly wide) */}
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Breadcrumb Navigation (Matching the reference layout) */}
+        <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 overflow-x-auto whitespace-nowrap">
           <Link href="/" className="hover:text-[var(--brand)] transition-colors">
             Home
           </Link>
-          <ChevronRight size={12} className="shrink-0 text-slate-400" />
+          <span className="text-slate-300 dark:text-slate-600">/</span>
           <Link href="/browse" className="hover:text-[var(--brand)] transition-colors">
             Gallery
           </Link>
-          <ChevronRight size={12} className="shrink-0 text-slate-400" />
+          <span className="text-slate-300 dark:text-slate-600">/</span>
           {artwork?.category && (
             <>
               <Link
                 href={`/browse?category=${encodeURIComponent(artwork.category)}`}
-                className="hover:text-[var(--brand)] transition-colors uppercase font-medium"
+                className="hover:text-[var(--brand)] transition-colors capitalize"
               >
                 {artwork.category}
               </Link>
-              <ChevronRight size={12} className="shrink-0 text-slate-400" />
+              <span className="text-slate-300 dark:text-slate-600">/</span>
             </>
           )}
-          <span className="text-slate-900 dark:text-white font-bold truncate max-w-[200px] sm:max-w-xs">
+          <span className="text-slate-900 dark:text-white font-medium truncate max-w-xs">
             {artwork?.title || "Artwork Details"}
           </span>
         </nav>
 
-        {/* Primary Showcase Card (Fits completely on one screen below navbar) */}
-        <div className="bg-white dark:bg-[#1c2429] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-7 items-center">
-            {/* Left Column: Artwork Image Container (5 cols) */}
-            <div className="lg:col-span-5 space-y-2.5">
-              <div className="relative h-[260px] sm:h-[320px] lg:h-[360px] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 group">
-                {artwork?.image ? (
-                  <Image
-                    src={artwork.image}
-                    alt={artwork.title || "Artwork"}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 40vw"
-                    className="object-contain sm:object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
-                    onClick={() => setIsLightboxOpen(true)}
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                    <Palette size={40} className="stroke-[1.5]" />
-                    <span className="text-xs mt-1">Artwork Preview Unavailable</span>
-                  </div>
-                )}
-
-                {/* Top Floating Badges */}
-                <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 pointer-events-none">
-                  {artwork?.category && (
-                    <span className="bg-[var(--brand)] text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
-                      {artwork.category}
-                    </span>
-                  )}
-                  {isSold ? (
-                    <span className="bg-red-600/95 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 border border-red-400/30">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                      Sold Out
-                    </span>
-                  ) : (
-                    <span className="bg-emerald-600/95 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 border border-emerald-400/30">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                      Available
-                    </span>
-                  )}
-                </div>
-
-                {/* Bottom Right Zoom Button */}
+        {/* Top Product Showcase (Two-Column Layout matching reference image) */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Vertical Thumbnails + Main Image Showcase (6 cols) */}
+          <div className="md:col-span-6 lg:col-span-6 flex gap-3.5">
+            {/* Vertical Thumbnail Strip (As in image reference) */}
+            <div className="flex flex-col gap-3 w-16 sm:w-20 shrink-0">
+              {thumbnailViews.map((thumb, idx) => (
                 <button
+                  key={idx}
                   type="button"
-                  onClick={() => setIsLightboxOpen(true)}
-                  title="Expand artwork preview"
-                  className="absolute bottom-2.5 right-2.5 p-1.5 rounded-lg bg-black/60 hover:bg-black/85 backdrop-blur-md text-white transition-all shadow-md cursor-pointer"
+                  onClick={() => setActiveThumbnailIndex(idx)}
+                  className={`relative aspect-3/4 w-full rounded-md overflow-hidden bg-slate-100 dark:bg-black/30 border-2 transition-all cursor-pointer ${
+                    activeThumbnailIndex === idx
+                      ? "border-[var(--brand)] shadow-sm"
+                      : "border-slate-200 dark:border-white/10 hover:border-slate-400 opacity-75 hover:opacity-100"
+                  }`}
                 >
-                  <Maximize2 size={14} />
+                  {thumb.image ? (
+                    <img
+                      src={thumb.image}
+                      alt={thumb.label}
+                      className={`w-full h-full object-cover ${
+                        idx === 1 ? "scale-125 object-center" : ""
+                      }`}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-[10px]">
+                      View
+                    </div>
+                  )}
                 </button>
-              </div>
+              ))}
+            </div>
 
-              {/* Compact Image Footer Strip */}
-              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1">
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                  <ShieldCheck size={13} /> 100% Certified Authentic Original
+            {/* Main Primary Image Display */}
+            <div className="relative flex-1 aspect-3/4 max-h-[500px] rounded-lg overflow-hidden bg-slate-100 dark:bg-black/30 border border-slate-200 dark:border-white/10 group">
+              {artwork?.image ? (
+                <Image
+                  src={artwork.image}
+                  alt={artwork.title || "Artwork Image"}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className={`transition-all duration-300 ${
+                    thumbnailViews[activeThumbnailIndex]?.fit || "object-contain"
+                  }`}
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                  <Palette size={40} className="stroke-[1.5]" />
+                  <span className="text-xs mt-2">No Artwork Image</span>
+                </div>
+              )}
+
+              {/* Status Badge overlay */}
+              {isSold && (
+                <span className="absolute top-3 left-3 bg-red-600/90 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+                  Sold Out
+                </span>
+              )}
+
+              {/* Expand to Lightbox button */}
+              <button
+                type="button"
+                onClick={() => setIsLightboxOpen(true)}
+                title="View Fullscreen"
+                className="absolute bottom-3 right-3 p-2 rounded-md bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs transition-colors cursor-pointer"
+              >
+                <Maximize2 size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* Right Column: Title, Ratings, Pricing, Buttons & Payment Methods (6 cols) */}
+          <div className="md:col-span-6 lg:col-span-6 space-y-4">
+            {/* Title */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                {artwork?.title || "Original Artwork"}
+              </h1>
+
+              {/* Rating & Review summary line (As in image reference) */}
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center text-amber-400">
+                  <Star size={14} className="fill-amber-400 stroke-amber-400" />
+                  <Star size={14} className="fill-amber-400 stroke-amber-400" />
+                  <Star size={14} className="fill-amber-400 stroke-amber-400" />
+                  <Star size={14} className="fill-amber-400 stroke-amber-400" />
+                  <Star size={14} className="fill-amber-400 stroke-amber-400" />
+                </div>
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  4.8
                 </span>
                 <button
                   type="button"
-                  onClick={handleShare}
-                  className="flex items-center gap-1 font-bold text-slate-600 dark:text-slate-300 hover:text-[var(--brand)] transition-colors cursor-pointer"
+                  onClick={scrollToReviews}
+                  className="text-xs text-slate-500 hover:text-[var(--brand)] underline cursor-pointer"
                 >
-                  <Share2 size={13} /> Share
+                  (18 reviews)
                 </button>
               </div>
             </div>
 
-            {/* Right Column: Title, Artist, Price, Buttons & Trust (7 cols) */}
-            <div className="lg:col-span-7 space-y-3 lg:space-y-3.5">
-              {/* Header: Category / ID + Title */}
-              <div>
-                <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                  <span className="font-bold uppercase tracking-wider text-[var(--brand)]">
-                    Original Studio Masterpiece
-                  </span>
-                  <span>Published {formatBDDateTime(artwork?.createdAt)}</span>
-                </div>
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white leading-tight tracking-tight line-clamp-2">
-                  {artwork?.title || "Original Artwork"}
-                </h1>
+            {/* Price & Wishlist Row (As in image reference) */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-baseline gap-2.5">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[var(--brand)] dark:text-[var(--brand)]">
+                  ${basePrice.toFixed(2)}
+                </span>
+                <span className="text-sm font-medium text-slate-400 line-through">
+                  ${originalValuation}
+                </span>
               </div>
 
-              {/* Artist Row */}
-              <div className="flex items-center justify-between py-2 px-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[var(--brand)] to-[#b34928] text-white font-black text-xs flex items-center justify-center uppercase shadow-xs shrink-0">
-                    {(artistRealName || "A")[0]}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-bold text-slate-800 dark:text-white text-xs">
-                        {artistRealName}
-                      </span>
-                      <span
-                        className="w-3.5 h-3.5 rounded-full bg-[#1d9bf0] text-white flex items-center justify-center text-[8px]"
-                        title="Verified Creator"
-                      >
-                        ✓
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                      {artwork?.specialty || artwork?.category || "Fine Art"} Creator
-                    </p>
-                  </div>
-                </div>
+              {/* Add to Wish List Button (As in image reference) */}
+              <button
+                type="button"
+                onClick={() => toggleWishlist(artwork)}
+                className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-red-500 transition-colors cursor-pointer"
+              >
+                <Heart
+                  size={15}
+                  className={inWishlist ? "fill-red-500 text-red-500" : "text-slate-600 dark:text-slate-300"}
+                />
+                <span>{inWishlist ? "Wishlisted" : "Add to Wish List"}</span>
+              </button>
+            </div>
 
-                {artistId && (
-                  <Link
-                    href={`/artists-profile/${artistId.toString()}`}
-                    className="text-[11px] font-bold text-[var(--brand)] hover:underline flex items-center gap-0.5"
+            {/* Artist & Category Info */}
+            <div className="py-2.5 px-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500 dark:text-slate-400">Creator:</span>
+                <span className="font-bold text-slate-800 dark:text-white flex items-center gap-1">
+                  {artistRealName}
+                  <span
+                    className="w-3.5 h-3.5 rounded-full bg-[#1d9bf0] text-white flex items-center justify-center text-[8px]"
+                    title="Verified Artist"
                   >
-                    Profile <ChevronRight size={12} />
-                  </Link>
+                    ✓
+                  </span>
+                </span>
+              </div>
+
+              {artwork?.category && (
+                <span className="text-[11px] font-semibold text-[var(--brand)] bg-[var(--brand)]/10 px-2 py-0.5 rounded">
+                  {artwork.category}
+                </span>
+              )}
+            </div>
+
+            {/* Action Buttons: Add to Cart & Buy Now */}
+            <div className="space-y-2.5 pt-1">
+              {/* Primary Add to Cart Button */}
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className={`w-full py-3 px-5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.99] ${
+                  inCart
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                    : "bg-slate-900 hover:bg-black dark:bg-white dark:text-slate-900 text-white"
+                }`}
+              >
+                {inCart ? (
+                  <>
+                    <Check size={16} />
+                    <span>In Cart</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={16} />
+                    <span>Add to Cart</span>
+                  </>
                 )}
-              </div>
+              </button>
 
-              {/* Price & Stock Strip */}
-              <div className="p-3 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-200/70 dark:border-white/5 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-2xl sm:text-3xl font-black text-[var(--brand)]">
-                    ${Number(artwork?.price || 0).toFixed(2)}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-400 line-through">
-                    ${(Number(artwork?.price || 0) * 1.25).toFixed(2)}
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                    Studio Price
+              {/* Instant Buy Now Button */}
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                className="w-full py-3 px-5 rounded-lg font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white shadow-sm active:scale-[0.99]"
+              >
+                <ShoppingBag size={16} />
+                <span>Buy Now</span>
+              </button>
+            </div>
+
+            {/* Express Shipping & Returns Notice (As in image reference) */}
+            <div className="p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 text-xs text-slate-600 dark:text-slate-300 space-y-1">
+              <p>
+                Enjoy <span className="font-bold underline">FREE express</span> &{" "}
+                <span className="font-bold underline">Free Returns</span> on verified art orders!
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Packed in custom protective wooden crating with Certificate of Authenticity.
+              </p>
+            </div>
+
+            {/* Payment Method Badges (bKash, Nagad, Visa, Mastercard, AMEX) */}
+            <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-white/5">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                Payment method
+              </span>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* VISA */}
+                <div
+                  className="h-7 px-2.5 rounded border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center shadow-2xs"
+                  title="Visa"
+                >
+                  <span className="text-[#1a1f71] dark:text-[#5c7cfa] font-black italic text-xs tracking-wider">
+                    VISA
                   </span>
                 </div>
 
-                <div>
-                  {isSold ? (
-                    <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20">
-                      Sold Out
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      In Stock {typeof stockQty === "number" && stockQty > 0 ? `(${stockQty})` : ""}
-                    </span>
-                  )}
+                {/* Mastercard */}
+                <div
+                  className="h-7 px-2.5 rounded border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center gap-0.5 shadow-2xs"
+                  title="Mastercard"
+                >
+                  <span className="w-3 h-3 rounded-full bg-[#eb001b] -mr-1 inline-block opacity-90" />
+                  <span className="w-3 h-3 rounded-full bg-[#f79e1b] inline-block opacity-90" />
                 </div>
-              </div>
 
-              {/* Main Action Buttons: Buy Now, Add to Cart, Wishlist */}
-              <div className="flex items-center gap-2 pt-0.5">
-                {/* 1. Buy Now Button */}
+                {/* AMEX */}
+                <div
+                  className="h-7 px-2 rounded border border-slate-200 dark:border-white/10 bg-[#016fd0]/10 text-[#016fd0] dark:text-[#45aaf2] flex items-center justify-center shadow-2xs"
+                  title="American Express"
+                >
+                  <span className="font-black text-[10px] tracking-tight">AMEX</span>
+                </div>
+
+                {/* bKash */}
+                <div
+                  className="h-7 px-2.5 rounded border border-[#e2136e]/20 bg-[#e2136e]/10 text-[#e2136e] flex items-center justify-center font-extrabold text-[11px] shadow-2xs"
+                  title="bKash Payment"
+                >
+                  <span>bKash</span>
+                </div>
+
+                {/* Nagad */}
+                <div
+                  className="h-7 px-2.5 rounded border border-[#f7931e]/20 bg-[#f7931e]/10 text-[#d35400] flex items-center justify-center font-extrabold text-[11px] shadow-2xs"
+                  title="Nagad Payment"
+                >
+                  <span>Nagad</span>
+                </div>
+
+                {/* Learn more link */}
                 <button
                   type="button"
-                  onClick={handleBuyNow}
-                  className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-[var(--brand)] to-[#b34928] hover:opacity-95 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-md shadow-[var(--brand)]/15 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="text-xs text-slate-500 hover:text-[var(--brand)] underline cursor-pointer ml-1"
                 >
-                  <ShoppingBag size={15} />
-                  <span>Buy Now</span>
+                  Learn more
                 </button>
-
-                {/* 2. Add to Cart Button */}
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className={`flex-1 py-2.5 sm:py-3 px-4 rounded-xl border font-extrabold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 ${
-                    inCart
-                      ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
-                      : "bg-white dark:bg-white/5 border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:border-[var(--brand)] hover:text-[var(--brand)]"
-                  }`}
-                >
-                  {inCart ? (
-                    <>
-                      <Check size={15} className="text-emerald-500" />
-                      <span>In Cart</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart size={15} />
-                      <span>Add Cart</span>
-                    </>
-                  )}
-                </button>
-
-                {/* 3. Wishlist Button */}
-                <button
-                  type="button"
-                  onClick={() => toggleWishlist(artwork)}
-                  title={inWishlist ? "Remove from wishlist" : "Save to wishlist"}
-                  className={`p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer shrink-0 ${
-                    inWishlist
-                      ? "bg-red-500/10 border-red-500/30 text-red-500"
-                      : "bg-white dark:bg-white/5 border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 hover:text-red-500"
-                  }`}
-                >
-                  <Heart size={16} className={inWishlist ? "fill-red-500" : ""} />
-                </button>
-              </div>
-
-              {/* Compact Trust Chips (2x2 Grid) */}
-              <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                  <Truck size={14} className="text-emerald-500 shrink-0" />
-                  <span className="truncate">Insured Transit (3-7 Days)</span>
-                </div>
-                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                  <ShieldCheck size={14} className="text-blue-500 shrink-0" />
-                  <span className="truncate">Hand-Signed with COA</span>
-                </div>
-                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                  <CheckCircle2 size={14} className="text-purple-500 shrink-0" />
-                  <span className="truncate">Encrypted Stripe Checkout</span>
-                </div>
-                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
-                  <RotateCcw size={14} className="text-amber-500 shrink-0" />
-                  <span className="truncate">7-Day Inspection Return</span>
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Detailed Tabs Section (Description / Specifications / Shipping) */}
-        <div className="bg-white dark:bg-[#1c2429] rounded-3xl border border-slate-200/80 dark:border-white/10 p-6 sm:p-8 space-y-6">
-          {/* Tab Navigation */}
-          <div className="flex items-center gap-4 border-b border-slate-200 dark:border-white/10 overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab("description")}
-              className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "description"
-                  ? "border-[var(--brand)] text-[var(--brand)]"
-                  : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-white"
-              }`}
-            >
-              Artwork Story & Description
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("specifications")}
-              className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "specifications"
-                  ? "border-[var(--brand)] text-[var(--brand)]"
-                  : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-white"
-              }`}
-            >
-              Technical Specifications
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("shipping")}
-              className={`pb-3 text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === "shipping"
-                  ? "border-[var(--brand)] text-[var(--brand)]"
-                  : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-white"
-              }`}
-            >
-              Packaging & Logistics
-            </button>
+        {/* Product Details Section (Linear, not in tabs, directly as requested) */}
+        <div className="pt-6 border-t border-slate-200 dark:border-white/10 space-y-4">
+          <div className="border-b border-slate-200 dark:border-white/10 pb-3">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white inline-block border-b-2 border-[var(--brand)] pb-3 -mb-3.5">
+              Product Details
+            </h2>
           </div>
 
-          {/* Tab Contents */}
-          {activeTab === "description" && (
-            <div className="space-y-4 max-w-4xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                About &ldquo;{artwork?.title}&rdquo;
-              </h3>
-              <p className="whitespace-pre-line">
-                {artwork?.description ||
-                  "This distinctive piece represents the creator's vision and exploration of medium, form, and emotional depth. Produced with archival grade materials to ensure lasting vibrancy for generations of art collectors."}
-              </p>
-              <div className="pt-2 flex items-center gap-2 text-xs text-slate-400">
-                <Info size={14} />
-                <span>Curated for authenticity by the ArtHub International Fine Art Registry.</span>
-              </div>
-            </div>
-          )}
+          <div className="space-y-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300 pt-2">
+            <p className="whitespace-pre-line">
+              {artwork?.description ||
+                `Step into a realm of creative depth with "${artwork?.title || "Original Artwork"}", crafted by verified artist ${artistRealName}. Produced with museum-grade archival materials to maintain lasting brilliance, depth, and texture for collectors.`}
+            </p>
 
-          {activeTab === "specifications" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-              <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Category
-                </span>
-                <span className="font-bold text-slate-800 dark:text-white text-sm mt-0.5 block">
-                  {artwork?.category || "Fine Art"}
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Medium & Technique
-                </span>
-                <span className="font-bold text-slate-800 dark:text-white text-sm mt-0.5 block">
-                  {artwork?.specialty || "Original Medium on Archival Surface"}
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Edition
-                </span>
-                <span className="font-bold text-slate-800 dark:text-white text-sm mt-0.5 block">
-                  Original 1 of 1 Edition
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Artist Studio
-                </span>
-                <span className="font-bold text-slate-800 dark:text-white text-sm mt-0.5 block">
-                  {artistRealName}
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Date of Creation
-                </span>
-                <span className="font-bold text-slate-800 dark:text-white text-sm mt-0.5 block">
-                  {formatBDDateTime(artwork?.createdAt)}
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Availability
-                </span>
-                <span className="font-bold text-slate-800 dark:text-white text-sm mt-0.5 block">
-                  {isSold ? "Archived / Sold Out" : "Available in Studio"}
-                </span>
-              </div>
-            </div>
-          )}
+            <p>
+              Each original piece from ArtHub is certified authentic and comes accompanied by a physical, hand-signed Certificate of Authenticity (COA) specifying origin, medium, and registration.
+            </p>
 
-          {activeTab === "shipping" && (
-            <div className="space-y-4 max-w-4xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Packaging & Delivery Protocols
-              </h3>
-              <p>
-                Each artwork is packaged under strict museum preservation standards. The canvas/media is protected by acid-free glassine paper, heavy-gauge corner guards, dual moisture barrier wrap, and custom wooden crating.
-              </p>
-              <ul className="list-disc pl-5 space-y-1 text-xs">
-                <li>Estimated delivery window: 3 to 7 business days worldwide.</li>
-                <li>Real-time door-to-door courier tracking sent to your registered email.</li>
-                <li>Comprehensive transit insurance included on all shipments.</li>
+            {/* Bullet points (As shown in reference image) */}
+            <div className="pt-2">
+              <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pl-1">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] shrink-0" />
+                  <span>
+                    <strong>Category:</strong> {artwork?.category || "Fine Art"}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] shrink-0" />
+                  <span>
+                    <strong>Medium & Surface:</strong> {artwork?.specialty || "Original Medium on Archival Canvas"}
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] shrink-0" />
+                  <span>
+                    <strong>Edition:</strong> Original 1 of 1 Edition
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] shrink-0" />
+                  <span>
+                    <strong>Artist:</strong> {artistRealName} (Verified Creator)
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] shrink-0" />
+                  <span>
+                    <strong>Documentation:</strong> Signed Physical Certificate of Authenticity (COA) Included
+                  </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] shrink-0" />
+                  <span>
+                    <strong>Delivery:</strong> 3–7 business days insured transit in reinforced wooden crating
+                  </span>
+                </li>
               </ul>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Customer Reviews Section */}
-        <div className="bg-white dark:bg-[#1c2429] rounded-3xl border border-slate-200/80 dark:border-white/10 p-6 sm:p-8">
-          {isPending ? (
-            <div className="text-sm text-slate-500 dark:text-slate-400 animate-pulse">
-              Verifying collector authentication status...
-            </div>
-          ) : (
-            <ReviewSection
-              artworkId={artwork?._id}
-              currentUser={user}
-              hasPaid={hasPaid}
-              isAdmin={isAdmin}
-              isArtist={isArtist}
-              isArtworkOwner={isOwner}
-              artworkOwnerEmail={artwork?.artistEmail || artwork?.userEmail}
-            />
-          )}
+        {/* Customer Reviews Section (Directly underneath Product Details) */}
+        <div id="reviews-section" className="pt-6 border-t border-slate-200 dark:border-white/10 space-y-4">
+          <div className="border-b border-slate-200 dark:border-white/10 pb-3">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white inline-block border-b-2 border-[var(--brand)] pb-3 -mb-3.5">
+              Customer Reviews
+            </h2>
+          </div>
+
+          <div className="pt-2">
+            {isPending ? (
+              <div className="text-sm text-slate-400 animate-pulse">
+                Loading collector reviews...
+              </div>
+            ) : (
+              <ReviewSection
+                artworkId={artwork?._id}
+                currentUser={user}
+                hasPaid={hasPaid}
+                isAdmin={isAdmin}
+                isArtist={isArtist}
+                isArtworkOwner={isOwner}
+                artworkOwnerEmail={artwork?.artistEmail || artwork?.userEmail}
+              />
+            )}
+          </div>
         </div>
 
-        {/* Related Artworks Section (Daraz / Amazon "You May Also Like") */}
+        {/* Related Artworks Section */}
         {relatedArtworks.length > 0 && (
-          <div className="space-y-6 pt-4">
+          <div className="pt-8 border-t border-slate-200 dark:border-white/10 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                   More in {artwork?.category || "This Category"}
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Discover more authentic creations from our verified artist community
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Explore other original pieces from our verified creator community
                 </p>
               </div>
 
@@ -598,11 +590,11 @@ export default function ArtworkDetailsClient({
                 href="/browse"
                 className="text-xs font-bold text-[var(--brand)] hover:underline flex items-center gap-1"
               >
-                Browse All <ArrowRight size={14} />
+                Browse All <ArrowRight size={13} />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {relatedArtworks.map((item) => (
                 <Artcard key={item._id} artwork={item} />
               ))}
@@ -625,7 +617,7 @@ export default function ArtworkDetailsClient({
             <X size={20} />
           </button>
           <div
-            className="relative max-w-5xl max-h-[90vh] w-full h-[85vh]"
+            className="relative max-w-4xl max-h-[85vh] w-full h-[80vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {artwork?.image && (
@@ -637,6 +629,61 @@ export default function ArtworkDetailsClient({
                 priority
               />
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Payment Methods Info Modal */}
+      {isPaymentModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => setIsPaymentModalOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-[#1c2429] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200 dark:border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/10">
+              <h4 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CreditCard size={18} className="text-[var(--brand)]" /> Accepted Payment Methods
+              </h4>
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+              <p>
+                ArtHub supports global and local payment solutions with 256-bit bank-level SSL encryption backed by Stripe:
+              </p>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800 dark:text-white w-24">Credit & Debit:</span>
+                  <span>VISA, Mastercard, American Express</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800 dark:text-white w-24">Mobile Banking:</span>
+                  <span>bKash, Nagad</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800 dark:text-white w-24">Buyer Guarantee:</span>
+                  <span>Escrow-protected fund release upon artwork delivery</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsPaymentModalOpen(false)}
+              className="w-full py-2.5 rounded-lg bg-[var(--brand)] text-white font-bold text-xs hover:bg-[var(--brand-hover)] transition-colors"
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}
