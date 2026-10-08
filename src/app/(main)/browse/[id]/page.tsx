@@ -13,7 +13,8 @@ export default async function ArtworkDetailsPage({ params }) {
     );
   }
 
-  let artwork = null;
+  let artwork: any = null;
+  let relatedArtworks: any[] = [];
 
   try {
     const db = await getDB();
@@ -96,17 +97,52 @@ export default async function ArtworkDetailsPage({ params }) {
         resolvedArtistId: artistData?._id || (typeof rawArtistId === "string" ? rawArtistId : rawArtistId?.toString()) || null
       };
     }
-  } catch (primaryFetchError) {
-    console.error(`[DATABASE] Core runtime operational failure executing findOne on artwork schema collection: ${primaryFetchError.message}`);
+
+    relatedArtworks = [];
+    if (artwork) {
+      try {
+        const query: any = { _id: { $ne: new ObjectId(id) } };
+        if (artwork.category) {
+          query.category = artwork.category;
+        }
+        const relatedDocs = await db
+          .collection("artworks")
+          .find(query)
+          .limit(4)
+          .toArray();
+
+        relatedArtworks = relatedDocs.map((doc: any) => {
+          const isSoldDoc = Boolean(
+            doc.isSold === true ||
+            doc.status === "sold" ||
+            doc.status === "out_of_stock" ||
+            (typeof doc.quantity === "number" && doc.quantity <= 0)
+          );
+          return {
+            ...doc,
+            _id: doc._id.toString(),
+            isSold: isSoldDoc,
+            status: isSoldDoc ? "sold" : (doc.status || "available"),
+            quantity: typeof doc.quantity === "number" ? doc.quantity : (isSoldDoc ? 0 : 1),
+            createdAt: doc.createdAt ? new Date(doc.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : new Date().toISOString(),
+          };
+        });
+      } catch (relatedErr) {
+        console.warn("[DATABASE] Could not load related artworks:", relatedErr);
+      }
+    }
+  } catch (primaryFetchError: any) {
+    console.error(`[DATABASE] Core runtime operational failure executing findOne on artwork schema collection: ${primaryFetchError?.message}`);
   }
 
   if (!artwork) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#2f3f48] flex items-center justify-center text-slate-700 dark:text-white">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#1e262b] flex items-center justify-center text-slate-700 dark:text-white">
         <p className="text-lg font-semibold">Artwork Not Found!</p>
       </div>
     );
   }
 
-  return <ArtworkDetailsClient artwork={artwork} />;
+  return <ArtworkDetailsClient artwork={artwork} relatedArtworks={relatedArtworks} />;
 }

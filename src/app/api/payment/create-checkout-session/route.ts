@@ -55,6 +55,12 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
+    if (userDoc?.role === "artist") {
+      return NextResponse.json(
+        { success: false, message: "Artists cannot purchase artworks. Please switch to a collector account." },
+        { status: 403 }
+      );
+    }
 
     const artworkCollection = db.collection("artworks");
     const artwork: any = await artworkCollection.findOne({ _id: new ObjectId(artworkId) });
