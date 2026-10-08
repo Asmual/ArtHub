@@ -1,5 +1,6 @@
 import CategorySection from "@/components/home/CategorySection";
 import FeaturedArtworks from "@/components/home/FeaturedArtworks";
+import SpecialOffersSection from "@/components/home/SpecialOffersSection";
 import Hero from "@/components/home/Hero";
 import TopArtists from "@/components/home/TopArtists";
 import SmoothSection from "@/components/shared/SmoothSection";
@@ -10,6 +11,9 @@ export default function Home() {
       <Hero />
       <SmoothSection>
         <FeaturedArtworks />
+      </SmoothSection>
+      <SmoothSection>
+        <SpecialOffersSection />
       </SmoothSection>
       <SmoothSection>
         <TopArtists />

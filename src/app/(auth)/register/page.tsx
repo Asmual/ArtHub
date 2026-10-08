@@ -4,7 +4,6 @@ import NextLink from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  FaGoogle,
   FaRegEye,
   FaRegEyeSlash,
   FaUser,
@@ -12,6 +11,7 @@ import {
   FaEnvelope,
   FaLock,
 } from "react-icons/fa";
+import GoogleIcon from "@/components/shared/GoogleIcon";
 import { signUp, signIn } from "@/lib/auth-client";
 import toast from "react-hot-toast";
 
@@ -312,7 +312,7 @@ const RegisterForm = () => {
           onClick={handleGoogleSignUp}
           className="w-full flex items-center justify-center gap-3 py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 text-sm font-bold rounded-xl transition-all active:scale-[0.98] disabled:opacity-50"
         >
-          <FaGoogle className="w-4 h-4 text-white shrink-0" />
+          <GoogleIcon className="w-4 h-4 shrink-0" />
           <span>Sign Up with Google</span>
         </button>
 
