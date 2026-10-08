@@ -24,6 +24,8 @@ import {
   ArrowRight,
   Info,
   CreditCard,
+  Plus,
+  Minus,
 } from "lucide-react";
 
 interface ArtworkDetailsClientProps {
@@ -44,6 +46,7 @@ export default function ArtworkDetailsClient({
   const [activeThumbnailIndex, setActiveThumbnailIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [orderQuantity, setOrderQuantity] = useState(1);
 
   const artId = artwork?._id?.toString() || artwork?.id;
 
@@ -142,7 +145,7 @@ export default function ArtworkDetailsClient({
       return;
     }
 
-    addToCart(artwork);
+    addToCart({ ...artwork, quantity: orderQuantity });
   };
 
   // Action Handler: Buy Now / Instant Checkout
@@ -177,8 +180,9 @@ export default function ArtworkDetailsClient({
     }
 
     const titleParam = encodeURIComponent(artwork?.title || "Artwork");
-    const priceParam = Number(artwork?.price || 0);
-    router.push(`/checkout?id=${artId}&title=${titleParam}&price=${priceParam}`);
+    const singlePrice = Number(artwork?.price || 0);
+    const totalPrice = (singlePrice * orderQuantity).toFixed(2);
+    router.push(`/checkout?id=${artId}&title=${titleParam}&price=${totalPrice}&quantity=${orderQuantity}`);
   };
 
   const scrollToReviews = () => {
@@ -372,6 +376,50 @@ export default function ArtworkDetailsClient({
                   {artwork.category}
                 </span>
               )}
+            </div>
+
+            {/* Quantity Selector (+ / - buttons) */}
+            <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 text-xs">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Quantity</span>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center border border-slate-200 dark:border-white/10 rounded-md overflow-hidden bg-white dark:bg-white/5">
+                  <button
+                    type="button"
+                    onClick={() => setOrderQuantity((prev) => Math.max(1, prev - 1))}
+                    disabled={orderQuantity <= 1 || isSold}
+                    aria-label="Decrease quantity"
+                    className="p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+                  >
+                    <Minus size={13} />
+                  </button>
+
+                  <span className="px-3 py-0.5 text-xs font-bold min-w-7 text-center text-slate-900 dark:text-white select-none">
+                    {orderQuantity}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOrderQuantity((prev) =>
+                        Math.min(typeof stockQty === "number" && stockQty > 0 ? stockQty : 99, prev + 1)
+                      )
+                    }
+                    disabled={
+                      orderQuantity >= (typeof stockQty === "number" && stockQty > 0 ? stockQty : 99) ||
+                      isSold
+                    }
+                    aria-label="Increase quantity"
+                    className="p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
+
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  Total: ${(basePrice * orderQuantity).toFixed(2)}
+                </span>
+              </div>
             </div>
 
             {/* Action Buttons: Add to Cart & Buy Now */}

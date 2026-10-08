@@ -25,7 +25,8 @@ function getEmailFromRequest(req: Request, body: any = {}) {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { artworkId, price, name, phone } = body;
+    const { artworkId, price, name, phone, quantity } = body;
+    const orderQty = Math.max(1, parseInt(quantity || "1", 10) || 1);
     const userEmail = getEmailFromRequest(req, body);
 
     if (!userEmail) {
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
     ).replace(/\/$/, "");
 
     const productData: any = {
-      name: artwork.title || "Original Artwork",
+      name: orderQty > 1 ? `${artwork.title || "Original Artwork"} (×${orderQty})` : (artwork.title || "Original Artwork"),
       description: artwork.category ? `Category: ${artwork.category}` : "Original ArtHub Piece",
     };
 
@@ -151,6 +152,7 @@ export async function POST(req: Request) {
         artworkTitle: artwork.title || "Original Artwork",
         artistEmail: artistEmail,
         price: String(price || artwork.price),
+        quantity: String(orderQty),
       },
     });
 

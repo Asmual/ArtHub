@@ -57,7 +57,8 @@ export async function POST(req: Request) {
       });
     }
 
-    const { artworkId, buyerId, buyerEmail, artistEmail, artworkTitle } = session.metadata || {};
+    const { artworkId, buyerId, buyerEmail, artistEmail, artworkTitle, quantity } = session.metadata || {};
+    const purchasedQty = Math.max(1, parseInt(quantity || "1", 10) || 1);
 
     const artworkOid = toOid(artworkId);
     const artworkDoc: any = artworkOid
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
       type: "purchase",
       artworkId: artworkDoc ? artworkDoc._id : (artworkOid || artworkId),
       artworkTitle: artworkTitle || artworkDoc?.title || "Original Artwork",
+      quantity: purchasedQty,
       artworkImage: artworkDoc?.image || "",
       artworkDetails: artworkDoc ? {
         _id: artworkDoc._id,
@@ -108,7 +110,7 @@ export async function POST(req: Request) {
     // Decrement artwork quantity and mark as sold if zero
     if (artworkDoc) {
       const currentQty = typeof artworkDoc.quantity === "number" ? artworkDoc.quantity : (artworkDoc.isSold ? 0 : 1);
-      const newQty = Math.max(0, currentQty - 1);
+      const newQty = Math.max(0, currentQty - purchasedQty);
       const isNowSold = newQty === 0;
       await artworkCollection.updateOne(
         { _id: artworkDoc._id },

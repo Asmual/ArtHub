@@ -44,9 +44,11 @@ export default function CartDrawer() {
       );
       return;
     }
+    const qty = item.quantity || 1;
+    const finalPrice = (item.price * qty).toFixed(2);
     setIsCartOpen(false);
     router.push(
-      `/checkout?id=${item._id}&title=${encodeURIComponent(item.title)}&price=${item.price}`
+      `/checkout?id=${item._id}&title=${encodeURIComponent(item.title)}&price=${finalPrice}&quantity=${qty}`
     );
   };
 
@@ -66,9 +68,11 @@ export default function CartDrawer() {
       return;
     }
     const firstItem = cartItems[0];
+    const qty = firstItem.quantity || 1;
+    const finalPrice = (firstItem.price * qty).toFixed(2);
     setIsCartOpen(false);
     router.push(
-      `/checkout?id=${firstItem._id}&title=${encodeURIComponent(firstItem.title)}&price=${firstItem.price}`
+      `/checkout?id=${firstItem._id}&title=${encodeURIComponent(firstItem.title)}&price=${finalPrice}&quantity=${qty}`
     );
   };
 
@@ -189,9 +193,16 @@ export default function CartDrawer() {
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-border-line/40">
-                    <span className="text-sm font-black text-[var(--brand)]">
-                      ${Number(item.price).toFixed(2)}
-                    </span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-sm font-black text-[var(--brand)]">
+                        ${(Number(item.price) * (item.quantity || 1)).toFixed(2)}
+                      </span>
+                      {(item.quantity || 1) > 1 && (
+                        <span className="text-[10px] font-semibold text-foreground/45">
+                          (${Number(item.price).toFixed(2)} × {item.quantity})
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleCheckoutSingle(item)}

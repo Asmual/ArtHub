@@ -24,6 +24,7 @@ function CheckoutContent() {
   const artworkId = searchParams.get("id");
   const artworkName = searchParams.get("title") || "Selected Artwork";
   const orderPrice = parseFloat(searchParams.get("price") || "0");
+  const orderQuantity = Math.max(1, parseInt(searchParams.get("quantity") || "1", 10) || 1);
 
   const { data: session, isPending: authLoading } = authClient.useSession();
   const user = session?.user;
@@ -64,7 +65,7 @@ function CheckoutContent() {
     const finalEmail = user?.email?.trim();
     if (!finalEmail) {
       toast.error("Please login to proceed with checkout.");
-      router.push(`/login?redirect=/checkout?id=${artworkId}&title=${encodeURIComponent(artworkName)}&price=${orderPrice}`);
+      router.push(`/login?redirect=/checkout?id=${artworkId}&title=${encodeURIComponent(artworkName)}&price=${orderPrice}&quantity=${orderQuantity}`);
       return;
     }
 
@@ -74,6 +75,7 @@ function CheckoutContent() {
       const payload = {
         artworkId,
         price: orderPrice,
+        quantity: orderQuantity,
         name: user?.name?.trim() || "ArtHub Collector",
         email: finalEmail,
         phone: "",
@@ -279,6 +281,14 @@ function CheckoutContent() {
                     {artworkName}
                   </span>
                 </div>
+                {orderQuantity > 1 && (
+                  <div className="flex justify-between text-[var(--text-muted)]">
+                    <span>Quantity</span>
+                    <span className="font-semibold text-[var(--text-main)]">
+                      {orderQuantity} pieces
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-[var(--text-muted)]">
                   <span>Authenticity Guarantee</span>
                   <span className="font-semibold text-emerald-500">100% Verified Original</span>

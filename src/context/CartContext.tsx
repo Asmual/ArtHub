@@ -86,8 +86,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       (item) => (item._id || item.id || "").toString() === artId
     );
 
+    const addQuantity = typeof artwork.quantity === "number" && artwork.quantity > 0 ? artwork.quantity : 1;
+
     if (existingIndex > -1) {
-      toast("Artwork is already in your cart.");
+      setCartItems((prev) =>
+        prev.map((item, idx) =>
+          idx === existingIndex
+            ? { ...item, quantity: (item.quantity || 1) + addQuantity }
+            : item
+        )
+      );
+      toast.success(`Updated cart quantity (+${addQuantity})`);
       setIsCartOpen(true);
       return;
     }
@@ -101,6 +110,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       artistName: artwork.artistName || artwork.artist?.name || "Original Artist",
       artistEmail: artwork.artistEmail || artwork.userEmail || "",
       category: artwork.category || "Artwork",
+      quantity: addQuantity,
     };
 
     setCartItems((prev) => [itemToAdd, ...prev]);
@@ -188,7 +198,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Aggregated calculations
   const cartCount = cartItems.length;
   const wishlistCount = wishlistItems.length;
-  const cartTotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+  const cartTotal = cartItems.reduce(
+    (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+    0
+  );
 
   return (
     <CartContext.Provider
