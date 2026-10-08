@@ -1,0 +1,51 @@
+import { NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
+import { getDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/api-guard";
+
+export const dynamic = "force-dynamic";
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const authCheck = await requireAdmin(req);
+    if (authCheck.error) {
+      return authCheck.response;
+    }
+
+    const { id } = await params;
+    const body = await req.json().catch(() => ({}));
+    const { role } = body;
+
+    const allowedRoles = ["user", "artist", "admin"];
+    if (!allowedRoles.includes(role)) {
+      return NextResponse.json(
+        { error: true, message: "Invalid role assigned." },
+        { status: 400 }
+      );
+    }
+
+    const db = await getDB();
+    let query: any = { id };
+    if (ObjectId.isValid(id)) {
+      query = { $or: [{ _id: new ObjectId(id) }, { id }] };
+    }
+
+    const result = await db.collection("user").findOneAndUpdate(
+      query,
+      { $set: { role, updatedAt: new Date() } },
+      { returnDocument: "after" }
+    );
+
+    const updatedUser: any = result && (result as any).value ? (result as any).value : result;
+    return NextResponse.json({
+      success: true,
+      data: updatedUser ? { ...updatedUser, _id: updatedUser._id?.toString() } : null,
+    });
+  } catch (err: any) {
+    console.error("[ADMIN API ERROR] users role PATCH:", err);
+    return NextResponse.json(
+      { error: true, message: "Failed to update role", details: err?.message },
+      { status: 500 }
+    );
+  }
+}
