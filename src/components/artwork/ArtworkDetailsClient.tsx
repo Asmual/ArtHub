@@ -187,20 +187,20 @@ export default function ArtworkDetailsClient({
 
   return (
     <main
-      className="min-h-screen bg-[#f8fafc] dark:bg-[#13191c] py-8 px-4 sm:px-6 lg:px-8 text-slate-800 dark:text-slate-100"
+      className="min-h-screen bg-[#f8fafc] dark:bg-[#13191c] py-3 sm:py-5 px-3 sm:px-6 lg:px-8 text-slate-800 dark:text-slate-100"
       style={{ fontFamily: "'Montserrat', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto space-y-10">
-        {/* Breadcrumb Navigation (Daraz / E-Commerce Standard) */}
-        <nav className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 overflow-x-auto whitespace-nowrap py-1">
+      <div className="max-w-6xl mx-auto space-y-5 sm:space-y-6">
+        {/* Sleek Breadcrumb Navigation */}
+        <nav className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 overflow-x-auto whitespace-nowrap">
           <Link href="/" className="hover:text-[var(--brand)] transition-colors">
             Home
           </Link>
-          <ChevronRight size={14} className="shrink-0 text-slate-400" />
+          <ChevronRight size={12} className="shrink-0 text-slate-400" />
           <Link href="/browse" className="hover:text-[var(--brand)] transition-colors">
             Gallery
           </Link>
-          <ChevronRight size={14} className="shrink-0 text-slate-400" />
+          <ChevronRight size={12} className="shrink-0 text-slate-400" />
           {artwork?.category && (
             <>
               <Link
@@ -209,223 +209,169 @@ export default function ArtworkDetailsClient({
               >
                 {artwork.category}
               </Link>
-              <ChevronRight size={14} className="shrink-0 text-slate-400" />
+              <ChevronRight size={12} className="shrink-0 text-slate-400" />
             </>
           )}
-          <span className="text-slate-900 dark:text-white font-bold truncate max-w-xs">
+          <span className="text-slate-900 dark:text-white font-bold truncate max-w-[200px] sm:max-w-xs">
             {artwork?.title || "Artwork Details"}
           </span>
         </nav>
 
-        {/* Main Product Showcase (Daraz / Ghorer Bazar 2-Column Grid) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start bg-white dark:bg-[#1c2429] p-4 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm">
-          {/* Left Column: Visual Artwork Media (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
-            {/* Primary Artwork Stage */}
-            <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-black/40 border border-slate-200/90 dark:border-white/10 shadow-inner group">
-              {artwork?.image ? (
-                <Image
-                  src={artwork.image}
-                  alt={artwork.title || "Artwork"}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 42vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
-                  onClick={() => setIsLightboxOpen(true)}
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                  <Palette size={48} className="stroke-[1.5]" />
-                  <span className="text-xs mt-2">Artwork Preview Unavailable</span>
-                </div>
-              )}
-
-              {/* Top Floating Badges */}
-              <div className="absolute top-3 left-3 flex flex-col gap-1.5 pointer-events-none">
-                {/* Category Badge */}
-                {artwork?.category && (
-                  <span className="bg-[var(--brand)] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-md">
-                    {artwork.category}
-                  </span>
-                )}
-
-                {/* Stock Status Pill */}
-                {isSold ? (
-                  <span className="bg-red-600/95 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1.5 border border-red-400/30">
-                    <span className="w-2 h-2 rounded-full bg-white" />
-                    Sold Out
-                  </span>
+        {/* Primary Showcase Card (Fits completely on one screen below navbar) */}
+        <div className="bg-white dark:bg-[#1c2429] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-7 items-center">
+            {/* Left Column: Artwork Image Container (5 cols) */}
+            <div className="lg:col-span-5 space-y-2.5">
+              <div className="relative h-[260px] sm:h-[320px] lg:h-[360px] w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 group">
+                {artwork?.image ? (
+                  <Image
+                    src={artwork.image}
+                    alt={artwork.title || "Artwork"}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    className="object-contain sm:object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+                    onClick={() => setIsLightboxOpen(true)}
+                  />
                 ) : (
-                  <span className="bg-emerald-600/95 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1.5 border border-emerald-400/30">
-                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    Available In Studio
-                  </span>
+                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                    <Palette size={40} className="stroke-[1.5]" />
+                    <span className="text-xs mt-1">Artwork Preview Unavailable</span>
+                  </div>
                 )}
-              </div>
 
-              {/* Bottom Right Floating Zoom Button */}
-              <button
-                type="button"
-                onClick={() => setIsLightboxOpen(true)}
-                title="Full Screen Preview"
-                className="absolute bottom-3 right-3 p-2.5 rounded-xl bg-black/60 hover:bg-black/85 backdrop-blur-md text-white transition-all shadow-lg cursor-pointer"
-              >
-                <Maximize2 size={16} />
-              </button>
-            </div>
+                {/* Top Floating Badges */}
+                <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 pointer-events-none">
+                  {artwork?.category && (
+                    <span className="bg-[var(--brand)] text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs">
+                      {artwork.category}
+                    </span>
+                  )}
+                  {isSold ? (
+                    <span className="bg-red-600/95 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 border border-red-400/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                      Sold Out
+                    </span>
+                  ) : (
+                    <span className="bg-emerald-600/95 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 border border-emerald-400/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      Available
+                    </span>
+                  )}
+                </div>
 
-            {/* Quick Actions & Trust Pill Below Image */}
-            <div className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200/80 dark:border-white/5">
-              <div className="flex items-center gap-2">
+                {/* Bottom Right Zoom Button */}
                 <button
                   type="button"
-                  onClick={() => toggleWishlist(artwork)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-                    inWishlist
-                      ? "bg-red-500/10 border-red-500/30 text-red-500"
-                      : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-red-500"
-                  }`}
+                  onClick={() => setIsLightboxOpen(true)}
+                  title="Expand artwork preview"
+                  className="absolute bottom-2.5 right-2.5 p-1.5 rounded-lg bg-black/60 hover:bg-black/85 backdrop-blur-md text-white transition-all shadow-md cursor-pointer"
                 >
-                  <Heart size={14} className={inWishlist ? "fill-red-500" : ""} />
-                  <span>{inWishlist ? "Wishlisted" : "Add to Wishlist"}</span>
+                  <Maximize2 size={14} />
                 </button>
+              </div>
 
+              {/* Compact Image Footer Strip */}
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1">
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <ShieldCheck size={13} /> 100% Certified Authentic Original
+                </span>
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-[var(--brand)] transition-all cursor-pointer"
+                  className="flex items-center gap-1 font-bold text-slate-600 dark:text-slate-300 hover:text-[var(--brand)] transition-colors cursor-pointer"
                 >
-                  <Share2 size={14} />
-                  <span>Share</span>
+                  <Share2 size={13} /> Share
                 </button>
               </div>
-
-              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <ShieldCheck size={14} /> Certified Authentic
-              </span>
             </div>
 
-            {/* Quick Specs Badges */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Authenticity
-                </span>
-                <span className="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block">
-                  100% Original Artwork
-                </span>
-              </div>
-              <div className="p-3 bg-white dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
-                  Documentation
-                </span>
-                <span className="font-bold text-slate-700 dark:text-slate-200 mt-0.5 block">
-                  Physical COA Included
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: E-Commerce Product & Checkout Box (7 cols) */}
-          <div className="lg:col-span-7 space-y-6 lg:pl-4">
-            {/* Title & Metadata */}
-            <div className="space-y-2 border-b border-slate-100 dark:border-white/5 pb-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-bold tracking-wider uppercase text-[var(--brand)]">
-                  Original Gallery Piece • ID: #{artId?.slice(-6).toUpperCase()}
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  Listed on {formatBDDateTime(artwork?.createdAt)}
-                </span>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
-                {artwork?.title || "Original Artwork"}
-              </h1>
-            </div>
-
-            {/* Artist Showcase Box (Daraz / Verified Seller Snapshot) */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200/80 dark:border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[var(--brand)] to-[#b34928] text-white font-black text-lg flex items-center justify-center uppercase shadow-sm shrink-0">
-                  {(artistRealName || "A")[0]}
+            {/* Right Column: Title, Artist, Price, Buttons & Trust (7 cols) */}
+            <div className="lg:col-span-7 space-y-3 lg:space-y-3.5">
+              {/* Header: Category / ID + Title */}
+              <div>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                  <span className="font-bold uppercase tracking-wider text-[var(--brand)]">
+                    Original Studio Masterpiece
+                  </span>
+                  <span>Published {formatBDDateTime(artwork?.createdAt)}</span>
                 </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-slate-800 dark:text-white text-base">
-                      {artistRealName}
-                    </span>
-                    <span
-                      className="w-4 h-4 rounded-full bg-[#1d9bf0] text-white flex items-center justify-center text-[10px]"
-                      title="Verified Creator"
-                    >
-                      ✓
-                    </span>
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white leading-tight tracking-tight line-clamp-2">
+                  {artwork?.title || "Original Artwork"}
+                </h1>
+              </div>
+
+              {/* Artist Row */}
+              <div className="flex items-center justify-between py-2 px-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/70 dark:border-white/5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[var(--brand)] to-[#b34928] text-white font-black text-xs flex items-center justify-center uppercase shadow-xs shrink-0">
+                    {(artistRealName || "A")[0]}
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {artwork?.specialty || artwork?.category || "Fine Art"} Creator
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-bold text-slate-800 dark:text-white text-xs">
+                        {artistRealName}
+                      </span>
+                      <span
+                        className="w-3.5 h-3.5 rounded-full bg-[#1d9bf0] text-white flex items-center justify-center text-[8px]"
+                        title="Verified Creator"
+                      >
+                        ✓
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      {artwork?.specialty || artwork?.category || "Fine Art"} Creator
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {artistId && (
-                <Link
-                  href={`/artists-profile/${artistId.toString()}`}
-                  className="text-xs font-bold text-[var(--brand)] hover:underline flex items-center gap-1 px-3 py-1.5 rounded-xl hover:bg-[var(--brand)]/10 transition-colors"
-                >
-                  View Profile <ChevronRight size={14} />
-                </Link>
-              )}
-            </div>
-
-            {/* Pricing Box (Daraz / Ghorer Bazar Style Focal Card) */}
-            <div className="p-5 bg-gradient-to-br from-amber-500/5 via-transparent to-[var(--brand)]/5 dark:bg-white/[0.03] rounded-2xl border border-amber-500/20 dark:border-white/10 space-y-3">
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl sm:text-4xl font-black text-[var(--brand)]">
-                  ${Number(artwork?.price || 0).toFixed(2)}
-                </span>
-                <span className="text-sm font-semibold text-slate-400 line-through">
-                  ${(Number(artwork?.price || 0) * 1.25).toFixed(2)}
-                </span>
-                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                  Studio Direct Price
-                </span>
-              </div>
-
-              {/* Stock Status Indicator */}
-              <div className="flex items-center gap-2 pt-1">
-                {isSold ? (
-                  <div className="flex items-center gap-2 text-xs font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20">
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
-                    <span>Sold Out • This masterpiece has already been collected</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>
-                      In Stock • Ready for secure dispatch
-                      {typeof stockQty === "number" && stockQty > 0 ? ` (${stockQty} copy)` : ""}
-                    </span>
-                  </div>
+                {artistId && (
+                  <Link
+                    href={`/artists-profile/${artistId.toString()}`}
+                    className="text-[11px] font-bold text-[var(--brand)] hover:underline flex items-center gap-0.5"
+                  >
+                    Profile <ChevronRight size={12} />
+                  </Link>
                 )}
               </div>
 
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-1">
-                <Sparkles size={12} className="text-amber-500" />
-                Price includes verified authentication, museum-grade wrap, and secure tracking.
-              </p>
-            </div>
+              {/* Price & Stock Strip */}
+              <div className="p-3 bg-slate-50 dark:bg-white/[0.03] rounded-xl border border-slate-200/70 dark:border-white/5 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-2xl sm:text-3xl font-black text-[var(--brand)]">
+                    ${Number(artwork?.price || 0).toFixed(2)}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400 line-through">
+                    ${(Number(artwork?.price || 0) * 1.25).toFixed(2)}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                    Studio Price
+                  </span>
+                </div>
 
-            {/* Standardized Action Buttons (Daraz E-Commerce Buttons for ALL users) */}
-            <div className="space-y-3 pt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  {isSold ? (
+                    <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20">
+                      Sold Out
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      In Stock {typeof stockQty === "number" && stockQty > 0 ? `(${stockQty})` : ""}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Main Action Buttons: Buy Now, Add to Cart, Wishlist */}
+              <div className="flex items-center gap-2 pt-0.5">
                 {/* 1. Buy Now Button */}
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[var(--brand)] to-[#b34928] hover:opacity-95 text-white font-extrabold text-sm uppercase tracking-wider transition-all shadow-lg shadow-[var(--brand)]/20 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2.5"
+                  className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-[var(--brand)] to-[#b34928] hover:opacity-95 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-md shadow-[var(--brand)]/15 active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <ShoppingBag size={18} />
+                  <ShoppingBag size={15} />
                   <span>Buy Now</span>
                 </button>
 
@@ -433,7 +379,7 @@ export default function ArtworkDetailsClient({
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className={`w-full py-4 px-6 rounded-2xl border-2 font-extrabold text-sm uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2.5 ${
+                  className={`flex-1 py-2.5 sm:py-3 px-4 rounded-xl border font-extrabold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 ${
                     inCart
                       ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
                       : "bg-white dark:bg-white/5 border-slate-300 dark:border-white/20 text-slate-800 dark:text-white hover:border-[var(--brand)] hover:text-[var(--brand)]"
@@ -441,87 +387,49 @@ export default function ArtworkDetailsClient({
                 >
                   {inCart ? (
                     <>
-                      <Check size={18} className="text-emerald-500" />
+                      <Check size={15} className="text-emerald-500" />
                       <span>In Cart</span>
                     </>
                   ) : (
                     <>
-                      <ShoppingCart size={18} />
-                      <span>Add to Cart</span>
+                      <ShoppingCart size={15} />
+                      <span>Add Cart</span>
                     </>
                   )}
                 </button>
+
+                {/* 3. Wishlist Button */}
+                <button
+                  type="button"
+                  onClick={() => toggleWishlist(artwork)}
+                  title={inWishlist ? "Remove from wishlist" : "Save to wishlist"}
+                  className={`p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer shrink-0 ${
+                    inWishlist
+                      ? "bg-red-500/10 border-red-500/30 text-red-500"
+                      : "bg-white dark:bg-white/5 border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 hover:text-red-500"
+                  }`}
+                >
+                  <Heart size={16} className={inWishlist ? "fill-red-500" : ""} />
+                </button>
               </div>
 
-              {/* Wishlist full-width secondary option for mobile/quick touch */}
-              <button
-                type="button"
-                onClick={() => toggleWishlist(artwork)}
-                className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-2 cursor-pointer ${
-                  inWishlist
-                    ? "bg-red-500/10 border-red-500/30 text-red-500"
-                    : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-red-500"
-                }`}
-              >
-                <Heart size={14} className={inWishlist ? "fill-red-500" : ""} />
-                <span>{inWishlist ? "Saved in Your Collection" : "Save to Favorites"}</span>
-              </button>
-            </div>
-
-            {/* Daraz / Ghorer Bazar Trust & Delivery Guarantee Box */}
-            <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-3 text-xs">
-              <h3 className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <ShieldCheck size={15} className="text-[var(--brand)]" />
-                ArtHub Collector Protection & Service
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="flex items-start gap-2.5">
-                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <Truck size={16} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">Insured Art Transit</p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Reinforced wooden crating with door-to-door courier tracking.
-                    </p>
-                  </div>
+              {/* Compact Trust Chips (2x2 Grid) */}
+              <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                  <Truck size={14} className="text-emerald-500 shrink-0" />
+                  <span className="truncate">Insured Transit (3-7 Days)</span>
                 </div>
-
-                <div className="flex items-start gap-2.5">
-                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
-                    <ShieldCheck size={16} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">Authentic Guarantee</p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Hand-signed by artist with physical Certificate of Authenticity.
-                    </p>
-                  </div>
+                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                  <ShieldCheck size={14} className="text-blue-500 shrink-0" />
+                  <span className="truncate">Hand-Signed with COA</span>
                 </div>
-
-                <div className="flex items-start gap-2.5">
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                    <RotateCcw size={16} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">7-Day Inspection</p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Hassle-free return policy if condition differs from presentation.
-                    </p>
-                  </div>
+                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                  <CheckCircle2 size={14} className="text-purple-500 shrink-0" />
+                  <span className="truncate">Encrypted Stripe Checkout</span>
                 </div>
-
-                <div className="flex items-start gap-2.5">
-                  <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
-                    <CheckCircle2 size={16} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">Encrypted Checkout</p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      256-bit encrypted transactions backed by Stripe.
-                    </p>
-                  </div>
+                <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                  <RotateCcw size={14} className="text-amber-500 shrink-0" />
+                  <span className="truncate">7-Day Inspection Return</span>
                 </div>
               </div>
             </div>
