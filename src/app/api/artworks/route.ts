@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDB } from "@/lib/mongodb";
+import { getAuthenticatedUser } from "@/lib/api-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -73,39 +74,57 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const db = await getDB();
 
-    const artistEmail = body.artistEmail || body.userEmail || body.email;
+    const authUser = await getAuthenticatedUser(req);
+    const artistEmail = (authUser?.email || body.artistEmail || body.userEmail || body.email || "").trim().toLowerCase();
 
-    // Verify artist upload quota against active subscription plan
-    if (artistEmail) {
-      const user: any = (await db.collection("user").findOne({ email: artistEmail })) ||
-                        (await db.collection("users").findOne({ email: artistEmail }));
+    if (!artistEmail) {
+      return NextResponse.json(
+        { error: true, message: "Authentication required to publish artwork." },
+        { status: 401 }
+      );
+    }
 
-      const plan = user?.plan || user?.subscription?.plan || "free";
-      const PLAN_LIMITS: Record<string, number> = { free: 5, basic: 20, pro: 60, ultimate: Infinity };
-      const limit = PLAN_LIMITS[plan] ?? 5;
+    // Role check: Only Artists and Admins can publish artworks
+    const userDoc: any = (await db.collection("user").findOne({ email: artistEmail })) ||
+                         (await db.collection("users").findOne({ email: artistEmail }));
 
-      if (limit !== Infinity) {
-        const currentCount = await db.collection("artworks").countDocuments({
-          $or: [
-            { artistEmail },
-            { userEmail: artistEmail },
-            { email: artistEmail },
-          ],
-        });
+    const role = (authUser?.role || userDoc?.role || "user").toLowerCase();
+    if (role !== "artist" && role !== "admin") {
+      return NextResponse.json(
+        {
+          error: true,
+          requiresArtistUpgrade: true,
+          message: "Only artists are permitted to publish artworks. Please upgrade your profile to an Artist account.",
+        },
+        { status: 403 }
+      );
+    }
 
-        if (currentCount >= limit) {
-          return NextResponse.json(
-            {
-              error: true,
-              code: "PLAN_LIMIT_REACHED",
-              message: `You have reached the maximum artwork limit (${limit}) for the ${plan.toUpperCase()} plan. Please upgrade to a higher tier to add more artworks.`,
-              currentCount,
-              limit,
-              plan,
-            },
-            { status: 403 }
-          );
-        }
+    const plan = userDoc?.plan || userDoc?.subscription?.plan || "free";
+    const PLAN_LIMITS: Record<string, number> = { free: 5, basic: 20, pro: 60, ultimate: Infinity };
+    const limit = PLAN_LIMITS[plan] ?? 5;
+
+    if (limit !== Infinity) {
+      const currentCount = await db.collection("artworks").countDocuments({
+        $or: [
+          { artistEmail },
+          { userEmail: artistEmail },
+          { email: artistEmail },
+        ],
+      });
+
+      if (currentCount >= limit) {
+        return NextResponse.json(
+          {
+            error: true,
+            code: "PLAN_LIMIT_REACHED",
+            message: `You have reached the maximum artwork limit (${limit}) for the ${plan.toUpperCase()} plan. Please upgrade to a higher tier to add more artworks.`,
+            currentCount,
+            limit,
+            plan,
+          },
+          { status: 403 }
+        );
       }
     }
 

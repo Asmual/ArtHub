@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDB } from "@/lib/mongodb";
+import { getAuthenticatedUser } from "@/lib/api-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,30 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const existing: any = await db.collection("artworks").findOne(query);
     if (!existing) {
       return NextResponse.json({ error: true, message: "Artwork not found" }, { status: 404 });
+    }
+
+    const authUser = await getAuthenticatedUser(req);
+    if (!authUser) {
+      return NextResponse.json({ error: true, message: "Authentication required to update stock." }, { status: 401 });
+    }
+
+    if (authUser.role !== "admin") {
+      const userEmail = authUser.email.toLowerCase();
+      const userId = authUser.id;
+      const isOwner = Boolean(
+        (existing.userId && existing.userId.toString() === userId) ||
+        (existing.artistId && existing.artistId.toString() === userId) ||
+        (existing.artistEmail && existing.artistEmail.toLowerCase() === userEmail) ||
+        (existing.userEmail && existing.userEmail.toLowerCase() === userEmail) ||
+        (existing.email && existing.email.toLowerCase() === userEmail)
+      );
+
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: true, message: "Forbidden: You are only allowed to update stock for your own artworks." },
+          { status: 403 }
+        );
+      }
     }
 
     let newQuantity;

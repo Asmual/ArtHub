@@ -99,6 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       image: artwork.image || artwork.imageUrl || "",
       price: Number(artwork.price || 0),
       artistName: artwork.artistName || artwork.artist?.name || "Original Artist",
+      artistEmail: artwork.artistEmail || artwork.userEmail || "",
       category: artwork.category || "Artwork",
     };
 

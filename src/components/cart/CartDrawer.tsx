@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { X, Trash2, ShoppingBag, ArrowRight, Palette, ShieldCheck } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
+import { CartItem } from "@/types";
 
 export default function CartDrawer() {
   const { cartItems, removeFromCart, clearCart, cartTotal, isCartOpen, setIsCartOpen } = useCart();
@@ -30,9 +31,13 @@ export default function CartDrawer() {
 
   if (!isCartOpen) return null;
 
-  const handleCheckoutSingle = (item) => {
+  const handleCheckoutSingle = (item: CartItem) => {
     if (isAdmin) {
       toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
+    if (user?.email && item.artistEmail === user.email) {
+      toast.error("Artists cannot purchase their own artworks.");
       return;
     }
     setIsCartOpen(false);
@@ -45,6 +50,11 @@ export default function CartDrawer() {
     if (cartItems.length === 0) return;
     if (isAdmin) {
       toast.error("Admins cannot purchase artworks. Please switch to a collector account.");
+      return;
+    }
+    const ownedItem = cartItems.find((it) => user?.email && it.artistEmail === user.email);
+    if (ownedItem) {
+      toast.error(`You cannot purchase your own artwork ("${ownedItem.title}"). Please remove it from your cart.`);
       return;
     }
     const firstItem = cartItems[0];

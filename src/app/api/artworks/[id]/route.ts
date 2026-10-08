@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getDB } from "@/lib/mongodb";
+import { getAuthenticatedUser } from "@/lib/api-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,31 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: true, message: "Artwork not found" }, { status: 404 });
     }
 
+    // Role & Ownership check
+    const authUser = await getAuthenticatedUser(req);
+    if (!authUser) {
+      return NextResponse.json({ error: true, message: "Authentication required to edit artwork." }, { status: 401 });
+    }
+
+    if (authUser.role !== "admin") {
+      const userEmail = authUser.email.toLowerCase();
+      const userId = authUser.id;
+      const isOwner = Boolean(
+        (existing.userId && existing.userId.toString() === userId) ||
+        (existing.artistId && existing.artistId.toString() === userId) ||
+        (existing.artistEmail && existing.artistEmail.toLowerCase() === userEmail) ||
+        (existing.userEmail && existing.userEmail.toLowerCase() === userEmail) ||
+        (existing.email && existing.email.toLowerCase() === userEmail)
+      );
+
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: true, message: "Forbidden: You are only allowed to edit your own artworks." },
+          { status: 403 }
+        );
+      }
+    }
+
     const updateDoc: any = { ...body, updatedAt: new Date() };
     delete updateDoc._id;
 
@@ -107,7 +133,37 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       query = { $or: [{ _id: new ObjectId(id) }, { _id: id }] };
     }
 
-    const result = await db.collection("artworks").deleteOne(query);
+    const existing: any = await db.collection("artworks").findOne(query);
+    if (!existing) {
+      return NextResponse.json({ error: true, message: "Artwork not found" }, { status: 404 });
+    }
+
+    // Role & Ownership check
+    const authUser = await getAuthenticatedUser(req);
+    if (!authUser) {
+      return NextResponse.json({ error: true, message: "Authentication required to delete artwork." }, { status: 401 });
+    }
+
+    if (authUser.role !== "admin") {
+      const userEmail = authUser.email.toLowerCase();
+      const userId = authUser.id;
+      const isOwner = Boolean(
+        (existing.userId && existing.userId.toString() === userId) ||
+        (existing.artistId && existing.artistId.toString() === userId) ||
+        (existing.artistEmail && existing.artistEmail.toLowerCase() === userEmail) ||
+        (existing.userEmail && existing.userEmail.toLowerCase() === userEmail) ||
+        (existing.email && existing.email.toLowerCase() === userEmail)
+      );
+
+      if (!isOwner) {
+        return NextResponse.json(
+          { error: true, message: "Forbidden: You are only allowed to delete your own artworks." },
+          { status: 403 }
+        );
+      }
+    }
+
+    const result = await db.collection("artworks").deleteOne({ _id: existing._id });
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: true, message: "Artwork not found" }, { status: 404 });
     }
